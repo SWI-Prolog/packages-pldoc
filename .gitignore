@@ -1,3 +1,5 @@
+*~
+.pl-history
 configure
 t.pl
 test.*
@@ -7,3 +9,16 @@ pldoc.sty
 pldoc.html
 pldoc.pdf
 server/man_server.pl
+Makefile
+autom4te.cache
+config.log
+config.status
+pldoc.aux
+pldoc.bbl
+pldoc.blg
+pldoc.idx
+pldoc.ilg
+pldoc.ind
+pldoc.log
+pldoc.out
+pldoc.toc
