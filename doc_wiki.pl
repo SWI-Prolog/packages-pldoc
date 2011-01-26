@@ -37,6 +37,7 @@
 	    indented_lines/3,		% +Text, +PrefixChars, -Lines
 	    strip_leading_par/2,	% +DOM0, -DOM
 	    normalise_white_space/3,	% -Text, //
+	    autolink_extension/2,	% ?Extension, ?Type
 	    autolink_file/2		% +FileName, -Type
 	  ]).
 :- use_module(library(lists)).

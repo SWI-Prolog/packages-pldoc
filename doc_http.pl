@@ -442,6 +442,10 @@ documentation(Path, Request) :-
 	file(_, Base), !,			% serve pldoc.css, etc.
 	http_reply_file(pldoc(Base), [], Request).
 documentation(Path, Request) :-
+	file_name_extension(_, Ext, Path),
+	autolink_extension(Ext, image),
+	http_reply_file(Path, [unsafe(true)], Request).
+documentation(Path, Request) :-
 	Index = '/index.html',
 	sub_atom(Path, _, _, 0, Index),
 	atom_concat(Dir, Index, Path),
