@@ -532,16 +532,32 @@ application will process this data using setup.pl. ...
 To support the developer with an up-to-date version of the documentation
 of both the application under development and the system libraries the
 developer can start an HTTP documentation server using the command
-\term{doc_server}{?Port}.
+\term{doc_server}{?Port}.  A good way to deploy PlDoc for program
+development is to write a file called e.g., \file{debug.pl} that
+sets up the preferred development environment and loads your program.
+below is an example \file{debug.pl} that starts PlDoc and prints strings
+as text before loading the remainder of your program.
 
+\begin{code}
+:- doc_server(4000).	% Start PlDoc at port 4000
+:- portray_text(true).	% Enable portray of strings
+
+:- [load].		% load your program
+\end{code}
 
 \begin{description}
     \predicate{doc_collect}{1}{+Bool}
 Enable/disable collecting structured comments into the Prolog database.
+See doc_server/1 or doc_browser/0 for the normal way to deploy the
+server in your application. All these predicates must be called
+\emph{before} loading your program.
 
     \predicate{doc_server}{1}{?Port}
 Start documentation server at \arg{Port}.  Same as
-\term{doc_server}{Port, [allow(localhost), workers(1)]}.
+\term{doc_server}{Port, [allow(localhost), workers(1)]}.  This predicate
+must be called \emph{before} loading the program for which you consult
+the documentation. It calls doc_collect/1 to start collecting
+documentation while (re-)loading your program.
 
     \predicate{doc_server}{2}{?Port, +Options}
 Start documentation server at \arg{Port} using \arg{Options}.  Provided
