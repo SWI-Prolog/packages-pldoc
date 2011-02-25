@@ -5,7 +5,7 @@ LIBPL=		doc_html.pl doc_wiki.pl doc_modes.pl doc_register.pl \
 SUPPORT=	pldoc.css pldoc.js pllisting.css pldoc.sty \
 		edit.gif private.png public.png reload.gif favicon.ico \
 		up.gif source.png h1-bg.png pub-bg.png multi-bg.png \
-		priv-bg.png
+		priv-bg.png h2-bg.png
 DOCALL=		$(LIBPL) $(SUPPORT)
 PUBPL=		pldoc.pl doc_http.pl doc_latex.pl
 EXAMPLES=	README

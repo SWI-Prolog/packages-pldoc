@@ -76,22 +76,30 @@ search_form(Options) -->
 				  value('Search')
 				])
 			]),
-		    div(class('search-options'),
-			[ span(class('search-in'),
-			       [ \radio(in, all, 'All', In),
-				 \radio(in, app, 'Application', In),
-				 \radio(in, man, 'Manual', In)
-			       ]),
-			  span(class('search-match'),
-			       [ \radio(match, name, 'Name', Match),
-				 \radio(match, summary, 'Summary', Match)
-			       ]),
-			  span(class('search-help'),
-			       [ a(href(location_by_id(pldoc_package)+'pldoc.html#sec:browser'),
-				   'Help')
-			       ])
-			])
+		    \search_options(In, Match, Options)
 		  ])).
+
+search_options(In, Match, Options) -->
+	{ option(search_options(false), Options) }, !,
+	hidden(in, In),
+	hidden(match, Match).
+search_options(In, Match, _Options) -->
+	html(div(class('search-options'),
+		 [ span(class('search-in'),
+			[ \radio(in, all, 'All', In),
+			  \radio(in, app, 'Application', In),
+			  \radio(in, man, 'Manual', In)
+			]),
+		   span(class('search-match'),
+			[ \radio(match, name, 'Name', Match),
+			  \radio(match, summary, 'Summary', Match)
+			]),
+		   span(class('search-help'),
+			[ a(href(location_by_id(pldoc_package)+'pldoc.html#sec:browser'),
+			    'Help')
+			])
+		 ])).
+
 
 %%	search_field(+Options)// is det.
 %
@@ -116,6 +124,9 @@ radio(Radio, Field, Label, In) -->
 		     ]),
 	       Label
 	     ]).
+
+hidden(Name, Value) -->
+	html(input([type(hidden), name(Name), value(Value)])).
 
 %%	search_reply(+For, +Options)// is det.
 %

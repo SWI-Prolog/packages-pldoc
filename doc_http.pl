@@ -407,6 +407,7 @@ file('private.png',   'private.png').
 file('reload.gif',    'reload.gif').
 file('favicon.ico',   'favicon.ico').
 file('h1-bg.png',     'h1-bg.png').
+file('h2-bg.png',     'h2-bg.png').
 file('pub-bg.png',    'pub-bg.png').
 file('priv-bg.png',   'priv-bg.png').
 file('multi-bg.png',  'multi-bg.png').
