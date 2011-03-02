@@ -75,6 +75,7 @@
 :- use_module(library(readutil)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
 :- use_module(library(doc_http)).
@@ -1530,6 +1531,17 @@ file(File, Options) -->
 	  merge_options(Options, GenOptions, FinalOptions)
 	},
 	link_file(File, FinalOptions), !.
+file(File, Options) -->
+	{ option(edit_handler(Handler), Options),
+	  http_current_request(Request),
+	  memberchk(path(Path), Request),
+	  absolute_file_name(File, Location,
+			     [ relative_to(Path)
+			     ]),
+	  http_link_to_id(Handler, [location(Location)], HREF),
+	  format(atom(Title), 'Click to create ~w', [File])
+	},
+	html(a([href(HREF), class(nofile), title(Title)], File)).
 file(File, _) -->
 	html(code(class(nofile), File)).
 

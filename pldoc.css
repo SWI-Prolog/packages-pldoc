@@ -330,7 +330,14 @@ a.prolog_version
   font-size: 70%;
 }
 
-
-code.nofile				# non-existing file-link
-{ color: red;
+a.nofile				/* non-existing file-link */
+{ color: black;
+  font-family: monospace;
+  text-decoration: none;
 }
+
+a.nofile:hover				/* non-existing file-link */
+{ color: red;
+  text-decoration: underline;
+}
+
