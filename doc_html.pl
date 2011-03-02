@@ -1587,13 +1587,17 @@ file_href_real(File, HREF, Options) :-
 	),
 	file_href(LinkFile, HREF).
 file_href_real(File, HREF, _) :-
-	http:location(Alias, _, _),
+	directory_alias(Alias),
 	Term =.. [Alias,File],
 	absolute_file_name(Term, _,
 			   [ access(read),
 			     file_errors(fail)
 			   ]), !,
 	http_absolute_location(Term, HREF, []).
+
+directory_alias(icons).
+directory_alias(css).
+
 
 %%	file_href(+FilePath, -HREF) is det.
 %
