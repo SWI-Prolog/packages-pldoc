@@ -38,6 +38,7 @@
 :- use_module(library(http/dcg_basics)).
 :- use_module(library(occurs)).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(doc_process).
 :- use_module(doc_html).
 :- use_module(doc_index).
@@ -259,10 +260,10 @@ category_title(Category) -->
 search_doc(Search, PerType, Options) :-
 	findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
 	keysort(Tuples0, Tuples),
-	group_by_key(Tuples, PerCat0),
+	group_pairs_by_key(Tuples, PerCat0),
 	key_sort_order(PerCat0, PerCat1),
 	keysort(PerCat1, PerCat2),
-	unkey(PerCat2, PerCat),
+	pairs_values(PerCat2, PerCat),
 	group_by_file(PerCat, PerType).
 
 key_sort_order([], []).
@@ -274,36 +275,11 @@ key_sort_order([Cat-ByCat|T0], [Order-(Cat-ByCat)|T]) :-
 	key_sort_order(T0, T).
 
 
-%%	unkey(+Keyed, -Values) is det.
-%
-%	Remove keys added for keysort.
-
-unkey([], []).
-unkey([_-V|T0], [V|T]) :-
-	unkey(T0, T).
-
-
 group_by_file([], []).
 group_by_file([Type-Tuples0|T0], [Type-ByFile|T]) :-
 	keysort(Tuples0, Tuples),
-	group_by_key(Tuples, ByFile),
+	group_pairs_by_key(Tuples, ByFile),
 	group_by_file(T0, T).
-
-
-%%	group_by_key(+KeyedList, -KeyedGroups) is det.
-%
-%	Translate a sorted Key-Value list into a list Key-Values, where
-%	Values all share the same key.  Values is sorted.
-
-group_by_key([], []).
-group_by_key([K-H|T0], [K-VL|T]) :-
-	collect_by_key(K, T0, VL0, T1),
-	sort([H|VL0], VL),
-	group_by_key(T1, T).
-
-collect_by_key(K, [K-V|T0], [V|VT], T) :- !,
-	collect_by_key(K, T0, VT, T).
-collect_by_key(_, L, [], L).
 
 
 %%	matching_object(+SearchString, -Object, +Options) is nondet.
