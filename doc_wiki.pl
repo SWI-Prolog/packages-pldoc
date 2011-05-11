@@ -1311,32 +1311,6 @@ strip_leading_par([p(C)|T], L) :- !,
 strip_leading_par(L, L).
 
 
-%%	bind_vars(+Term, +Bindings) is det.
-
-bind_vars(Term, Bindings) :-
-	bind_vars(Bindings),
-	anon_vars(Term).
-
-bind_vars([]).
-bind_vars([Name=Var|T]) :-
-	Var = '$VAR'(Name),
-	bind_vars(T).
-
-%%	anon_vars(+Term) is det.
-%
-%	Bind remaining variables in Term to '$VAR'('_'), so they are
-%	printed as '_'.
-
-anon_vars(Var) :-
-	var(Var), !,
-	Var = '$VAR'('_').
-anon_vars(Term) :-
-	compound(Term), !,
-	Term =.. [_|Args],
-	maplist(anon_vars, Args).
-anon_vars(_).
-
-
 		 /*******************************
 		 *	     DCG BASICS		*
 		 *******************************/

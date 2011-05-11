@@ -38,6 +38,8 @@
 	allow_from/1,
 	deny_from/1.
 
+:- meta_predicate
+	match_peer(1, +, +).
 
 %	http:authenticate(+Type, +Request, -Extra) is semidet.
 %
@@ -93,7 +95,7 @@ host_access_option(edit(Bool)) :-
 %	Domainnames start with a '.'.
 %
 %	@param PlusMin	Positive/negative test.  If IP->Host fails, a
-%		       	positive test fails, while a negative succeeds.
+%			positive test fails, while a negative succeeds.
 %			I.e. deny('.com') succeeds for unknown IP
 %			addresses.
 
