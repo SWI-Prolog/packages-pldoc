@@ -34,7 +34,7 @@
 	  [ doc_for_file/2,		% +FileSpec, +Options
 	    doc_write_html/3,		% +Stream, +Title, +Term
 	    doc_for_wiki_file/2,	% +FileSpec, +Options
-	    				% Support doc_index
+					% Support doc_index
 	    doc_page_dom/3,		% +Title, +Body, -DOM
 	    print_html_head/1,		% +Stream
 	    predref//1,			% +PI //
@@ -98,6 +98,13 @@ extracting module doc_wiki.pl into HTML+CSS.
 @tbd	Split put generation from computation as computation is reusable
 	in other backends.
 */
+
+:- public
+	params//1,			% Called from \Term output created
+	pred_dt//3,			% by the wiki renderer
+	section//2,
+	tag//2.
+
 
 		 /*******************************
 		 *	     RESOURCES		*
