@@ -66,11 +66,6 @@ operator declarations in this module.
 		 *	       MODES		*
 		 *******************************/
 
-%	TBD: Extensive tests on style and completeness
-
-:- dynamic
-	mode/3.				% ?Mode, ?Module, ?Det
-
 %%	process_modes(+Lines:lines, +Module, +FilePos,
 %%		      -Modes:list, -Args:list(atom),
 %%		      -RestLines:lines) is det.
