@@ -63,6 +63,11 @@ well formatted HTML documents.
 @license GPL
 */
 
+%%	prolog:predicate_summary(+PI, -Summary) is semidet.
+%
+%	Provide    predicate    summaries    to     the    XPCE    class
+%	=prolog_predicate=, used by the IDE tools.
+
 :- multifile
 	prolog:predicate_summary/2.	% ?PI, -Summary
 
@@ -137,7 +142,7 @@ is_structured_comment(Comment, Prefixes) :-
 	\+ blanks_to_nl(Comment),
 	\+ sub_string(Comment, 2, _, _, ' SWI '),	% HACK
 	\+ sub_string(Comment, 2, _, _, ' SICStus '),	% HACK
-	\+ sub_string(Comment, 2, _, _, ' Mats '), 	% HACK
+	\+ sub_string(Comment, 2, _, _, ' Mats '),	% HACK
 	Prefixes = ["%"].
 is_structured_comment(Comment, Prefixes) :-
 	sub_string(Comment, 0, _, _, '/**'), !,
