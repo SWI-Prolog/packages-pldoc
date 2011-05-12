@@ -231,7 +231,7 @@ section_number(Title, Nr, PlainTitle) :-
 	(   char_type(Start, digit)
 	->  true
 	;   char_type(Start, upper),
-	    sub_atom(Title, 1, 1, _, '.') 	% A., etc: Appendices
+	    sub_atom(Title, 1, 1, _, '.')	% A., etc: Appendices
 	),
 	sub_atom(Title, B, _, A, ' '), !,
 	sub_atom(Title, 0, B, _, Nr),
@@ -484,7 +484,7 @@ object_spec(Atom, PI) :-
 
 
 		 /*******************************
-		 *	      EMIT    		*
+		 *	      EMIT		*
 		 *******************************/
 
 %%	man_page(+Obj, +Options)// is semidet.
@@ -599,6 +599,9 @@ man_match((Parent+Path)-[element(dt,A,C),DD], Obj) -->
 		 ], Path).
 man_match((_Parent+Path)-DOM, _Obj) -->
 	dom_list(DOM, Path).
+
+:- html_meta
+	dom_list(html, +, ?, ?).
 
 dom_list([], _) -->
 	[].
