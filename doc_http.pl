@@ -499,6 +499,8 @@ documentation(Path, Request) :-
 	).
 
 
+:- public src_skin/4.			% called through source_to_html/3.
+
 src_skin(Request, _Show, header, Out) :- !,
 	memberchk(request_uri(ReqURI), Request), !,
 	replace_parameters(ReqURI, [show(raw)], RawLink),
