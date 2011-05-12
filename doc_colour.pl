@@ -913,9 +913,6 @@ def_style(error,		style(background := orange)).
 def_style(type_error(_),	style(background := orange)).
 def_style(syntax_error,		style(background := red)).
 
-:- dynamic
-	style_name/2.
-
 %%	prolog_src_style(?Class, ?Style) is nondet.
 %
 %	True if Style is the style to use for displaying an element
@@ -925,12 +922,6 @@ prolog_src_style(Class, Style) :-
 	style(Class, Style).		% user hook
 prolog_src_style(Class, Style) :-
 	def_style(Class, Style).	% system default
-
-style(Class, Name, Style) :-
-	prolog_src_style(Class, Style),
-	copy_term(Class, Copy),
-	numbervars(Copy, 0, _),
-	term_to_atom(Copy, Name).
 
 
 %%	term_colours(+Term, -FunctorColourArgColours)
