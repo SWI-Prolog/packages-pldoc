@@ -130,17 +130,28 @@ modes(Text, FilePos, Decls) :-
 	->  !
 	;   E = error(syntax_error(end_of_file), _)
 	->  fail
-	;   !, print_message(warning, E),
+	;   !, mode_syntax_error(E),
 	    Decls = []
 	).
 modes(Text, FilePos, Decls) :-
 	catch(read_mode_terms(Text, FilePos, ' . ', Decls), E, true),
 	(   var(E)
 	->  !
-	;   print_message(warning, E),
+	;   mode_syntax_error(E),
 	    fail
 	).
 modes(_, _, []).
+
+%%	mode_syntax_error(+ErrorTerm) is det.
+%
+%	Print syntax errors in  mode   declarations.  Currently, this is
+%	suppressed unless the flag =pldoc_errors= is specified.
+
+mode_syntax_error(E) :-
+	current_prolog_flag(pldoc_errors, true), !,
+	print_message(warning, E).
+mode_syntax_error(_).
+
 
 read_mode_terms(Text, File:Line, End, Terms) :-
 	new_memory_file(MemFile),

@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006, University of Amsterdam
+    Copyright (C): 2011, University of Amsterdam
+			 VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -361,10 +362,9 @@ process_structured_comment(FilePos, Comment, Prefixes) :-
 	    forall(member(PI, PIs),
 		   compile_clause(M:'$pldoc_link'(PI, PI0), FilePos))
 	), !.
-process_structured_comment(File:Line, Comment, _) :-
+process_structured_comment(Location, Comment, _) :-
 	print_message(warning,
-		      format('~w:~d: Failed to process comment:~n~s~n',
-			     [File, Line, Comment])),
+		      pldoc(invalid_comment(Location, Comment))),
 	fail.
 
 decl_module([], M, []) :-
@@ -378,3 +378,16 @@ decl_module([H0|T0], M, [H|T]) :-
 	;   H = H0
 	),
 	decl_module(T0, M, T).
+
+
+		 /*******************************
+		 *	     MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(pldoc(invalid_comment(File:Line, Comment))) -->
+	[ '~w:~d: PlDoc: failed to process structured comment:~n~s~n'-
+		[File, Line, Comment]
+	].
