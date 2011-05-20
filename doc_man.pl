@@ -603,11 +603,11 @@ man_match((_Parent+Path)-DOM, _Obj) -->
 :- html_meta
 	dom_list(html, +, ?, ?).
 
-dom_list([], _) -->
+dom_list(_:[], _) --> !,
 	[].
-dom_list([H|T], Path) -->
+dom_list(M:[H|T], Path) -->
 	dom(H, Path),
-	dom_list(T, Path).
+	dom_list(M:T, Path).
 
 dom(element(E, Atts, Content), Path) --> !,
 	dom_element(E, Atts, Content, Path).
