@@ -449,8 +449,8 @@ PceEmacs can be set as default editor using
 \tt name//arity & Create a link to a DCG rule \\
 \tt name.ext	& If <name>.<ext> is the name of an existing file
 		  and <ext> is one of \fileext{pl}, \fileext{txt},
-		  \fileext{png}, \fileext{gif} or \fileext{jpeg},
-		  create a link to the file. \\
+		  \fileext{png}, \fileext{gif}, \fileext{jpeg},
+		  \fileext{jpg} or \fileext{svg}, create a link to the file. \\
 \tt prot\verb$://$url	& If <prot> is one of \const{http} or
 		  \const{ftp}, create a link. \\
 \tt\chr{<}url\chr{>} & Create a hyperlink to URL.  This construct
@@ -475,10 +475,13 @@ PceEmacs can be set as default editor using
 \subsection{Images}
 
 Images can be included in the documentation by referencing an image file
-using one of the extensions \fileext{gif}, \fileext{png}, \fileext{jpeg}
-or \fileext{jpg}.  By default this creates a link to the image file that
-must be visited to see the image.  Inline images can be created by
-enclosing the filename in double square brackets.  For example
+using one of the extensions \fileext{gif}, \fileext{png},
+\fileext{jpeg}, \fileext{jpg} or \fileext{svg}.\footnote{SVG images are
+included using the \const{object} element. This is supported by many
+modern browsers. When using IE, one needs at least IE9.} By default this
+creates a link to the image file that must be visited to see the image.
+Inline images can be created by enclosing the filename in double square
+brackets. For example
 
 \begin{code}
 The [[open.png]] icon is used open an existing file.

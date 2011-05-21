@@ -1651,7 +1651,18 @@ include(PI, predicate, _) --> !,
 	;   html(['[[', \predref(PI), ']]'])
 	).
 include(File, image, Options) -->
-	{ file_href(File, HREF, Options),
+	{ file_name_extension(_, svg, File),
+	  file_href(File, HREF, Options), !,
+	  include(image_attribute, Options, Attrs0),
+	  merge_options(Attrs0,
+			[ alt(File),
+			  data(HREF),
+			  type('image/svg+xml')
+			], Attrs)
+	},
+	html(object(Attrs, [])).
+include(File, image, Options) -->
+	{ file_href(File, HREF, Options), !,
 	  include(image_attribute, Options, Attrs0),
 	  merge_options(Attrs0,
 			[ alt(File),

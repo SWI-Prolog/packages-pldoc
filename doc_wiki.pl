@@ -944,6 +944,7 @@ autolink_extension(gif, image).
 autolink_extension(png, image).
 autolink_extension(jpg, image).
 autolink_extension(jpeg, image).
+autolink_extension(svg, image).
 
 %%	autolink_file(?File, -Type) is nondet.
 %
