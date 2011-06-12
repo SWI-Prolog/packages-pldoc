@@ -4,44 +4,28 @@
 # Copyright: GPL (see COPYING or www.gnu.org
 ################################################################
 
-.SUFFIXES: .txt .tex .dvi .doc .pl
-
-SHELL=@SHELL@
-PLBASE=@PLBASE@
-PLARCH=@PLARCH@
-PL=@PL@
-XPCEBASE=$(PLBASE)/xpce
-PKGDOC=$(PLBASE)/doc/packages
-PCEHOME=../xpce
-LIBDIR=$(PLBASE)/library/pldoc
-EXDIR=$(PKGDOC)/examples/pldoc
-
-DOCTOTEX=$(PCEHOME)/bin/doc2tex
-PLTOTEX=$(PCEHOME)/bin/pl2tex
-LATEX=latex
+PACKAGE=pldoc
 DOC=pldoc
-TEX=$(DOC).tex latex.tex
-DVI=$(DOC).dvi
-PDF=$(DOC).pdf
-HTML=$(DOC).html
-PUBLICPL=swipl
+SUBTEX=latex.tex
 
-INSTALL=@INSTALL@
-INSTALL_PROGRAM=@INSTALL_PROGRAM@
-INSTALL_DATA=@INSTALL_DATA@
-
-include common.mk
+include ../Makefile.defs
+include $(srcdir)/common.mk
 
 all:		pldoc.sty
 
-pldoc.sty:		../../man/pl.sty
+pldoc.sty:	$(srcdir)/../../man/pl.sty
 		cp $< $@
 
-install:	$(LIBPL)
-		mkdir -p $(DESTDIR)$(LIBDIR)
-		$(INSTALL_DATA) $(DOCALL) $(DESTDIR)$(LIBDIR)
-		$(INSTALL_DATA) $(PUBPL) $(DESTDIR)$(PLBASE)/library
+install:	$(addprefix $(srcdir)/, $(LIBPL))
+		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
+		$(INSTALL_DATA) pldoc.sty  $(DESTDIR)$(PLLIBDIR)/pldoc
+		$(INSTALL_DATA) $(addprefix $(srcdir)/, $(DOCALL)) $(DESTDIR)$(PLLIBDIR)/pldoc
+		$(INSTALL_DATA) $(addprefix $(srcdir)/, $(PUBPL)) $(DESTDIR)$(PLLIBDIR)
 		$(PL) -f none -g make -t halt
+
+
+
+
 
 ln-install:	$(LIBPL)
 		mkdir -p $(DESTDIR)$(LIBDIR)
@@ -75,30 +59,6 @@ uninstall::
 
 check::
 		true
-
-################################################################
-# Documentation
-################################################################
-
-doc:		$(PDF) $(HTML)
-pdf:		$(PDF)
-
-html::		$(TEX)
-		latex2html $(DOC)
-		mv html/index.html $(DOC).html
-		rmdir html
-
-$(PDF):		$(TEX)
-		../../man/runtex --pdf $(DOC)
-
-$(TEX):		$(DOCTOTEX)
-
-.doc.tex:
-		$(DOCTOTEX) $*.doc > $*.tex
-.pl.tex:
-		$(PLTOTEX) $*.pl > $*.tex
-.txt.tex:
-		$(PUBLICPL) -f none -g "doc_latex('$*.txt','$*.tex',[stand_alone(false)]),halt" -t "halt(1)"
 
 ################################################################
 # Clean
