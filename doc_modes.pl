@@ -295,7 +295,7 @@ remove_argnames(I0, Arity, H0, H) :-
 
 remove_argname(T, ?(any)) :-
 	var(T), !.
-remove_argname(T0..., T...) :- !,
+remove_argname(...(T0), ...(T)) :- !,
 	remove_argname(T0, T).
 remove_argname(A0, A) :-
 	mode_ind(A0, M, A1), !,
@@ -355,7 +355,7 @@ is_det(multi).
 
 is_head(Var) :-
 	var(Var), !, fail.
-is_head(Head//) :- !,
+is_head(//(Head)) :- !,
 	is_head(Head).
 is_head(Head) :-
 	callable(Head),

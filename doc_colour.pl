@@ -325,7 +325,7 @@ colourise_method_body(Body, TB, Pos) :-		% deal with pri(::) < 1000
 colourise_method_body(Body, TB, Pos) :-
 	colourise_body(Body, TB, Pos).
 
-control_op((,)).
+control_op((',')).
 control_op((;)).
 control_op((->)).
 control_op((*->)).
@@ -1005,11 +1005,11 @@ term_colours((:- pce_extend_class(_)),
 term_colours((:- pce_end_class),
 	     expanded - [ expanded
 			]).
-term_colours(:- pce_end_class(_),
+term_colours((:- pce_end_class(_)),
 	     expanded - [ expanded - [ identifier
 				     ]
 			]).
-term_colours(:- use_class_template(_),
+term_colours((:- use_class_template(_)),
 	     expanded - [ expanded - [ pce_new
 				     ]
 			]).

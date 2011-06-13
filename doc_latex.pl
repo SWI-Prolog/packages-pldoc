@@ -283,12 +283,14 @@ latex([]) --> !,
 	[].
 latex(Atomic) -->
 	{ string(Atomic),
-	  sub_atom(Atomic, 0, _, 0, 'LaTeX')
+	  string_to_atom(Atomic, Atom),
+	  sub_atom(Atom, 0, _, 0, 'LaTeX')
 	}, !,
 	[ latex('\\LaTeX{}') ].
 latex(Atomic) -->			% can this actually happen?
 	{ atomic(Atomic), !,
-	  findall(x, sub_atom(Atomic, _, _, _, '\n'), Xs),
+	  string_to_atom(Atomic, Atom),
+	  findall(x, sub_atom(Atom, _, _, _, '\n'), Xs),
 	  length(Xs, Lines)
 	},
 	(   {Lines == 0}
@@ -1295,7 +1297,8 @@ replace([H|T0], F, N, [H|T]) :-
 %	Print Text, such that it comes out as normal LaTeX text.
 
 print_latex(Out, String) :-
-	atom_chars(String, Chars),
+	string_to_atom(String, Atom),
+	atom_chars(Atom, Chars),
 	print_chars(Chars, Out).
 
 print_chars([], _).
