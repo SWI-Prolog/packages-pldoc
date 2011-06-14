@@ -16,7 +16,7 @@ all:		pldoc.sty
 pldoc.sty:	$(srcdir)/../../man/pl.sty
 		cp $< $@
 
-install:	$(addprefix $(srcdir)/, $(LIBPL))
+install:	$(addprefix $(srcdir)/, $(LIBPL)) pldoc.sty
 		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) pldoc.sty  $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) $(addprefix $(srcdir)/, $(DOCALL)) $(DESTDIR)$(PLLIBDIR)/pldoc
