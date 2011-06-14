@@ -332,7 +332,7 @@ doc_links(Directory, Options) -->
 	       div(class(navhdr),
 		   [ div(class(jump),
 			  div([ \places_menu(Dir),
-				\version
+				\plversion
 			      ])),
 		     div(class(search), \search_form(Options)),
 		     br(clear(right))
@@ -344,13 +344,21 @@ doc_links(Directory, Options) -->
 %
 %	Prolog version
 
-version -->
+plversion -->
 	{ current_prolog_flag(version_data, swi(Major, Minor, Patch, _))
-	},
+	}, !,
 	html(a([ class(prolog_version),
 		 href('http://www.swi-prolog.org')
 	       ],
 	       [' SWI-Prolog ', Major, '.', Minor, '.', Patch])).
+
+plversion -->
+	{ current_prolog_flag(version_data, yap(Major, Minor, Patch, _))
+	},
+	html(a([ class(prolog_version),
+		 href('http://www.dcc.fc.up.pt/~vsc')
+	       ],
+	       [' YAP ', Major, '.', Minor, '.', Patch])).
 
 
 %%	places_menu(Current)// is det
