@@ -39,6 +39,7 @@
 	    compile_clause/2		% +Term, +File:Line
 	  ]).
 :- use_module(library(lists)).
+:- use_module(library(apply)).
 :- use_module(library(memfile)).
 :- use_module(library(operators)).
 :- use_module(library(error)).
