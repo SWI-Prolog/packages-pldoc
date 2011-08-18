@@ -45,6 +45,9 @@ pldoc_loading.
 user:file_search_path(pldoc, library(pldoc)).
 user:file_search_path(package_documentation, swi('doc/packages')).
 
+:- multifile
+	tag_order/2.			% +Tag, -Order
+
 :- create_prolog_flag(pldoc_collecting, false, []).
 
 doc_collect(OnOff) :-
@@ -106,6 +109,12 @@ different setup.
 %	True if we are loading the  PlDoc libraries. Required internally
 %	to avoid undefined predicates  while   re-loading  and  document
 %	itself.
+
+%%	tag_order(?Tag, ?Order) is semidet.
+%
+%	Hook that allows for defining additional tags.
+%
+%	@see pldoc_wiki:tag_order/2 for the default definition.
 
 
 		 /*******************************
