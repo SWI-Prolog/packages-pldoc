@@ -19,7 +19,7 @@
 
     You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
     As a special exception, if you link this library with other files,
     compiled with a Free Software compiler, to produce an executable, this
@@ -438,19 +438,23 @@ renamed_tag(exception, throws).
 %	the tags are forced into  this   order  without  warning. Future
 %	versions may issue a warning if the order is inconsistent.
 
-tag_order(param,       1).
-tag_order(error,       2).		% same as throw
-tag_order(throws,      3).
-tag_order(author,      4).
-tag_order(version,     5).
-tag_order(see,	       6).
-tag_order(deprecated,  7).
-tag_order(compat,      8).		% PlDoc extension
-tag_order(copyright,   9).
-tag_order(license,    10).
-tag_order(bug,	      11).
-tag_order(tbd,	      12).
+:- multifile
+	pldoc:tag_order/2.
 
+tag_order(Tag, Order) :-
+	pldoc:tag_order(Tag, Order), !.
+tag_order(param,       100).
+tag_order(error,       200).		% same as throw
+tag_order(throws,      300).
+tag_order(author,      400).
+tag_order(version,     500).
+tag_order(see,	       600).
+tag_order(deprecated,  700).
+tag_order(compat,      800).		% PlDoc extension
+tag_order(copyright,   900).
+tag_order(license,    1000).
+tag_order(bug,	      1100).
+tag_order(tbd,	      1200).
 
 %%	combine_tags(+Tags:list(tag(Key, Value)), -Tags:list) is det.
 %
