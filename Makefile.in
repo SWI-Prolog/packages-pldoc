@@ -15,6 +15,7 @@ PKGDOC=$(PLBASE)/doc/packages
 PCEHOME=../xpce
 LIBDIR=$(PLBASE)/library/pldoc
 EXDIR=$(PKGDOC)/examples/pldoc
+TXTEXT=@TXTEXT@
 
 DOCTOTEX=$(PCEHOME)/bin/doc2tex
 PLTOTEX=$(PCEHOME)/bin/pl2tex
@@ -40,6 +41,7 @@ pldoc.sty:		../../man/pl.sty
 install:	$(LIBPL)
 		mkdir -p $(DESTDIR)$(LIBDIR)
 		$(INSTALL_DATA) $(DOCALL) $(DESTDIR)$(LIBDIR)
+		$(INSTALL_DATA) README $(DESTDIR)$(LIBDIR)/README$(TXTEXT)
 		$(INSTALL_DATA) $(PUBPL) $(DESTDIR)$(PLBASE)/library
 		$(PL) -f none -g make -t halt
 
