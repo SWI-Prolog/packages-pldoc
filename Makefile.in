@@ -35,17 +35,17 @@ include common.mk
 
 all:		pldoc.sty
 
-pldoc.sty:		../../man/pl.sty
+pldoc.sty:	../../man/pl.sty
 		cp $< $@
 
-install:	$(LIBPL)
+install:	$(DOCALL)
 		mkdir -p $(DESTDIR)$(LIBDIR)
 		$(INSTALL_DATA) $(DOCALL) $(DESTDIR)$(LIBDIR)
 		$(INSTALL_DATA) README $(DESTDIR)$(LIBDIR)/README$(TXTEXT)
 		$(INSTALL_DATA) $(PUBPL) $(DESTDIR)$(PLBASE)/library
 		$(PL) -f none -g make -t halt
 
-ln-install:	$(LIBPL)
+ln-install:	$(DOCALL)
 		mkdir -p $(DESTDIR)$(LIBDIR)
 		for f in $(DOCALL) README; do \
 		    rm -f $(DESTDIR)$(LIBDIR)/$$f; \
