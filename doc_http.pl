@@ -538,10 +538,10 @@ edit_options(_, []).
 
 pl_file(File, PlFile) :-
 	file_name_extension(Base, html, File), !,
-	absolute_file_name(Base,
+	absolute_file_name(Base, PlFile,
 			   [ file_type(prolog),
 			     access(read)
-			   ], PlFile).
+			   ]).
 pl_file(File, File).
 
 %%	wiki_file(+File, -TxtFile) is semidet.

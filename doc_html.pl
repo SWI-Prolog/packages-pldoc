@@ -188,11 +188,10 @@ prolog_file(FileSpec, Options) -->
 %	@param File	Prolog canonical filename
 
 doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
-	absolute_file_name(FileSpec,
+	absolute_file_name(FileSpec, File,
 			   [ file_type(prolog),
 			     access(read)
-			   ],
-			   File),
+			   ]),
 	Pos = File:Line,
 	ensure_doc_objects(File),
 	findall(Line-doc(Obj,Pos,Comment),
