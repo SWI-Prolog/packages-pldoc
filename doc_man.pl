@@ -42,6 +42,7 @@
 :- use_module(library(lists)).
 :- use_module(library(url)).
 :- use_module(library(apply)).
+:- use_module(library(option)).
 :- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
@@ -112,11 +113,7 @@ locked_index_manual :-
 %	Remaining Options are passed to absolute_file_name/3.
 
 index_man_directory(Spec, Options) :-
-	(   select(class(Class), Options, Options1)
-	->  true
-	;   Options1 = Options,
-	    Class = misc
-	),
+	select_option(class(Class), Options, Options1, misc),
 	absolute_file_name(Spec, Dir,
 			   [ file_type(directory),
 			     access(read)
