@@ -186,15 +186,14 @@ file_index_header(File, Options) -->
 	prolog:doc_file_index_header(File, Options), !.
 file_index_header(File, Options) -->
 	{ file_base_name(File, Label),
-	  doc_file_href(File, HREF, Options),
-	  ButtonOptions = [button_height(16)|Options]
+	  doc_file_href(File, HREF, Options)
 	},
 	html(tr(th([colspan(3), class(file)],
 		   [ span(style('float:left'), a(href(HREF), Label)),
 		     \file_module_title(File),
 		     span(style('float:right'),
-			  [ \source_button(File, ButtonOptions),
-			    \edit_button(File, ButtonOptions)
+			  [ \source_button(File, Options),
+			    \edit_button(File, Options)
 			  ])
 		   ]))).
 
