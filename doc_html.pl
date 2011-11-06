@@ -106,6 +106,76 @@ extracting module doc_wiki.pl into HTML+CSS.
 	tag//2.
 
 
+:- predicate_options(doc_for_wiki_file/2, 2,
+		     [ edit(boolean)
+		     ]).
+:- predicate_options(doc_hide_private/3, 3,
+		     [module(atom), public(list), public_only(boolean)]).
+:- predicate_options(edit_button//2, 2,
+		     [ edit(boolean)
+		     ]).
+:- predicate_options(file//2, 2,
+		     [ label(any),
+		       absolute_path(atom),
+		       href(atom),
+		       map_extension(list),
+		       files(list),
+		       edit_handler(atom)
+		     ]).
+:- predicate_options(file_header//2, 2,
+		     [ edit(boolean),
+		       files(list),
+		       public_only(boolean)
+		     ]).
+:- predicate_options(include//3, 3,
+		     [ absolute_path(atom),
+		       class(atom),
+		       files(list),
+		       href(atom),
+		       label(any),
+		       map_extension(list)
+		     ]).
+:- predicate_options(object_edit_button//2, 2,
+		     [ edit(boolean),
+		       pass_to(pred_edit_button//2, 2)
+		     ]).
+:- predicate_options(object_page//2, 2,
+		     [ for(any),
+		       header(boolean),
+		       links(boolean),
+		       no_manual(boolean),
+		       search_in(oneof([all,app,man])),
+		       search_match(oneof([name,summary])),
+		       search_options(boolean)
+		     ]).
+:- predicate_options(object_ref//2, 2,
+		     [ files(list),
+		       qualify(boolean),
+		       secref_style(oneof([number,title,number_title]))
+		     ]).
+:- predicate_options(object_synopsis//2, 2,
+		     [ href(atom)
+		     ]).
+:- predicate_options(pred_dt//3, 3,
+		     [ edit(boolean)
+		     ]).
+:- predicate_options(pred_edit_button//2, 2,
+		     [ edit(boolean)
+		     ]).
+:- predicate_options(predref//2, 2,
+		     [ files(list),
+		       prefer(oneof([manual,app])),
+		       pass_to(object_ref/4, 2)
+		     ]).
+:- predicate_options(private/2, 2,
+		     [ module(atom),
+		       public(list)
+		     ]).
+:- predicate_options(source_button//2, 2,
+		     [ files(list)
+		     ]).
+
+
 		 /*******************************
 		 *	     RESOURCES		*
 		 *******************************/
@@ -1525,6 +1595,9 @@ to_dot_dot([_|T0], ['..'|T], Tail) :-
 %          * files(+Map)
 %          List of file(Name, Link) that specifies that we must
 %	   user Link for the given physical file Name.
+%
+%	   * edit_handler(+Id)
+%	   HTTP handler Id to call if the user clicks the edit button.
 %
 %	@tbd	Translation of files to HREFS is a mess.  How to relate
 %		these elegantly?

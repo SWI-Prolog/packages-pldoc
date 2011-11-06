@@ -53,6 +53,19 @@
 		* Whole-word search
 */
 
+:- predicate_options(search_form//1, 1,
+		     [ for(atom),
+		       search_in(oneof([all,app,man])),
+		       search_match(oneof([name,summary])),
+		       search_options(boolean)
+		     ]).
+:- predicate_options(search_reply//2, 2,
+		     [ resultFormat(oneof([summary,long])),
+		       search_in(oneof([all,app,man])),
+		       search_match(oneof([name,summary])),
+		       pass_to(pldoc_index:doc_links//2, 2)
+		     ]).
+
 %%	search_form(+Options)//
 %
 %	Create  a  search  input  field.  The   input  field  points  to

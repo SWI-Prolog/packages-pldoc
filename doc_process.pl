@@ -64,6 +64,10 @@ well formatted HTML documents.
 @license GPL
 */
 
+:- predicate_options(doc_file_name/3, 3,
+		     [ format(oneof([html,tex]))
+		     ]).
+
 %%	prolog:predicate_summary(+PI, -Summary) is semidet.
 %
 %	Provide    predicate    summaries    to     the    XPCE    class
@@ -213,8 +217,8 @@ contains(Haystack, Needle) :-
 %	@param Doc	the name of the file documenting Source.
 %	@param Options	Option list:
 %
-%			* format(-Format)
-%			Output format.  One of =html= or =latex=
+%			* format(+Format)
+%			Output format.  One of =html= or =tex=
 %
 %	@error	permission_error(overwrite, Source)
 

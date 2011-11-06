@@ -56,6 +56,36 @@
 /** <module> Create indexes
 */
 
+:- predicate_options(dir_index//2, 2,
+		     [ directory(atom),
+		       edit(boolean),
+		       files(list),
+		       qualify(boolean),
+		       secref_style(oneof([number, title, number_title])),
+		       pass_to(doc_links/4, 2)
+		     ]).
+:- predicate_options(doc_links//2, 2,
+		     [ files(list),
+		       pass_to(pldoc_search:search_form/3, 1)
+		     ]).
+:- predicate_options(file_index_header//2, 2,
+		     [ directory(any),
+		       files(list),
+		       qualify(boolean),
+		       secref_style(oneof([number, title, number_title])),
+		       pass_to(pldoc_html:edit_button/4, 2),
+		       pass_to(pldoc_html:source_button/4, 2)
+		     ]).
+:- predicate_options(object_summaries//3, 3,
+		     [ edit(boolean),
+		       files(list),
+		       module(atom),
+		       public(list),
+		       qualify(boolean),
+		       secref_style(oneof([number, title, number_title]))
+		     ]).
+:- predicate_options(doc_for_dir/2, 2, [pass_to(dir_index/4, 2)]).
+
 %%	doc_for_dir(+Dir, +Options) is det.
 %
 %	Write summary index for all files  in   Dir  to  Out. The result

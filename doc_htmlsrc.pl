@@ -55,6 +55,15 @@ cross-reference based technology as used by PceEmacs.
 @author Jan Wielemaker
 */
 
+:- predicate_options(source_to_html/3, 3,
+		     [ format_comments(boolean),
+		       header(boolean),
+		       skin(callable),
+		       stylesheets(list),
+		       title(atom)
+		     ]).
+
+
 :- thread_local
 	lineno/0,			% print line-no on next output
 	nonl/0.				% previous tag implies nl (block level)

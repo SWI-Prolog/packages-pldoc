@@ -78,6 +78,27 @@ the same paradigm. The module can
 @author Jan Wielemaker
 */
 
+:- predicate_options(doc_latex/3, 3,
+		     [ stand_alone(boolean),
+		       public_only(boolean),
+		       section_level(oneof([section,subsection,subsubsection])),
+		       summary(atom)
+		     ]).
+:- predicate_options(latex_for_file/3, 3,
+		     [ stand_alone(boolean),
+		       public_only(boolean),
+		       section_level(oneof([section,subsection,subsubsection]))
+		     ]).
+:- predicate_options(latex_for_predicates/3, 3,
+		     [				% no options
+		     ]).
+:- predicate_options(latex_for_wiki_file/3, 3,
+		     [ stand_alone(boolean),
+		       public_only(boolean),
+		       section_level(oneof([section,subsection,subsubsection]))
+		     ]).
+
+
 :- thread_local
 	options/1,
 	documented/1.
@@ -417,7 +438,7 @@ indent(prefixop) --> !,	       [ nl(1), indent(4) ].
 indent(postfixop) --> !,       [ nl(1), indent(4) ].
 indent(predicatesummary) --> !,[ nl(1) ].
 indent(oppredsummary) --> !,   [ nl(1) ].
-indent(hline) --> !, 	       [ nl(1) ].
+indent(hline) --> !,	       [ nl(1) ].
 indent(_) -->		       [].
 
 outdent(begin) --> !,		[ nl_exact(1) ].
@@ -439,7 +460,7 @@ outdent(prefixop) --> !,	[ nl(1) ].
 outdent(postfixop) --> !,	[ nl(1) ].
 outdent(predicatesummary) --> !,[ nl(1) ].
 outdent(oppredsummary) --> !,   [ nl(1) ].
-outdent(hline) --> !, 	        [ nl(1) ].
+outdent(hline) --> !,	        [ nl(1) ].
 outdent(_) -->			[].
 
 %%	latex_special(String, Rest)// is semidet.

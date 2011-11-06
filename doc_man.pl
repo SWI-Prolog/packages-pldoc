@@ -57,6 +57,20 @@
 
 */
 
+:- predicate_options(index_man_directory/2, 2,
+		     [ class(oneof([manual,packages,misc])),
+		       pass_to(system:absolute_file_name/3, 3)
+		     ]).
+:- predicate_options(man_page//2, 2,
+		     [ for(atom),
+		       links(boolean),
+		       no_manual(oneof([fail,error])),
+		       search_in(oneof([all, app, man])),
+		       search_match(oneof([name, summary])),
+		       search_options(boolean)
+		     ]).
+
+
 :- dynamic
 	man_index/5.		% Object, Summary, File, Class, Offset
 
