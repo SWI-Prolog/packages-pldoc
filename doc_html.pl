@@ -772,10 +772,7 @@ object_synopsis(M:Name/Arity, Options) -->
 	->  synopsis([code([':- use_module(',a(href(HREF), '~q'-[Unquoted]),').'])|Extra])
 	;   synopsis([code(':- use_module(~q).'-[Unquoted])|Extra])
 	).
-object_synopsis(_:Name/Arity, _) -->
-	{ functor(Head, Name, Arity),
-	  current_arithmetic_function(Head)
-	},
+object_synopsis(f(_/_), _) -->
 	synopsis(span(class(function),
 		      [ 'Arithmetic function (see ',
 			\object_ref(is/2, []),
