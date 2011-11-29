@@ -33,7 +33,9 @@
 	  [ source_to_html/3		% +Source, +OutStream, +Options
 	  ]).
 :- use_module(library(option)).
+:- use_module(library(debug)).
 :- use_module(library(lists)).
+:- use_module(library(prolog_colour)).
 :- use_module(doc_colour).
 :- use_module(doc_html).
 :- use_module(doc_wiki).
@@ -221,6 +223,7 @@ start_fragment(Class, _, Out, State, [span(class(SpanClass))|State]) :-
 
 end_fragment(_, _, [nop|State], State) :- !.
 end_fragment(Out, In, [span(class(directive))|State], State) :- !,
+	copy_full_stop(In, Out),
 	format(Out, '</span>', []),
 	(   peek_code(In, 10),
 	    \+ nonl
@@ -255,6 +258,22 @@ copy_to(In, End, Out, State, [pre(class(listing))|State]) :-
 	delete_leading_white_lines(Codes0, Codes, Line0, Line),
 	assert(lineno),
 	write_codes(Codes, Line, Out).
+
+%%	copy_full_stop(+In, +Out) is det.
+%
+%	Copy upto and including the .
+
+copy_full_stop(In, Out) :-
+	get_code(In, C0),
+	copy_full_stop(C0, In, Out).
+
+copy_full_stop(0'., _, Out) :- !,
+	put_code(Out, 0'.).
+copy_full_stop(C, In, Out) :-
+	put_code(Out, C),
+	get_code(In, C2),
+	copy_full_stop(C2, In, Out).
+
 
 %%	delete_leading_white_lines(+CodesIn, -CodesOut, +LineIn, -Line) is det.
 %
@@ -306,6 +325,11 @@ all_spaces([H|T]) :-
 copy_to(In, End, Out) :-
 	line_count(In, Line),
 	read_to(In, End, Codes),
+	(   debugging(htmlsrc)
+	->  length(Codes, Count),
+	    debug(htmlsrc, 'Copy ~D chars: ~s', [Count, Codes])
+	;   true
+	),
 	write_codes(Codes, Line, Out).
 
 read_to(In, End, Codes) :-
@@ -367,7 +391,9 @@ copy_rest(In, Out, State0, State) :-
 %	Read the next N codes from In as a list of codes. If N < 0, read
 %	upto the end of stream In.
 
-read_n_codes(_, 0, []) :- !.
+read_n_codes(_, N, Codes) :-
+	N =< 0, !,
+	Codes = [].
 read_n_codes(In, N, Codes) :-
 	get_code(In, C0),
 	read_n_codes(N, C0, In, Codes).
@@ -397,7 +423,7 @@ element_clause(element(Term, Tag, CSS)) :-
 	element_tag(Term, Tag).
 
 span_term(Classification, Class) :-
-	prolog_src_style(Classification, _Style),
+	syntax_colour(Classification, _Attributes),
 	css_class(Classification, Class).
 
 css_class(Class, Class) :-
