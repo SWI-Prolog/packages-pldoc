@@ -1403,3 +1403,18 @@ token(Token) -->
 
 token(w(_)) :- !.
 token(Token) :- atom(Token).
+
+
+		 /*******************************
+		 *	     MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(pldoc(deprecated_tag(Name, Tag))) -->
+	[ 'PlDoc: Deprecated tag @~w (use @~w)'-[Name, Tag]
+	].
+prolog:message(pldoc(unknown_tag(Name))) -->
+	[ 'PlDoc: unknown tag @~w'-[Name]
+	].
