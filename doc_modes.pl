@@ -227,13 +227,9 @@ unprepare_module_operators :-
 %
 %	List is the list of operators exported from Module through its
 %	module header.
-%
-%	@tbd	Must be provided by a public interface from the core
 
 public_operators(Module, List) :-
-	Goal = Module:'$exported_op'(P,A,N),
-	predicate_property(Goal, _), !,
-	findall(op(P,A,N), Module:'$exported_op'(P,A,N), List).
+	module_property(Module, exported_operators(List)), !.
 public_operators(_, []).
 
 
@@ -267,7 +263,8 @@ store_modes([mode(Mode, _Bindings)|T], Pos) :-
 
 store_mode(Var, _) :-
 	var(Var), !,
-	throw(error(instantiation_error, context(_, 'PlDoc: Mode declaration expected'))).
+	throw(error(instantiation_error,
+		    context(_, 'PlDoc: Mode declaration expected'))).
 store_mode(Head0 is Det, Pos) :- !,
 	dcg_expand(Head0, Head),
 	compile_clause('$mode'(Head, Det), Pos).
