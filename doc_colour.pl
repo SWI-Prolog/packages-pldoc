@@ -50,8 +50,6 @@ create HTML fragments.
 
 :- thread_local
 	fragment/3.			% Start, Length, Class
-:- meta_predicate
-	process_source(+, 3).
 
 :- create_prolog_flag(xref, false, [type(boolean)]).
 
