@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2006, University of Amsterdam
+    Copyright (C): 1985-2011, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -42,6 +43,7 @@
 :- use_module(library(lists)).
 :- use_module(library(url)).
 :- use_module(library(apply)).
+:- use_module(library(option)).
 :- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
@@ -55,6 +57,20 @@
 /** <module> Process SWI-Prolog HTML manuals
 
 */
+
+:- predicate_options(index_man_directory/2, 2,
+		     [ class(oneof([manual,packages,misc])),
+		       pass_to(system:absolute_file_name/3, 3)
+		     ]).
+:- predicate_options(man_page//2, 2,
+		     [ for(atom),
+		       links(boolean),
+		       no_manual(oneof([fail,error])),
+		       search_in(oneof([all, app, man])),
+		       search_match(oneof([name, summary])),
+		       search_options(boolean)
+		     ]).
+
 
 :- dynamic
 	man_index/5.		% Object, Summary, File, Class, Offset
@@ -112,11 +128,7 @@ locked_index_manual :-
 %	Remaining Options are passed to absolute_file_name/3.
 
 index_man_directory(Spec, Options) :-
-	(   select(class(Class), Options, Options1)
-	->  true
-	;   Options1 = Options,
-	    Class = misc
-	),
+	select_option(class(Class), Options, Options1, misc),
 	absolute_file_name(Spec, Dir,
 			   [ file_type(directory),
 			     access(read)
@@ -495,7 +507,13 @@ object_spec(Atom, PI) :-
 %
 %	    * Name/Arity
 %	    Predicate indicator: display documentation of the predicate
-
+%
+%	    * f(Name/Arity)
+%	    display documentation of an arithmetic function
+%
+%	    * c(Function)
+%	    display documentation of a C API function
+%
 %	    * section(Level, Number, File)
 %	    Display a section of the manual
 %
@@ -678,6 +696,16 @@ rewrite_ref(pred, Ref0, _, Ref) :-		% Predicate reference
 	www_form_encode(Fragment, Enc),
 	http_location_by_id(pldoc_man, ManHandler),
 	format(string(Ref), '~w?predicate=~w', [ManHandler, Enc]).
+rewrite_ref(function, Ref0, _, Ref) :-		% Arithmetic function reference
+	sub_atom(Ref0, _, _, A, '#'), !,
+	sub_atom(Ref0, _, A, 0, Fragment),
+	name_to_object(Fragment, PI),
+	man_index(PI, _, _, _, _),
+	PI=f(Name/Arity),
+	format(atom(PIName), '~w/~w', [Name,Arity]),
+	www_form_encode(PIName, Enc),
+	http_location_by_id(pldoc_man, ManHandler),
+	format(string(Ref), '~w?function=~w', [ManHandler, Enc]).
 rewrite_ref(func, Ref0, _, Ref) :-		% C-API reference
 	sub_atom(Ref0, _, _, A, '#'), !,
 	sub_atom(Ref0, _, A, 0, Fragment),
@@ -714,12 +742,16 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
 %
 %	If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
-name_to_object(Atom, Name/Arity) :-
+name_to_object(Atom, Object) :-
 	atom(Atom),
 	atomic_list_concat([Name, AA], /, Atom),
 	catch(atom_number(AA, Arity), _, fail),
 	integer(Arity),
-	Arity >= 0.
+	Arity >= 0,
+	(   atom_concat('f-', FuncName, Name)
+	->  Object = f(FuncName/Arity)
+	;   Object = Name/Arity
+	).
 name_to_object(Atom, c(Function)) :-
 	atom(Atom),
 	sub_atom(Atom, 0, _, _, 'PL_'),

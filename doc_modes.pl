@@ -88,14 +88,22 @@ process_modes(Lines, Module, FilePos, ModeDecls, Vars, RestLines) :-
 %%	mode_lines(+Lines, -ModeText:codes, ?ModeTail:codes, -Lines) is det.
 %
 %	Extract the formal header. For %%   comments these are all lines
-%	starting with %%. For /** comments these  are all lines upto the
-%	first blank line.
+%	starting with %%. For /** comments,   first skip empty lines and
+%	then take all lines upto the   first  blank line. Skipping empty
+%	lines allows for comments using this style:
+%
+%	  ==
+%	  /**
+%	   * predicate(+arg1:type1, ?arg2:type2) is det
+%	   ...
+%	  ==
 
 mode_lines(Lines0, ModeText, ModeTail, Lines) :-
 	percent_mode_line(Lines0, ModeText, ModeTail0, Lines1), !,
 	percent_mode_lines(Lines1, ModeTail0, ModeTail, Lines).
 mode_lines(Lines0, ModeText, ModeTail, Lines) :-
-	non_empty_lines(Lines0, ModeText, ModeTail, Lines).
+	empty_lines(Lines0, Lines1),
+	non_empty_lines(Lines1, ModeText, ModeTail, Lines).
 
 percent_mode_line([1-[0'%|L]|Lines], ModeText, ModeTail, Lines) :-	%'
 	append(L, [10|ModeTail], ModeText).
@@ -104,6 +112,10 @@ percent_mode_lines(Lines0, ModeText, ModeTail, Lines) :-
 	percent_mode_line(Lines0, ModeText, ModeTail1, Lines1), !,
 	percent_mode_lines(Lines1, ModeTail1, ModeTail, Lines).
 percent_mode_lines(Lines, Mode, Mode, Lines).
+
+empty_lines([_-[]|Lines0], Lines) :- !,
+	empty_lines(Lines0, Lines).
+empty_lines(Lines, Lines).
 
 non_empty_lines([], ModeTail, ModeTail, []).
 non_empty_lines([_-[]|Lines], ModeTail, ModeTail, Lines) :- !.
@@ -216,13 +228,9 @@ unprepare_module_operators :-
 %
 %	List is the list of operators exported from Module through its
 %	module header.
-%
-%	@tbd	Must be provided by a public interface from the core
 
 public_operators(Module, List) :-
-	Goal = Module:'$exported_op'(P,A,N),
-	predicate_property(Goal, _), !,
-	findall(op(P,A,N), Module:'$exported_op'(P,A,N), List).
+	module_property(Module, exported_operators(List)), !.
 public_operators(_, []).
 
 
@@ -256,7 +264,8 @@ store_modes([mode(Mode, _Bindings)|T], Pos) :-
 
 store_mode(Var, _) :-
 	var(Var), !,
-	throw(error(instantiation_error, context(_, 'PlDoc: Mode declaration expected'))).
+	throw(error(instantiation_error,
+		    context(_, 'PlDoc: Mode declaration expected'))).
 store_mode(Head0 is Det, Pos) :- !,
 	dcg_expand(Head0, Head),
 	compile_clause('$mode'(Head, Det), Pos).

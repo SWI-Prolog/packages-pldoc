@@ -538,10 +538,10 @@ edit_options(_, []).
 
 pl_file(File, PlFile) :-
 	file_name_extension(Base, html, File), !,
-	absolute_file_name(Base,
+	absolute_file_name(Base, PlFile,
 			   [ file_type(prolog),
 			     access(read)
-			   ], PlFile).
+			   ]).
 pl_file(File, File).
 
 %%	wiki_file(+File, -TxtFile) is semidet.
@@ -579,17 +579,24 @@ clean_path(Path, Path).
 %
 %	    * predicate=PI
 %	    providing documentation from the manual on the predicate PI.
+%	    * function=PI
+%	    providing documentation from the manual on the function PI.
 %	    * 'CAPI'=F
 %	    providing documentation from the manual on the C-function F.
 
 pldoc_man(Request) :-
 	http_parameters(Request,
 			[ predicate(PI, [optional(true)]),
+			  function(Fun, [optional(true)]),
 			  'CAPI'(F,     [optional(true)])
 			]),
 	format(string(Title), 'Manual -- ~w', [PI]),
 	(   ground(PI)
 	->  Obj = PI
+	;   ground(Fun)
+	->  atomic_list_concat([Name,ArityAtom], /, Fun),
+	    atom_number(ArityAtom, Arity),
+	    Obj = f(Name/Arity)
 	;   ground(F)
 	->  Obj = c(F)
 	),

@@ -4,30 +4,48 @@
 # Copyright: GPL (see COPYING or www.gnu.org
 ################################################################
 
-PACKAGE=pldoc
-DOC=pldoc
-SUBTEX=latex.tex
+.SUFFIXES: .txt .tex .dvi .doc .pl
 
-include ../Makefile.defs
-include $(srcdir)/common.mk
+SHELL=@SHELL@
+PLBASE=@PLBASE@
+PLARCH=@PLARCH@
+PL=@PL@
+XPCEBASE=$(PLBASE)/xpce
+PKGDOC=$(PLBASE)/doc/packages
+PCEHOME=../xpce
+LIBDIR=$(PLBASE)/library/pldoc
+EXDIR=$(PKGDOC)/examples/pldoc
+TXTEXT=@TXTEXT@
+
+DOCTOTEX=$(PCEHOME)/bin/doc2tex
+PLTOTEX=$(PCEHOME)/bin/pl2tex
+LATEX=latex
+DOC=pldoc
+TEX=$(DOC).tex latex.tex
+DVI=$(DOC).dvi
+PDF=$(DOC).pdf
+HTML=$(DOC).html
+PUBLICPL=swipl
+
+INSTALL=@INSTALL@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
+INSTALL_DATA=@INSTALL_DATA@
+
+include common.mk
 
 all:		pldoc.sty
 
-pldoc.sty:	$(srcdir)/../../man/pl.sty
+pldoc.sty:	../../man/pl.sty
 		cp $< $@
 
-install:	$(addprefix $(srcdir)/, $(LIBPL)) pldoc.sty
-		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
-		$(INSTALL_DATA) pldoc.sty  $(DESTDIR)$(PLLIBDIR)/pldoc
-		$(INSTALL_DATA) $(addprefix $(srcdir)/, $(DOCALL)) $(DESTDIR)$(PLLIBDIR)/pldoc
-		$(INSTALL_DATA) $(addprefix $(srcdir)/, $(PUBPL)) $(DESTDIR)$(PLLIBDIR)
+install:	$(DOCALL)
+		mkdir -p $(DESTDIR)$(LIBDIR)
+		$(INSTALL_DATA) $(DOCALL) $(DESTDIR)$(LIBDIR)
+		$(INSTALL_DATA) README $(DESTDIR)$(LIBDIR)/README$(TXTEXT)
+		$(INSTALL_DATA) $(PUBPL) $(DESTDIR)$(PLBASE)/library
 		$(PL) -f none -g make -t halt
 
-
-
-
-
-ln-install:	$(LIBPL)
+ln-install:	$(DOCALL)
 		mkdir -p $(DESTDIR)$(LIBDIR)
 		for f in $(DOCALL) README; do \
 		    rm -f $(DESTDIR)$(LIBDIR)/$$f; \
@@ -61,13 +79,37 @@ check::
 		true
 
 ################################################################
+# Documentation
+################################################################
+
+doc:		$(PDF) $(HTML)
+pdf:		$(PDF)
+
+html::		$(TEX)
+		latex2html $(DOC)
+		mv html/index.html $(DOC).html
+		rmdir html
+
+$(PDF):		$(TEX)
+		../../man/runtex --pdf $(DOC)
+
+$(TEX):		$(DOCTOTEX)
+
+.doc.tex:
+		$(DOCTOTEX) $*.doc > $*.tex
+.pl.tex:
+		$(PLTOTEX) $*.pl > $*.tex
+.txt.tex:
+		$(PUBLICPL) -f none -g "doc_latex('$*.txt','$*.tex',[stand_alone(false)]),halt" -t "halt(1)"
+
+################################################################
 # Clean
 ################################################################
 
 clean:
 		rm -f *~ *% config.log
 		rm -f $(TEX)
-		$(RUNTEX) --clean $(DOC)
+		../../man/runtex --clean $(DOC)
 		rm -rf html
 
 distclean:	clean

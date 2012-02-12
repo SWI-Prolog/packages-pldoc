@@ -420,7 +420,8 @@ tag_name(w(Name), Tag, Order) :-
 
 rest_tag([], _, [], []) :- !.
 rest_tag(Lines, Indent, [], Lines) :-
-	Lines = [Indent-[@,w(_Name)|_]|_], !.
+	Lines = [Indent-[@,Word|_]|_],
+	tag_name(Word, _, _), !.
 rest_tag([L|Lines0], Indent, [L|VT], Lines) :-
 	rest_tag(Lines0, Indent, VT, Lines).
 
@@ -1404,3 +1405,18 @@ token(Token) -->
 
 token(w(_)) :- !.
 token(Token) :- atom(Token).
+
+
+		 /*******************************
+		 *	     MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(pldoc(deprecated_tag(Name, Tag))) -->
+	[ 'PlDoc: Deprecated tag @~w (use @~w)'-[Name, Tag]
+	].
+prolog:message(pldoc(unknown_tag(Name))) -->
+	[ 'PlDoc: unknown tag @~w'-[Name]
+	].

@@ -111,8 +111,25 @@ structure of the comment therefore is:
 \end{shortlist}
 
 Using the \verb$/*$\ldots\verb$*/$ style comment, the type and mode
-declarations are ended by a blank line. Using \chr{\%} line-comments,
-the declaration is ended by the first line that starts with a single \%.
+declarations start at the first non-blank line and are ended by a blank
+line. Using \chr{\%} line-comments, the declaration is ended by the
+first line that starts with a single \%. E.g., the following two
+fragments are identical wrt. PlDoc. Skipping blank-lines in \verb$/**$
+comments allows to start the comment on the second line.
+
+\begin{code}
+%%	predicate(-Arg:type) is nondet
+%	Predicate ...
+\end{code}
+
+\begin{code}
+/**
+ * predicate(-Arg:type) is nondet
+ *
+ * Predicate ...
+ */
+\end{code}
+
 
 The JavaDoc style keyword list starts at the first line starting
 with @<word>.
