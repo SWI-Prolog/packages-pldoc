@@ -7,7 +7,7 @@ SUPPORT=	pldoc.css pldoc.js pllisting.css \
 		up.gif source.png h1-bg.png pub-bg.png multi-bg.png \
 		priv-bg.png h2-bg.png
 
-DOCALL=		$(LIBPL) $(SUPPORT)
+LIBALL=		$(LIBPL) $(SUPPORT)
 PUBPL=		pldoc.pl doc_http.pl doc_latex.pl
 EXAMPLES=	README
 EXAMPLEEXE=	man_server.pl
