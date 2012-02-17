@@ -15,7 +15,7 @@ all:		pldoc.sty
 pldoc.sty:	$(srcdir)/../../man/pl.sty
 		cp $< $@
 
-install:	$(LIBSRCALL) $(PUBSRCPL)
+install:	$(LIBSRCALL) $(PUBSRCPL) pldoc.sty
 		mkdir -p $(DESTDIR)$(PLLIBDIR)
 		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) $(LIBSRCALL) $(DESTDIR)$(PLLIBDIR)/pldoc
