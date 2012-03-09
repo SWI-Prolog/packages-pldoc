@@ -81,13 +81,14 @@ user:message_hook(load_file(done(0, _F, _A, _M, _T, _H)), _, _) :-
 %
 %	@param Comments	List of comments read before the end of Term
 %	@param TermPos	Start location of Term
-%	@param Term 	Actual term read
+%	@param Term	Actual term read
 
 prolog:comment_hook(Comments, TermPos, Term) :-
 	source_location(File, _TermLine),
-	setup_call_cleanup('$push_input_context',  % Preserve input file and line
-			   do_comment_hook(Comments, TermPos, File, Term),
-			   '$pop_input_context').
+	setup_call_cleanup(
+	    '$push_input_context'(pldoc),  % Preserve input file and line
+	    do_comment_hook(Comments, TermPos, File, Term),
+	    '$pop_input_context').
 
 process_stored_comments :-
 	forall(retract(mydoc(Comments, TermPos, File)),
@@ -98,3 +99,8 @@ delayed_process(Comments, TermPos, File) :-
 	'$set_source_module'(Old, Module),
 	process_comments(Comments, TermPos, File),
 	'$set_source_module'(_, Old).
+
+:- if(\+current_predicate('$push_input_context'/1)).
+'$push_input_context'(_) :-
+	'$push_input_context'.
+:- endif.
