@@ -82,6 +82,7 @@
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(pairs)).
+:- use_module(library(filesex)).
 :- use_module(doc_process).
 :- use_module(doc_man).
 :- use_module(doc_modes).
@@ -1546,19 +1547,6 @@ in_file(Module, Head, File) :-
 	current_module(Module),
 	source_file(Module:Head, File).
 
-
-%%	relative_file_name(+Path:atom, +RelTo:atom, -RelPath:atom) is det.
-%
-%	True when RelPath is a relative path to Path, relative to RelTo.
-%
-%	@tbd	move to library?
-
-relative_file_name(Path, RelTo, RelPath) :-
-        atomic_list_concat(PL, /, Path),
-        atomic_list_concat(RL, /, RelTo),
-        delete_common_prefix(PL, RL, PL1, PL2),
-        to_dot_dot(PL2, DotDot, PL1),
-        atomic_list_concat(DotDot, /, RelPath).
 
 delete_common_prefix([H|T01], [H|T02], T1, T2) :- !,
         delete_common_prefix(T01, T02, T1, T2).
