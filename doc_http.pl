@@ -476,6 +476,10 @@ documentation(Path, Request) :-
 	->  true
 	;   throw(http_reply(forbidden(File)))
 	),
+        (   exists_file(File)
+        ->  true
+        ;   throw(http_reply(not_found(File)))
+        ),
 	(   Reload == true,
 	    source_file(File)
 	->  load_files(File, [if(changed), imports([])])
