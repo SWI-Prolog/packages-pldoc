@@ -738,7 +738,10 @@ nv_pair(Option) -->
 	[ w(Name), =,'"'], tokens(Tokens), ['"'], !,
 	{ untag(Tokens, Atoms),
 	  atomic_list_concat(Atoms, Value0),
-	  catch(atom_number(Value0, Value), _, Value=Value0),
+	  (   atom_number(Value0, Value)
+	  ->  true
+	  ;   Value = Value0
+	  ),
 	  Option =.. [Name,Value]
 	}.
 
