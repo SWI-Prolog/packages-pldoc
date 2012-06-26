@@ -87,8 +87,6 @@ pdf:		$(PDF)
 
 html::		$(TEX)
 		latex2html $(DOC)
-		mv html/index.html $(DOC).html
-		rmdir html
 
 $(PDF):		$(TEX)
 		../../man/runtex --pdf $(DOC)
