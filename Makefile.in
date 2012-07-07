@@ -8,6 +8,8 @@ PACKAGE=pldoc
 include @srcdir@/common.mk
 include ../Makefile.defs
 
+EXDIR=$(PKGEXDIR)/pldoc
+
 PUBSRCPL=$(addprefix $(srcdir)/, $(PUBPL))
 
 all:		pldoc.sty
@@ -38,7 +40,7 @@ html-install:	install-examples
 install-examples::
 		mkdir -p $(DESTDIR)$(EXDIR)
 		(cd $(srcdir)/server && $(INSTALL_DATA) $(EXAMPLES) $(DESTDIR)$(EXDIR))
-		(cd $(srcdir)/server && $(INSTALL_PROGRAM) $(EXAMPLEEXE) $(DESTDIR)$(EXDIR))
+		(cd server && $(INSTALL_PROGRAM) $(EXAMPLEEXE) $(DESTDIR)$(EXDIR))
 
 uninstall::
 		(cd $(LIBDIR) && rm -f $(LIBPL))
