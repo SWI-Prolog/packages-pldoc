@@ -926,6 +926,7 @@ functor_name(String) :-
 	char_type(Char, lower).
 
 url_protocol(http).
+url_protocol(https).
 url_protocol(ftp).
 url_protocol(mailto).
 
