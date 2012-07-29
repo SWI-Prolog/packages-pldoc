@@ -128,7 +128,7 @@ print_html_head(Out, Options) :-
 	option(title(Title), Options, 'Prolog source'),
 	option(stylesheets(Sheets), Options, ['pllisting.css', 'pldoc.css']),
 	format(Out,
-	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \
+	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \c
 	       "http://www.w3.org/TR/html4/strict.dtd">~n~n', []),
 	format(Out, '<html>~n', []),
 	format(Out, '  <head>~n', []),
