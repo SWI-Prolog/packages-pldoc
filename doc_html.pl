@@ -854,7 +854,7 @@ doc_page_dom(Title, Body, DOM) :-
 
 print_html_head(Out) :-
 	format(Out,
-	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \
+	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \c
 	       "http://www.w3.org/TR/html4/strict.dtd">~n', []).
 
 % Rendering rules
