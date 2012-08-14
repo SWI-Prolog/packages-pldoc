@@ -1728,6 +1728,12 @@ include(File, image, Options) -->
 			], Attrs)
 	},
 	html(img(Attrs)).
+include(File, wiki, _Options) -->	% [[file.txt]] is included
+	{ access_file(File, read), !,
+	  read_file_to_codes(File, String, []),
+	  wiki_codes_to_dom(String, [], DOM)
+	},
+	html(DOM).
 include(File, _Type, Options) -->
 	link_file(File, Options), !.
 include(File, _, _) -->
