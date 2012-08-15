@@ -40,7 +40,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/mimetype)).
-:- use_module(library(http/dcg_basics)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_hook)).
 :- use_module(library(http/http_path)).

@@ -31,7 +31,7 @@
 	  [ host_access_options/2	% +AllOptions, -NoAccessOptions
 	  ]).
 :- use_module(library(http/http_hook)).
-:- use_module(library(http/dcg_basics)).
+:- use_module(library(dcg/basics)).
 
 :- dynamic
 	can_edit/1,

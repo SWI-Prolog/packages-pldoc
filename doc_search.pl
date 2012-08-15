@@ -35,7 +35,7 @@
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/dcg_basics)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(occurs)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
@@ -458,3 +458,5 @@ prolog:doc_category(library,     80, 'System Libraries').
 
 apropos_match(Needle, Haystack) :-
 	'$apropos_match'(Needle, Haystack).
+
+eos([], []).
