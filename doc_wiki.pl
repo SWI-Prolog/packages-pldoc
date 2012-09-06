@@ -42,6 +42,7 @@
 	  ]).
 :- use_module(library(lists)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
 :- use_module(library(memfile)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
