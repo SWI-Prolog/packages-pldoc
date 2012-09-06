@@ -5,7 +5,6 @@ t.pl
 test.*
 latex.tex
 pldoc.tex
-pldoc.sty
 pldoc.html
 pldoc.pdf
 server/man_server.pl

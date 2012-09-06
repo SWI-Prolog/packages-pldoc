@@ -12,10 +12,7 @@ EXDIR=$(PKGEXDIR)/pldoc
 
 PUBSRCPL=$(addprefix $(srcdir)/, $(PUBPL))
 
-all:		pldoc.sty
-
-pldoc.sty:	$(srcdir)/../../man/pl.sty
-		cp $< $@
+all::
 
 install:	$(LIBSRCALL) $(PUBSRCPL) pldoc.sty
 		mkdir -p $(DESTDIR)$(PLLIBDIR)
