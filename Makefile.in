@@ -12,14 +12,13 @@ include ../Makefile.defs
 EXDIR=$(PKGEXDIR)/pldoc
 
 PUBSRCPL=$(addprefix $(srcdir)/, $(PUBPL))
+LIBSRCALL=$(addprefix $(srcdir)/, $(LIBALL))
 
 all::
 
-install:	$(LIBSRCALL) $(PUBSRCPL) pldoc.sty
-		mkdir -p $(DESTDIR)$(PLLIBDIR)
+install:	$(LIBSRCALL) $(PUBSRCPL)
 		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) $(LIBSRCALL) $(DESTDIR)$(PLLIBDIR)/pldoc
-		$(INSTALL_DATA) pldoc.sty $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) $(srcdir)/README $(DESTDIR)$(PLLIBDIR)/pldoc/README$(TXTEXT)
 		$(INSTALL_DATA) $(PUBSRCPL) $(DESTDIR)$(PLLIBDIR)
 		$(MKINDEX)
@@ -43,7 +42,7 @@ install-examples::
 uninstall::
 		(cd $(LIBDIR) && rm -f $(LIBPL))
 		(cd $(PLBASE)/library && rm -f $(PUBPL))
-		$(PL) -f none -g make -t halt
+		$(MKINDEX)
 
 check::
 		true
@@ -67,5 +66,5 @@ clean:
 		rm -rf html
 
 distclean:	clean
-		rm -f pldoc.sty server/man_server.pl
+		rm -f server/man_server.pl
 		rm -f $(TARGETS) config.cache config.status Makefile
