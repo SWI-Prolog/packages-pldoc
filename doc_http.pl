@@ -267,8 +267,19 @@ pldoc_index(_Request) :-
 			title('SWI-Prolog documentation'),
 			[ \doc_links('', []),
 			   h1('SWI-Prolog documentation'),
-			  \man_overview([])
+			  \man_overview([]),
+			  \paperback
 			]).
+
+
+paperback -->
+	{ expand_url_path(swipl_book(.), HREF)
+	},
+	html([ h2('The manual as a book'),
+	       p([ 'A paperback version of the manual is ',
+		   a(href(HREF), 'available'), '.'
+		 ])
+	     ]).
 
 
 %%	pldoc_file(+Request)
