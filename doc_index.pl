@@ -100,9 +100,20 @@ doc_for_dir(DirSpec, Options) :-
 			   ],
 			   Dir),
 	file_base_name(Dir, Base),
-	reply_html_page(pldoc(dir_index),
-			title(Base),
-			\dir_index(Dir, Options)).
+	doc_write_page(
+	    pldoc(dir_index),
+	    title(Base),
+	    \dir_index(Dir, Options),
+	    Options).
+
+:- html_meta doc_write_page(+, html, html, +).
+
+doc_write_page(Style, Head, Body, Options) :-
+	option(files(_), Options), !,
+	phrase(page(Style, Head, Body), HTML),
+	print_html(HTML).
+doc_write_page(Style, Head, Body, _) :-
+	reply_html_page(Style, Head, Body).
 
 
 %%	dir_index(+Dir, +Options)//

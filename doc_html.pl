@@ -226,9 +226,21 @@ doc_for_file(FileSpec, Options) :-
 			   File),
 	file_base_name(File, Base),
 	Title = Base,
-	reply_html_page(pldoc(result),
-			title(Title),
-			\prolog_file(FileSpec, Options)).
+	doc_write_page(
+	    pldoc(result),
+	    title(Title),
+	    \prolog_file(FileSpec, Options),
+	    Options).
+
+:- html_meta doc_write_page(+, html, html, +).
+
+doc_write_page(Style, Head, Body, Options) :-
+	option(files(_), Options), !,
+	phrase(page(Style, Head, Body), HTML),
+	print_html(HTML).
+doc_write_page(Style, Head, Body, _) :-
+	reply_html_page(Style, Head, Body).
+
 
 prolog_file(FileSpec, Options) -->
 	{ doc_file_objects(FileSpec, File, Objects, FileOptions, Options),

@@ -90,9 +90,10 @@ doc_save(Spec, Options) :-
 	doc_target(Spec, Target, Options),
 	phrase(file_map(Target), FileMap), % Assoc?
 	Options1 = [files(FileMap)|Options],
-	nb_setval(pldoc_options, Options1),
-	call_cleanup(generate(Target, Options1),
-		     nb_delete(pldoc_options)).
+	setup_call_cleanup(
+	    nb_setval(pldoc_options, Options1),
+	    generate(Target, Options1),
+	    nb_delete(pldoc_options)).
 
 
 %%	generate(+Spec, +Options) is det.
