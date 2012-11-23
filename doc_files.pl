@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 2007-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -19,7 +18,8 @@
 
     You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301 USA
 
     As a special exception, if you link this library with other files,
     compiled with a Free Software compiler, to produce an executable, this
@@ -66,7 +66,7 @@ useful for printing or distribution.
 %		* man_server(+RootURL)
 %		Root of a manual server used for references to built-in
 %		predicates. Default is
-%		=|http://gollem.science.uva.nl/SWI-Prolog/pldoc/|=
+%		=|http://www.swi-prolog.org/pldoc/|=
 %
 %		* index_file(+Base)
 %		Filename for directory indices.  Default is =index=.
