@@ -105,13 +105,15 @@ generate([H|T], Options) :-
 	generate(H, Options),
 	generate(T, Options).
 generate(file(PlFile, DocFile), Options) :-
-	open(DocFile, write, Out, [encoding(utf8)]),
-	call_cleanup(with_output_to(Out, doc_for_file(PlFile, Options)),
-		     close(Out)).
+	setup_call_cleanup(
+	    open(DocFile, write, Out, [encoding(utf8)]),
+	    with_output_to(Out, doc_for_file(PlFile, Options)),
+	    close(Out)).
 generate(directory(Dir, IndexFile, Members), Options) :-
-	open(IndexFile, write, Out, [encoding(utf8)]),
-	call_cleanup(with_output_to(Out, doc_for_dir(Dir, Options)),
-		     close(Out)),
+	setup_call_cleanup(
+	    open(IndexFile, write, Out, [encoding(utf8)]),
+	    with_output_to(Out, doc_for_dir(Dir, Options)),
+	    close(Out)),
 	generate(Members, Options).
 
 
