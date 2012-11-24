@@ -1562,17 +1562,6 @@ in_file(Module, Head, File) :-
 	current_module(Module),
 	source_file(Module:Head, File).
 
-
-delete_common_prefix([H|T01], [H|T02], T1, T2) :- !,
-        delete_common_prefix(T01, T02, T1, T2).
-delete_common_prefix(T1, T2, T1, T2).
-
-to_dot_dot([], Tail, Tail).
-to_dot_dot([_], Tail, Tail) :- !.
-to_dot_dot([_|T0], ['..'|T], Tail) :-
-        to_dot_dot(T0, T, Tail).
-
-
 %%     file(+FileName)// is det.
 %%     file(+FileName, +Options)// is det.
 %
