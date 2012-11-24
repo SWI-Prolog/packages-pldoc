@@ -1128,7 +1128,9 @@ pred_source_button(_, _) -->
 %	Create a button	for showing the source of Object.
 
 object_source_button(PI, Options) -->
-	{ is_pi(PI) }, !,
+	{ is_pi(PI),
+	  option(source_link(true), Options, true)
+	}, !,
 	pred_source_button(PI, Options).
 object_source_button(_, _) -->
 	[].

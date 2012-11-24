@@ -90,7 +90,8 @@ useful for printing or distribution.
 doc_save(Spec, Options) :-
 	doc_target(Spec, Target, Options),
 	phrase(file_map(Target), FileMap), % Assoc?
-	merge_options([ html_resources(pldoc_files)
+	merge_options([ html_resources(pldoc_files),
+			source_link(false)
 		      ], Options, Options1),
 	Options2 = [files(FileMap)|Options1],
 	setup_call_cleanup(
