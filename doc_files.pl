@@ -96,8 +96,8 @@ doc_save(Spec, Options) :-
 	setup_call_cleanup(
 	    nb_setval(pldoc_options, Options2),
 	    generate(Target, Options2),
-	    nb_delete(pldoc_options)).
-
+	    nb_delete(pldoc_options)),
+	copy_resources(Target, Options2).
 
 %%	generate(+Spec, +Options) is det.
 %
@@ -272,6 +272,28 @@ blocked('INDEX.pl').
 		 /*******************************
 		 *	     RESOURCES		*
 		 *******************************/
+
+%%	copy_resources(+Target, +Options)
+
+copy_resources(directory(_, Index, _), Options) :-
+	file_directory_name(Index, Dir),
+	copy_resources_dir(Dir, Options).
+copy_resources(file(_, DocFile), Options) :-
+	file_directory_name(DocFile, Dir),
+	copy_resources_dir(Dir, Options).
+
+copy_resources_dir(Dir, Options) :-
+	option(format(Format), Options, html),
+	forall(doc_resource(Format, Res),
+	       ( absolute_file_name(pldoc(Res), File, [access(read)]),
+		 copy_file(File, Dir))).
+
+doc_resource(html, 'pldoc.css').
+doc_resource(html, 'h1-bg.png').
+doc_resource(html, 'h2-bg.png').
+doc_resource(html, 'multi-bg.png').
+doc_resource(html, 'priv-bg.png').
+doc_resource(html, 'pub-bg.png').
 
 :- html_resource(pldoc_files_css,
 		 [ virtual(true),
