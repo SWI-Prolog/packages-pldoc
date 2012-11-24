@@ -32,11 +32,12 @@
 :- module(pldoc_files,
 	  [ doc_save/2			% +File, +Options
 	  ]).
-:- use_module(doc_html).
-:- use_module(doc_index).
+:- use_module(library(pldoc), []).
+:- use_module(pldoc(doc_html)).
+:- use_module(pldoc(doc_index)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
-:- use_module(library(http/html_head)).
+:- use_module(library(http/html_head), []).
 
 /** <module> Create stand-alone documentation files
 
@@ -46,10 +47,12 @@ in progress, providing search and guaranteed consistency with the loaded
 version. Creating stand-alone files as  provided   by  this  file can be
 useful for printing or distribution.
 
-@tbd	Handle CSS files
-@tbd	Suppress search header
-@tbd	Fix filenames (.pl --> .html)
-@tbd	Fix predicate references
+@tbd	Check links
+@tbd	Handle (resource) links in recursive documentation (try
+        ClioPatria)
+@tbd	Nice frontend for common scenarios
+	- Generate documentation for a pack (README in top; files in Prolog)
+	- Default save into a doc subdirectory?
 */
 
 :- predicate_options(doc_save/2, 2,

@@ -8,6 +8,6 @@ SUPPORT=	pldoc.css pldoc.js pllisting.css pldoc.sty \
 		priv-bg.png h2-bg.png
 
 LIBALL=		$(LIBPL) $(SUPPORT)
-PUBPL=		pldoc.pl doc_http.pl doc_latex.pl
+PUBPL=		pldoc.pl doc_http.pl doc_latex.pl doc_files.pl
 EXAMPLES=	README
 EXAMPLEEXE=	man_server.pl
