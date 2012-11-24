@@ -118,14 +118,16 @@ doc_save(Spec, Options) :-
 
 generate([], _).
 generate([H|T], Options) :-
-	generate(H, Options),
+	\+ \+ generate(H, Options),
 	generate(T, Options).
 generate(file(PlFile, DocFile), Options) :-
+	b_setval(pldoc_output, DocFile),
 	setup_call_cleanup(
 	    open(DocFile, write, Out, [encoding(utf8)]),
 	    with_output_to(Out, doc_for_file(PlFile, Options)),
 	    close(Out)).
 generate(directory(Dir, IndexFile, Members), Options) :-
+	b_setval(pldoc_output, IndexFile),
 	setup_call_cleanup(
 	    open(IndexFile, write, Out, [encoding(utf8)]),
 	    with_output_to(Out, doc_for_dir(Dir, Options)),

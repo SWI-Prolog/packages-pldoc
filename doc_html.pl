@@ -1,6 +1,4 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
@@ -1683,7 +1681,9 @@ file_href(Path, HREF) :-		% a loaded Prolog file
 	source_file(Path), !,
 	doc_file_href(Path, HREF).
 file_href(Path, HREF) :-
-	nb_current(pldoc_file, CFile),
+	(   nb_current(pldoc_output, CFile)
+	;   nb_current(pldoc_file, CFile)
+	),
 	CFile \== [], !,
 	relative_file_name(Path, CFile, HREF).
 file_href(Path, Path).
