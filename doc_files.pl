@@ -36,6 +36,7 @@
 :- use_module(doc_index).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(http/html_head)).
 
 /** <module> Create stand-alone documentation files
 
@@ -89,10 +90,12 @@ useful for printing or distribution.
 doc_save(Spec, Options) :-
 	doc_target(Spec, Target, Options),
 	phrase(file_map(Target), FileMap), % Assoc?
-	Options1 = [files(FileMap)|Options],
+	merge_options([ html_resources(pldoc_files)
+		      ], Options, Options1),
+	Options2 = [files(FileMap)|Options1],
 	setup_call_cleanup(
-	    nb_setval(pldoc_options, Options1),
-	    generate(Target, Options1),
+	    nb_setval(pldoc_options, Options2),
+	    generate(Target, Options2),
 	    nb_delete(pldoc_options)).
 
 
@@ -264,3 +267,19 @@ prolog_file_in_dir(Dir, SubDir, Options) :-
 
 blocked('.plrc').
 blocked('INDEX.pl').
+
+
+		 /*******************************
+		 *	     RESOURCES		*
+		 *******************************/
+
+:- html_resource(pldoc_files_css,
+		 [ virtual(true),
+		   requires([ 'pldoc.css'
+			    ])
+		 ]).
+:- html_resource(pldoc_files,
+		 [ virtual(true),
+		   requires([ pldoc_files_css
+			    ])
+		 ]).

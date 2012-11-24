@@ -245,9 +245,10 @@ doc_write_page(Style, Head, Body, _) :-
 prolog_file(FileSpec, Options) -->
 	{ doc_file_objects(FileSpec, File, Objects, FileOptions, Options),
 	  b_setval(pldoc_file, File),	% TBD: delete?
-	  file_directory_name(File, Dir)
+	  file_directory_name(File, Dir),
+	  option(html_resources(Resoures), Options, pldoc)
 	},
-	html([ \html_requires(pldoc),
+	html([ \html_requires(Resoures),
 	       \doc_links(Dir, FileOptions),
 	       \file_header(File, FileOptions)
 	     | \objects(Objects, FileOptions)

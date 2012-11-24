@@ -364,11 +364,13 @@ doc_links(_Directory, Options) -->
 	{ option(files(_), Options), !
 	}.
 doc_links(Directory, Options) -->
-	{   Directory == ''
-	->  working_directory(Dir, Dir)
-	;   Dir = Directory
+	{   (   Directory == ''
+	    ->  working_directory(Dir, Dir)
+	    ;   Dir = Directory
+	    ),
+	    option(html_resources(Resoures), Options, pldoc)
 	},
-	html([ \html_requires(pldoc),
+	html([ \html_requires(Resoures),
 	       div(class(navhdr),
 		   [ div(class(jump),
 			  div([ \places_menu(Dir),
