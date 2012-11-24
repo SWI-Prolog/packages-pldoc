@@ -1359,14 +1359,19 @@ predref(Callable, Module, Options) -->
 
 %%	manref(+NameArity, -HREF, +Options) is det.
 %
-%	Create reference to a manual page.
+%	Create reference to a manual page.  When generating files, this
+%	listens to the option man_server(+Server).
 
 manref(Name/Arity, HREF, Options) :-
 	format(string(FragmentId), '~w/~d', [Name, Arity]),
 	(   option(files(_Map), Options)
-	->  uri_query_components(Query, [predicate=FragmentId]),
-	    uri_data(authority, Components, 'www.swi-prolog.org'),
-	    uri_data(path, Components, '/pldoc/man'),
+	->  option(man_server(Server), Options,
+		   'http://www.swi-prolog.org/pldoc'),
+	    uri_components(Server, Comp0),
+	    uri_data(path, Comp0, Path0),
+	    directory_file_path(Path0, man, Path),
+	    uri_data(path, Comp0, Path, Components),
+	    uri_query_components(Query, [predicate=FragmentId]),
 	    uri_data(search, Components, Query),
 	    uri_components(HREF, Components)
 	;   http_link_to_id(pldoc_man, [predicate=FragmentId], HREF)

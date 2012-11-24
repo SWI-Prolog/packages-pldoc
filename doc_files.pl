@@ -52,6 +52,17 @@ useful for printing or distribution.
 @tbd	Fix predicate references
 */
 
+:- predicate_options(doc_save/2, 2,
+		     [ format(oneof([html])),
+		       doc_root(atom),
+		       man_server(atom),
+		       index_file(atom),
+		       if(onceof([loaded,true])),
+		       recursive(boolean),
+		       css(oneof([copy,inline]))
+		     ]).
+
+
 %%	doc_save(+FileOrDir, +Options)
 %
 %	Save documentation for FileOrDir to file(s).  Options include
