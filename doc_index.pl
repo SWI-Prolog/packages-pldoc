@@ -1,6 +1,4 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
@@ -125,9 +123,11 @@ dir_index(Dir, Options) -->
 	{ dir_source_files(Dir, Files0, Options),
 	  sort(Files0, Files),
 	  atom_concat(Dir, '/index.html', File),
-	  b_setval(pldoc_file, File)	% for predref
+	  b_setval(pldoc_file, File),	% for predref
+	  option(html_resources(Resoures), Options, pldoc)
 	},
-	html([ \doc_links(Dir, Options),
+	html([ \html_requires(Resoures),
+	       \doc_links(Dir, Options),
 	       \dir_header(Dir, Options),
 	       table(class(summary),
 		     \file_indices(Files, [directory(Dir)|Options])),
