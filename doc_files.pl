@@ -132,7 +132,10 @@ generate(directory(Dir, IndexFile, Members), Options) :-
 	b_setval(pldoc_output, IndexFile),
 	setup_call_cleanup(
 	    open(IndexFile, write, Out, [encoding(utf8)]),
-	    with_output_to(Out, doc_for_dir(Dir, Options)),
+	    with_output_to(Out, doc_for_dir(Dir,
+					    [ members(Members)
+					    | Options
+					    ])),
 	    close(Out)),
 	generate(Members, Options).
 
