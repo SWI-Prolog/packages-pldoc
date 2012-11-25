@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2010, University of Amsterdam
+    Copyright (C): 2009-2012, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@
 	    pred_edit_button//2,	% +PredInd, +Options, //
 	    object_edit_button//2,	% +Obj, +Options, //
 	    object_source_button//2,	% +Obj, +Options, //
+	    doc_resources//1,		% +Options
 					% Support other backends
 	    doc_file_objects/5,		% +FSpec, -File, -Objs, -FileOpts, +Opts
 	    existing_linked_file/2,	% +FileSpec, -Path
@@ -243,15 +244,32 @@ doc_write_page(Style, Head, Body, _) :-
 prolog_file(FileSpec, Options) -->
 	{ doc_file_objects(FileSpec, File, Objects, FileOptions, Options),
 	  b_setval(pldoc_file, File),	% TBD: delete?
-	  file_directory_name(File, Dir),
-	  option(html_resources(Resoures), Options, pldoc)
+	  file_directory_name(File, Dir)
 	},
-	html([ \html_requires(Resoures),
+	html([ \doc_resources(Options),
 	       \doc_links(Dir, FileOptions),
 	       \file_header(File, FileOptions)
 	     | \objects(Objects, FileOptions)
 	     ]),
 	undocumented(Objects, FileOptions).
+
+%%	doc_resources(+Options)// is det.
+%
+%	Include required resources (CSS, JS) into  the output. The first
+%	clause supports doc_files.pl. A bit hacky ...
+
+doc_resources(Options) -->
+	{ option(resource_directory(ResDir), Options),
+	  nb_current(pldoc_output, OutputFile), !,
+	  directory_file_path(ResDir, 'pldoc.css', Res),
+	  relative_file_name(Res, OutputFile, Ref)
+	},
+	html_requires(Ref).
+doc_resources(Options) -->
+	{ option(html_resources(Resoures), Options, pldoc)
+	},
+	html_requires(Resoures).
+
 
 %%	doc_file_objects(+FileSpec, -File, -Objects, -FileOptions, +Options) is det.
 %

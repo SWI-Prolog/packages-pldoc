@@ -37,7 +37,6 @@
 :- use_module(pldoc(doc_index)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
-:- use_module(library(http/html_head), []).
 
 /** <module> Create stand-alone documentation files
 
@@ -48,8 +47,6 @@ version. Creating stand-alone files as  provided   by  this  file can be
 useful for printing or distribution.
 
 @tbd	Check links
-@tbd	Handle (resource) links in recursive documentation (try
-        ClioPatria)
 @tbd	Nice frontend for common scenarios
 	- Generate documentation for a pack (README in top; files in Prolog)
 	- Default save into a doc subdirectory?
@@ -97,22 +94,24 @@ useful for printing or distribution.
 %		* css(+Mode)
 %		If =copy=, copy the CSS file to created directories.
 %		Using =inline=, include the CSS file into the created
-%		files.
+%		files.  Currently, only the default =copy= is supported.
 %
-%	@tbd	Copy CSS files, inline CSS files
+%	@tbd	Inline CSS files
 
 doc_save(Spec, Options) :-
 	doc_target(Spec, Target, Options),
-	phrase(file_map(Target), FileMap), % Assoc?
+	target_directory(Target, Dir),
+	phrase(file_map(Target), FileMap),
 	merge_options([ html_resources(pldoc_files),
-			source_link(false)
+			source_link(false),
+			resource_directory(Dir)
 		      ], Options, Options1),
 	Options2 = [files(FileMap)|Options1],
 	setup_call_cleanup(
 	    nb_setval(pldoc_options, Options2),
 	    generate(Target, Options2),
 	    nb_delete(pldoc_options)),
-	copy_resources(Target, Options2).
+	copy_resources(Dir, Options2).
 
 %%	generate(+Spec, +Options) is det.
 %
@@ -147,7 +146,7 @@ generate(directory(Dir, IndexFile, Members), Options) :-
 %		Document PlFile in DocFile
 %
 %		* directory(Dir, IndexFile, Members)
-%		Document Dir in IndexFile.  Memmbers is a list of
+%		Document Dir in IndexFile.  Members is a list of
 %		documentation structures.
 
 doc_target(FileOrDir, file(File, DocFile), Options) :-
@@ -170,6 +169,10 @@ doc_target(FileOrDir, directory(Dir, Index, Members), Options) :-
 		),
 		Members).
 
+target_directory(directory(_, Index, _), Dir) :-
+	file_directory_name(Index, Dir).
+target_directory(file(_, DocFile), Dir) :-
+	file_directory_name(DocFile, Dir).
 
 %%	file_map(+DocStruct, -List)
 %
@@ -290,16 +293,9 @@ blocked('INDEX.pl').
 		 *	     RESOURCES		*
 		 *******************************/
 
-%%	copy_resources(+Target, +Options)
+%%	copy_resources(+Dir, +Options)
 
-copy_resources(directory(_, Index, _), Options) :-
-	file_directory_name(Index, Dir),
-	copy_resources_dir(Dir, Options).
-copy_resources(file(_, DocFile), Options) :-
-	file_directory_name(DocFile, Dir),
-	copy_resources_dir(Dir, Options).
-
-copy_resources_dir(Dir, Options) :-
+copy_resources(Dir, Options) :-
 	option(format(Format), Options, html),
 	forall(doc_resource(Format, Res),
 	       ( absolute_file_name(pldoc(Res), File, [access(read)]),
@@ -311,14 +307,3 @@ doc_resource(html, 'h2-bg.png').
 doc_resource(html, 'multi-bg.png').
 doc_resource(html, 'priv-bg.png').
 doc_resource(html, 'pub-bg.png').
-
-:- html_resource(pldoc_files_css,
-		 [ virtual(true),
-		   requires([ 'pldoc.css'
-			    ])
-		 ]).
-:- html_resource(pldoc_files,
-		 [ virtual(true),
-		   requires([ pldoc_files_css
-			    ])
-		 ]).

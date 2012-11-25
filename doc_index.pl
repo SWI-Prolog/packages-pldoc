@@ -123,10 +123,9 @@ dir_index(Dir, Options) -->
 	{ dir_source_files(Dir, Files0, Options),
 	  sort(Files0, Files),
 	  atom_concat(Dir, '/index.html', File),
-	  b_setval(pldoc_file, File),	% for predref
-	  option(html_resources(Resoures), Options, pldoc)
+	  b_setval(pldoc_file, File)	% for predref
 	},
-	html([ \html_requires(Resoures),
+	html([ \doc_resources(Options),
 	       \doc_links(Dir, Options),
 	       \dir_header(Dir, Options),
 	       table(class(summary),
