@@ -32,6 +32,7 @@
 
 :- module(pldoc_process,
 	  [ doc_comment/4,		% ?Object, ?Pos, ?Summary, ?Comment
+	    doc_file_has_comments/1,	% +File
 	    is_structured_comment/2,	% +Comment, -Prefixes
 	    process_comments/3,		% +Comments, +StartTermPos, +File
 	    doc_file_name/3		% +Source, -Doc, +Options
@@ -183,6 +184,16 @@ doc_file_name(Source, Doc, Options) :-
 	->  throw(error(permission_error(overwrite, Source), _))
 	;   true
 	).
+
+%%	doc_file_has_comments(+Source:atom) is semidet.
+%
+%	True if we have loaded comments from Source.
+
+doc_file_has_comments(Source) :-
+	source_file_property(Source, module(M)),
+	locally_defined(M:'$pldoc'/4),
+	M:'$pldoc'(_, _, _, _).
+
 
 %%	doc_comment(?Objects, -Pos,
 %%		    -Summary:string, -Comment:string) is nondet.

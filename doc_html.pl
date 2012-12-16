@@ -305,15 +305,28 @@ doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 %%	ensure_doc_objects(+File)
 %
 %	Ensure we have documentation about  File.   If  the  file is not
-%	loaded, run the cross-referencer on it   to collect the comments
-%	and meta-information.
-%
-%	@tbd	We could also run the cross-referencer if the file
-%		was loaded, but before we are collecting comments.
-%		Is that useful?
+%	loaded or we have no comments for the file because it was loaded
+%	before comment collection was enabled,  run the cross-referencer
+%	on it to collect the comments and meta-information.
+
+:- dynamic
+	no_comments/2.
 
 ensure_doc_objects(File) :-
-	source_file(File), !.
+	source_file(File), !,
+	(   doc_file_has_comments(File)
+	->  true
+	;   no_comments(File, TimeChecked),
+	    time_file(File, TimeChecked)
+	->  true
+	;   xref_source(File),
+	    retractall(no_comments(File, _)),
+	    (	doc_file_has_comments(File)
+	    ->	true
+	    ;	time_file(File, TimeChecked),
+		assertz(no_comments(File, TimeChecked))
+	    )
+	).
 ensure_doc_objects(File) :-
 	xref_source(File).
 
