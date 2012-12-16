@@ -159,17 +159,26 @@ doc_target(FileOrDir, file(File, DocFile), Options) :-
 			     file_errors(fail),
 			     access(read)
 			   ]), !,
-	document_file(File, DocFile, Options).
+	(   option(source_root(_), Options)
+	->  Options1 = Options
+	;   file_directory_name(File, FileDir),
+	    Options1 = [source_root(FileDir)|Options]
+	),
+	document_file(File, DocFile, Options1).
 doc_target(FileOrDir, directory(Dir, Index, Members), Options) :-
 	absolute_file_name(FileOrDir, Dir,
 			   [ file_type(directory),
 			     file_errors(fail),
 			     access(read)
 			   ]), !,
-	document_file(Dir, Index, Options),
+	(   option(source_root(_), Options)
+	->  Options1 = Options
+	;   Options1 = [source_root(Dir)|Options]
+	),
+	document_file(Dir, Index, Options1),
 	findall(Member,
-		(   prolog_file_in_dir(Dir, File, Options),
-		    doc_target(File, Member, Options)
+		(   prolog_file_in_dir(Dir, File, Options1),
+		    doc_target(File, Member, Options1)
 		),
 		Members).
 
@@ -221,8 +230,11 @@ document_file(File, DocFile, Options) :-
 	),
 	(   option(doc_root(Dir0), Options),
 	    ensure_slash(Dir0, Dir)
-	->  working_directory(PWD, PWD),
-	    atom_concat(PWD, Local, DocFile0),
+	->  (   option(source_root(SrcTop), Options)
+	    ->	true
+	    ;	working_directory(SrcTop, SrcTop)
+	    ),
+	    atom_concat(SrcTop, Local, DocFile0),
 	    atom_concat(Dir, Local, DocFile),
 	    file_directory_name(DocFile, DocDir),
 	    ensure_dir(DocDir, Options)
