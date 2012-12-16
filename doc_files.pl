@@ -30,7 +30,8 @@
 */
 
 :- module(pldoc_files,
-	  [ doc_save/2			% +File, +Options
+	  [ doc_save/2,			% +File, +Options
+	    doc_pack/1			% +Pack
 	  ]).
 :- use_module(library(pldoc), []).
 :- use_module(pldoc(doc_html)).
@@ -48,7 +49,6 @@ useful for printing or distribution.
 
 @tbd	Check links
 @tbd	Nice frontend for common scenarios
-	- Generate documentation for a pack (README in top; files in Prolog)
 	- Default save into a doc subdirectory?
 */
 
@@ -57,7 +57,7 @@ useful for printing or distribution.
 		       doc_root(atom),
 		       man_server(atom),
 		       index_file(atom),
-		       if(onceof([loaded,true])),
+		       if(oneof([loaded,true])),
 		       recursive(boolean),
 		       css(oneof([copy,inline]))
 		     ]).
@@ -113,6 +113,7 @@ doc_save(Spec, Options) :-
 	    nb_delete(pldoc_options)),
 	copy_resources(Dir, Options2).
 
+
 %%	generate(+Spec, +Options) is det.
 %
 %	Generate  documentation  for  the    specification   created  by
@@ -140,7 +141,7 @@ generate(directory(Dir, IndexFile, Members), Options) :-
 	generate(Members, Options).
 
 
-%%	doc_target(+Spec, -Target) is semidet.
+%%	doc_target(+Spec, -Target, +Options) is semidet.
 %
 %	Generate a structure describing what to document in what files.
 %	This structure is a term:
@@ -271,6 +272,7 @@ prolog_file_in_dir(Dir, File, Options) :-
 	->  source_file(File),
 	    file_directory_name(File, Dir)
 	;   user:prolog_file_type(Ext, prolog),
+	    \+ user:prolog_file_type(Ext, qlf),
 	    atomic_list_concat([Dir, '/*.', Ext], Pattern),
 	    expand_file_name(Pattern, Files),
 	    member(File, Files)
@@ -290,6 +292,25 @@ prolog_file_in_dir(Dir, SubDir, Options) :-
 
 blocked('.plrc').
 blocked('INDEX.pl').
+
+
+		 /*******************************
+		 *	    PACK SUPPORT	*
+		 *******************************/
+
+%%	doc_pack(+Pack)
+%
+%	Generate stand-alone documentation for the package Pack.
+
+doc_pack(Pack) :-
+	pack_property(Pack, directory(PackDir)), !,
+	directory_file_path(PackDir, prolog, SourceDir),
+	directory_file_path(PackDir, doc, DocDir),
+	doc_save(SourceDir,
+		 [ doc_root(DocDir),
+		   if(true),
+		   recursive(true)
+		 ]).
 
 
 		 /*******************************
