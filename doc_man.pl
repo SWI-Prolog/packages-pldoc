@@ -47,11 +47,11 @@
 :- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
+:- use_module(doc_process).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
-:- use_module(library(doc_http)).
 :- include(hooks).
 
 /** <module> Process SWI-Prolog HTML manuals
@@ -539,7 +539,21 @@ man_page(Obj, Options) -->
 	man_links(ParentPaths, Options),
 	man_matches(Matches, Obj).
 man_page(Obj, Options) -->
-	object_page(Obj, [try_manual(false)|Options]), !.
+	{ full_object(Obj, Full),
+	  findall(Full-File,
+		  ( doc_comment(Full, File:_, _, _),
+		    \+ private(Full, Options)
+		  ),
+		  Pairs),
+	  Pairs \== [],
+	  pairs_keys(Pairs, Objs)
+	}, !,
+	html_requires(pldoc),
+	(   { Pairs = [_-File] }
+	->  object_page_header(File, Options)
+	;   object_page_header(-, Options)
+	),
+	objects(Objs, [synopsis(true)|Options]).
 man_page(Obj, Options) -->
 	{ \+ option(no_manual(fail), Options)
 	},
@@ -549,6 +563,16 @@ man_page(Obj, Options) -->
 	       [ 'Sorry, No manual entry for ',
 		 b('~w'-[Obj])
 	       ])).
+
+full_object(M:N/A, M:N/A) :- !.
+full_object(M:N//A, M:N/A2) :-
+	integer(A2), !,
+	A2 is A+2.
+full_object(Name/Arity, _:Name/Arity) :- !.
+full_object(Name//Arity, _:Name/Arity2) :-
+	integer(Arity),
+	Arity2 is Arity+1.
+
 
 %%	man_synopsis(+Text, Parent)
 %
@@ -948,8 +972,6 @@ prolog:doc_object_summary(Obj, Class, File, Summary) :-
 	man_index(Obj, Summary, File, Class, _Offset).
 
 prolog:doc_object_page(Obj, Options) -->
-	{ option(try_manual(true), Options, false)
-	},
 	man_page(Obj, [no_manual(fail)|Options]).
 
 prolog:doc_object_link(Obj, Options) -->

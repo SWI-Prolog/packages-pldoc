@@ -67,6 +67,7 @@
 	    object_ref//2,		% +Object, +Options, //
 	    object_href/2,		% +Object, -URL
 	    object_page//2,		% +Object, +Options, //
+	    object_page_header//2,	% +File, +Options, //
 	    object_synopsis//2		% +Object, +Options, //
 	  ]).
 :- use_module(library(lists)).
