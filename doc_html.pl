@@ -145,6 +145,7 @@ extracting module doc_wiki.pl into HTML+CSS.
 		       header(boolean),
 		       links(boolean),
 		       no_manual(boolean),
+		       try_manual(boolean),
 		       search_in(oneof([all,app,man])),
 		       search_match(oneof([name,summary])),
 		       search_options(boolean)
@@ -741,7 +742,7 @@ is_pi(_//_).
 		 *	SINGLE OBJECT PAGE	*
 		 *******************************/
 
-%%	object_page(+Obj, +Options)// is det.
+%%	object_page(+Obj, +Options)// is semidet.
 %
 %	Generate an HTML page describing Obj.  The top presents the file
 %	the object is documented in and a search-form.  Options:

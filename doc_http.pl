@@ -605,9 +605,8 @@ pldoc_man(Request) :-
 			  function(Fun, [optional(true)]),
 			  'CAPI'(F,     [optional(true)])
 			]),
-	format(string(Title), 'Manual -- ~w', [PI]),
 	(   ground(PI)
-	->  Obj = PI
+	->  split_pi(PI, Obj)
 	;   ground(Fun)
 	->  atomic_list_concat([Name,ArityAtom], /, Fun),
 	    atom_number(ArityAtom, Arity),
@@ -615,9 +614,36 @@ pldoc_man(Request) :-
 	;   ground(F)
 	->  Obj = c(F)
 	),
+	man_title(Obj, Title),
 	reply_html_page(pldoc(man),
 			title(Title),
 			\man_page(Obj, [])).
+
+man_title(f(Obj), Title) :-
+	format(atom(Title), 'SWI-Prolog -- function ~w', [Obj]).
+man_title(c(Obj), Title) :-
+	format(atom(Title), 'SWI-Prolog -- API-function ~w', [Obj]).
+man_title(Obj, Title) :-
+	format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
+
+split_pi(Atom, Module:PI) :-
+	atomic_list_concat([Module, PIAtom], :, Atom), !,
+	split_pi2(PIAtom, PI).
+split_pi(Atom, PI) :-
+	split_pi2(Atom, PI).
+
+split_pi2(Atom, Name//Arity) :-
+	sub_atom(Atom, B, _, A, //),
+	sub_atom(Atom, _, A, 0, ArityA),
+	atom_number(ArityA, Arity), !,
+	sub_atom(Atom, 0, B, _, Name).
+split_pi2(Atom, Name/Arity) :-
+	sub_atom(Atom, B, _, A, /),
+	sub_atom(Atom, _, A, 0, ArityA),
+	atom_number(ArityA, Arity), !,
+	sub_atom(Atom, 0, B, _, Name).
+
+
 
 %%	pldoc_object(+Request)
 %

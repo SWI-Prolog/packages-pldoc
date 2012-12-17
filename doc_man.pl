@@ -539,6 +539,8 @@ man_page(Obj, Options) -->
 	man_links(ParentPaths, Options),
 	man_matches(Matches, Obj).
 man_page(Obj, Options) -->
+	object_page(Obj, [try_manual(false)|Options]), !.
+man_page(Obj, Options) -->
 	{ \+ option(no_manual(fail), Options)
 	},
 	html_requires(pldoc),
@@ -946,6 +948,8 @@ prolog:doc_object_summary(Obj, Class, File, Summary) :-
 	man_index(Obj, Summary, File, Class, _Offset).
 
 prolog:doc_object_page(Obj, Options) -->
+	{ option(try_manual(true), Options, false)
+	},
 	man_page(Obj, [no_manual(fail)|Options]).
 
 prolog:doc_object_link(Obj, Options) -->
