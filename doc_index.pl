@@ -126,6 +126,7 @@ doc_write_page(Style, Head, Body, _) :-
 dir_index(Dir, Options) -->
 	{ dir_source_files(Dir, Files0, Options),
 	  sort(Files0, Files),
+	  maplist(ensure_doc_objects, Files),
 	  directory_file_path(Dir, 'index.html', File),
 	  b_setval(pldoc_file, File)	% for predref
 	},

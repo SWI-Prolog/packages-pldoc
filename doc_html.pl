@@ -45,6 +45,7 @@
 	    object_edit_button//2,	% +Obj, +Options, //
 	    object_source_button//2,	% +Obj, +Options, //
 	    doc_resources//1,		% +Options
+	    ensure_doc_objects/1,	% +File
 					% Support other backends
 	    doc_file_objects/5,		% +FSpec, -File, -Objs, -FileOpts, +Opts
 	    existing_linked_file/2,	% +FileSpec, -Path
