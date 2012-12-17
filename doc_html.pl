@@ -1342,9 +1342,16 @@ predref(Term) -->
 
 predref(Obj, Options) -->
 	{ Obj = _:_,
-	  doc_comment(Obj, _, _, _)
+	  doc_comment(Obj, File:_Line, _, _),
+	  (   (   option(files(Map), Options)
+	      ->  memberchk(file(File,_), Map)
+	      ;   true
+	      )
+	  ->  object_href(Obj, HREF, Options)
+	  ;   manref(Obj, HREF, Options)
+	  )
 	}, !,
-	object_ref(Obj, [qualify(true)|Options]).
+	html(a(href(HREF), \object_link(Obj, [qualify(true)|Options]))).
 predref(M:Term, Options) --> !,
 	predref(Term, M, Options).
 predref(Term, Options) -->
@@ -1362,31 +1369,48 @@ predref(Name/Arity, _, Options) -->		% From packages
 	},
 	html(a([class=Category, href=HREF], [Name, /, Arity])).
 predref(Obj, Module, Options) -->		% Local
-	{ doc_comment(Module:Obj, _, _, _)
+	{ doc_comment(Module:Obj, File:_Line, _, _),
+	  (   option(files(Map), Options)
+	  ->  memberchk(file(File,_), Map)
+	  ;   true
+	  )
 	}, !,
 	object_ref(Module:Obj, Options).
-predref(Name/Arity, Module, _Options) -->
-	{ pred_href(Name/Arity, Module, HREF) }, !,
+predref(Name/Arity, Module, Options) -->
+	{ \+ option(files(_), Options),
+	  pred_href(Name/Arity, Module, HREF)
+	}, !,
 	html(a(href=HREF, [Name, /, Arity])).
-predref(Name//Arity, Module, _Options) -->
-	{ PredArity is Arity + 2,
+predref(Name//Arity, Module, Options) -->
+	{ \+ option(files(_), Options),
+	  PredArity is Arity + 2,
 	  pred_href(Name/PredArity, Module, HREF)
 	}, !,
 	html(a(href=HREF, [Name, //, Arity])).
-predref(Name/Arity, _, Options) -->		% From packages
-	{ prolog:doc_object_summary(Name/Arity, Category, _, _), !,
-	  manref(Name/Arity, HREF, Options)
+predref(PI, _, Options) -->		% From packages
+	{ canonical_pi(PI, CPI, HTML),
+	  (   option(files(_), Options)
+	  ->  Category = extmanual
+	  ;   prolog:doc_object_summary(CPI, Category, _, _)
+	  ),
+	  manref(CPI, HREF, Options)
 	},
-	html(a([class=Category, href=HREF], [Name, /, Arity])).
-predref(Name/Arity, _, _Options) --> !,
-	html(span(class=undef, [Name, /, Arity])).
-predref(Name//Arity, _, _Options) --> !,
-	html(span(class=undef, [Name, //, Arity])).
+	html(a([class=Category, href=HREF], HTML)).
+predref(PI, _, _Options) -->
+	{ canonical_pi(PI, _CPI, HTML)
+	}, !,
+	html(span(class=undef, HTML)).
 predref(Callable, Module, Options) -->
 	{ callable(Callable),
 	  functor(Callable, Name, Arity)
 	},
 	predref(Name/Arity, Module, Options).
+
+canonical_pi(Name/Arity, Name/Arity, [Name, /, Arity]) :-
+	atom(Name), integer(Arity), !.
+canonical_pi(Name//Arity, Name/Arity2, [Name, //, Arity]) :-
+	atom(Name), integer(Arity), !,
+	Arity2 is Arity2+2.
 
 
 %%	manref(+NameArity, -HREF, +Options) is det.
@@ -1394,8 +1418,8 @@ predref(Callable, Module, Options) -->
 %	Create reference to a manual page.  When generating files, this
 %	listens to the option man_server(+Server).
 
-manref(Name/Arity, HREF, Options) :-
-	format(string(FragmentId), '~w/~d', [Name, Arity]),
+manref(PI, HREF, Options) :-
+	predname(PI, PredName),
 	(   option(files(_Map), Options)
 	->  option(man_server(Server), Options,
 		   'http://www.swi-prolog.org/pldoc'),
@@ -1403,11 +1427,16 @@ manref(Name/Arity, HREF, Options) :-
 	    uri_data(path, Comp0, Path0),
 	    directory_file_path(Path0, man, Path),
 	    uri_data(path, Comp0, Path, Components),
-	    uri_query_components(Query, [predicate=FragmentId]),
+	    uri_query_components(Query, [predicate=PredName]),
 	    uri_data(search, Components, Query),
 	    uri_components(HREF, Components)
-	;   http_link_to_id(pldoc_man, [predicate=FragmentId], HREF)
+	;   http_link_to_id(pldoc_man, [predicate=PredName], HREF)
 	).
+
+predname(Name/Arity, PredName) :- !,
+	format(atom(PredName), '~w/~d', [Name, Arity]).
+predname(Module:Name/Arity, PredName) :- !,
+	format(atom(PredName), '~w:~w/~d', [Module, Name, Arity]).
 
 
 %%	pred_href(+NameArity, +Module, -HREF) is semidet.
@@ -1500,6 +1529,7 @@ object_href(Obj, HREF) :-
 object_href(M:PI0, HREF, Options) :-
 	option(files(Map), Options),
 	(   module_property(M, file(File))
+	->  true
 	;   xref_module(File, M)
 	),
 	memberchk(file(File, DocFile), Map), !,
