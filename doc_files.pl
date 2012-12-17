@@ -73,8 +73,8 @@ useful for printing or distribution.
 %
 %		* doc_root(+Dir)
 %		Save output to the given directory.  Default is to save
-%		the documentation files in the same directory as the
-%		sources.
+%		the documentation for a file in the same directory as
+%		the file and for a directory in a subdirectory =doc=.
 %
 %		* title(+Title)
 %		Title is an atom that provides the HTML title of the
@@ -174,22 +174,23 @@ doc_target(FileOrDir, file(File, DocFile), Options) :-
 	    Options1 = [source_root(FileDir)|Options]
 	),
 	document_file(File, DocFile, Options1).
-doc_target(FileOrDir, directory(Dir, Index, Members, DirOptions), Options) :-
+doc_target(FileOrDir, directory(Dir, Index, Members, DirOptions), Options0) :-
 	absolute_file_name(FileOrDir, Dir,
 			   [ file_type(directory),
 			     file_errors(fail),
 			     access(read)
 			   ]), !,
-	(   option(source_root(_), Options)
-	->  Options1 = Options
-	;   Options0 = [source_root(Dir)|Options],
-	    exclude(main_option, Options0, Options1)
+	(   option(source_root(_), Options0)		% recursive
+	->  Options = Options0
+	;   Options1 = [source_root(Dir)|Options0],	% top
+	    exclude(main_option, Options1, Options2),
+	    set_doc_root(Dir, Options2, Options)
 	),
-	DirOptions = Options1,
-	document_file(Dir, Index, Options1),
+	DirOptions = Options,
+	document_file(Dir, Index, Options),
 	findall(Member,
-		(   prolog_file_in_dir(Dir, File, Options1),
-		    doc_target(File, Member, Options1)
+		(   prolog_file_in_dir(Dir, File, Options),
+		    doc_target(File, Member, Options)
 		),
 		Members).
 
@@ -201,11 +202,17 @@ main_option(title(_)).
 main_option(readme(_)).
 main_option(todo(_)).
 
-
 target_directory(directory(_, Index, _, _), Dir) :-
 	file_directory_name(Index, Dir).
 target_directory(file(_, DocFile), Dir) :-
 	file_directory_name(DocFile, Dir).
+
+set_doc_root(_Dir, Options0, Options) :-
+	option(doc_root(_), Options0), !,
+	Options = Options0.
+set_doc_root(Dir, Options0, Options) :-
+	directory_file_path(Dir, doc, DocRoot),
+	Options = [doc_root(DocRoot)|Options0].
 
 %%	file_map(+DocStruct, -List)
 %
@@ -313,9 +320,11 @@ prolog_file_in_dir(Dir, File, Options) :-
 	\+ blocked(Base).
 prolog_file_in_dir(Dir, SubDir, Options) :-
 	option(recursive(true), Options, false),
+	option(doc_root(DocRoot), Options),
 	atom_concat(Dir, '/*', Pattern),
 	expand_file_name(Pattern, Matches),
 	member(SubDir, Matches),
+	SubDir \== DocRoot,
 	exists_directory(SubDir).
 
 %%	blocked(+File) is semidet.
