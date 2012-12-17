@@ -141,6 +141,7 @@ dir_index(Dir, Options) -->
 	       \doc_links(Dir, Options),
 	       \dir_header(Dir, Options),
 	       \subdir_links(Dir, Options),
+	       h2(class([wiki,plfiles]), 'Prolog files'),
 	       table(class(summary),
 		     \file_indices(Files, [directory(Dir)|Options])),
 	       \dir_footer(Dir, Options)
@@ -170,11 +171,13 @@ source_file_in_dir(Dir, File) :-
 
 subdir_links(Dir, Options) -->
 	{ option(members(Members), Options),
-	  findall(SubDir, member(directory(SubDir, _, _), Members), SubDirs),
+	  findall(SubDir, member(directory(SubDir, _, _, _), Members), SubDirs),
 	  SubDirs \== []
 	},
-	html(table(class(subdirs),
-		   \subdir_link_rows(SubDirs, Dir))).
+	html([ h2(class([wiki,subdirs]), 'Sub directories'),
+	       table(class(subdirs),
+		     \subdir_link_rows(SubDirs, Dir))
+	     ]).
 subdir_links(_, _) --> [].
 
 subdir_link_rows([], _) --> [].
@@ -187,7 +190,7 @@ subdir_link_row(Dir, From) -->
 	  relative_file_name(Index, From, Link),
 	  file_base_name(Dir, Base)
 	},
-	html(tr(td(a(href(Link), Base)))).
+	html(tr(td(a([class(subdir), href(Link)], ['[dir] ', Base])))).
 
 %%	dir_header(+Dir, +Options)// is det.
 %
