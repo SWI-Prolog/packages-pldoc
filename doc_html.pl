@@ -479,8 +479,10 @@ file_title(Title, File, Options) -->
 %	file is not loaded because we do  not want to load files through
 %	the documentation system.
 
-reload_button(File, _Base, _Options) -->
-	{ \+ source_file(File) }, !,
+reload_button(File, _Base, Options) -->
+	{ \+ source_file(File),
+	  \+ option(files(_), Options)
+	}, !,
 	html(span(class(file_anot), '[not loaded]')).
 reload_button(_File, Base, Options) -->
 	{ option(edit(true), Options), !,
