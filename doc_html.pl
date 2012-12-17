@@ -1497,7 +1497,9 @@ object_href(Obj, HREF) :-
 
 object_href(M:PI0, HREF, Options) :-
 	option(files(Map), Options),
-	module_property(M, file(File)),
+	(   module_property(M, file(File))
+	;   xref_module(File, M)
+	),
 	memberchk(file(File, DocFile), Map), !,
 	file_base_name(DocFile, LocalFile),	% TBD: proper directory index
 	expand_pi(PI0, PI),
