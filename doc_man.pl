@@ -536,21 +536,17 @@ man_page(Obj, Options) -->
 	  Matches = [Parent+Path-_|_]
 	},
 	html_requires(pldoc),
-	(   { option(links(true), Options, true) }
-	->  man_links(ParentPaths, Options),
-	    html(p([]))
-	;   []
-	),
+	man_links(ParentPaths, Options),
 	man_matches(Matches, Obj).
 man_page(Obj, Options) -->
-	{ \+ option(no_manual(fail), Options),
-	  term_to_atom(Obj, Atom)
+	{ \+ option(no_manual(fail), Options)
 	},
 	html_requires(pldoc),
-	(   { option(links(true), Options, true) }
-	->  man_links([], [])
-	;   html(p(['No manual entry for ', Atom]))
-	).
+	man_links([], Options),
+	html(p(class(noman),
+	       [ 'Sorry, No manual entry for ',
+		 b('~w'-[Obj])
+	       ])).
 
 %%	man_synopsis(+Text, Parent)
 %
@@ -558,6 +554,9 @@ man_page(Obj, Options) -->
 %	The tricky part is that there   are cases where multiple modules
 %	export the same predicate. We must find   from  the title of the
 %	manual section which library is documented.
+
+:- public
+	man_synopsis//2.		% called from man_match//2
 
 man_synopsis(Text, Parent) -->
 	{ atom_pi(Text, PI) },
@@ -776,11 +775,16 @@ referenced_section(Fragment, File, Path, section(Level, Nr, SecPath)) :-
 %	Create top link structure for manual pages.
 
 man_links(ParentPaths, Options) -->
-	html(div(class(navhdr),
-		 [ div(class(jump), \man_parent(ParentPaths)),
-		   div(class(search), \search_form(Options)),
-		   br(clear(right))
-		 ])).
+	{ option(links(true), Options, true) }, !,
+	html([ div(class(navhdr),
+		   [ div(class(jump), \man_parent(ParentPaths)),
+		     div(class(search), \search_form(Options)),
+		     br(clear(right))
+		   ]),
+	       p([])
+	     ]).
+man_links(_, _) -->
+	[].
 
 man_parent(ParentPaths) -->
 	{ maplist(parent_to_section, ParentPaths, [Section|MoreSections]),
