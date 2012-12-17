@@ -191,10 +191,13 @@ subdir_link_row(Dir, From) -->
 
 %%	dir_header(+Dir, +Options)// is det.
 %
-%	Create header for directory
+%	Create header for directory.  Options:
+%
+%	  * readme(File)
+%	  Include File as introduction to the directory header.
 
-dir_header(Dir, _Options) -->
-	wiki_file(Dir, readme), !.
+dir_header(Dir, Options) -->
+	wiki_file(Dir, readme, Options), !.
 dir_header(Dir, Options) -->
 	{ (   option(title(Title), Options)
 	  ->  true
@@ -206,23 +209,30 @@ dir_header(Dir, Options) -->
 %%	dir_footer(+Dir, +Options)// is det.
 %
 %	Create footer for directory. The footer contains the =TODO= file
-%	if provided.
+%	if provided.  Options:
+%
+%	  * todo(File)
+%	  Include File as TODO file in the footer.
 
-dir_footer(Dir, _Options) -->
-	wiki_file(Dir, todo), !.
+dir_footer(Dir, Options) -->
+	wiki_file(Dir, todo, Options), !.
 dir_footer(_, _) -->
 	[].
 
-%%	wiki_file(+Dir, +Type)// is semidet.
+%%	wiki_file(+Dir, +Type, +Options)// is semidet.
 %
 %	Include text from a Wiki text-file.
 
-wiki_file(Dir, Type) -->
-	{ directory_files(Dir, Files),
-	  member(File, Files),
-	  wiki_file_type(Type, Pattern),
-	  downcase_atom(File, Pattern),
-	  directory_file_path(Dir, File, WikiFile),
+wiki_file(Dir, Type, Options) -->
+	{ (   Opt =.. [Type,WikiFile],
+	      option(Opt, Options)
+	  ->  true
+	  ;   directory_files(Dir, Files),
+	      member(File, Files),
+	      wiki_file_type(Type, Pattern),
+	      downcase_atom(File, Pattern),
+	      directory_file_path(Dir, File, WikiFile)
+	  ),
 	  access_file(WikiFile, read), !,
 	  read_file_to_codes(WikiFile, String, []),
 	  wiki_codes_to_dom(String, [], DOM)
