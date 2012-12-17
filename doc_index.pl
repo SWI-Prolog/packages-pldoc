@@ -60,6 +60,7 @@
 		       files(list),
 		       members(list),
 		       qualify(boolean),
+		       title(atom),
 		       secref_style(oneof([number, title, number_title])),
 		       pass_to(doc_links/4, 2)
 		     ]).
@@ -98,10 +99,13 @@ doc_for_dir(DirSpec, Options) :-
 			     access(read)
 			   ],
 			   Dir),
-	file_base_name(Dir, Base),
+	(   option(title(Title), Options)
+	->  true
+	;   file_base_name(Dir, Title)
+	),
 	doc_write_page(
 	    pldoc(dir_index),
-	    title(Base),
+	    title(Title),
 	    \dir_index(Dir, Options),
 	    Options).
 
@@ -122,6 +126,8 @@ doc_write_page(Style, Head, Body, _) :-
 %
 %	  * members(+Members)
 %	  Documented members.  See doc_files.pl
+%	  * title(+Title)
+%	  Title to use for the index page
 
 dir_index(Dir, Options) -->
 	{ dir_source_files(Dir, Files0, Options),
@@ -188,10 +194,13 @@ subdir_link_row(Dir, From) -->
 
 dir_header(Dir, _Options) -->
 	wiki_file(Dir, readme), !.
-dir_header(Dir, _Options) -->
-	{ file_base_name(Dir, Base)
+dir_header(Dir, Options) -->
+	{ (   option(title(Title), Options)
+	  ->  true
+	  ;   file_base_name(Dir, Title)
+	  )
 	},
-	html(h1(class=dir, Base)).
+	html(h1(class=dir, Title)).
 
 %%	dir_footer(+Dir, +Options)// is det.
 %

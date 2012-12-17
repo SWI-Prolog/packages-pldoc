@@ -59,7 +59,8 @@ useful for printing or distribution.
 		       index_file(atom),
 		       if(oneof([loaded,true])),
 		       recursive(boolean),
-		       css(oneof([copy,inline]))
+		       css(oneof([copy,inline])),
+		       title(atom)
 		     ]).
 
 
@@ -74,6 +75,11 @@ useful for printing or distribution.
 %		Save output to the given directory.  Default is to save
 %		the documentation files in the same directory as the
 %		sources.
+%
+%		* title(+Title)
+%		Title is an atom that provides the HTML title of the
+%		main (index) page.  Only meaningful when generating
+%		documentation for a directory.
 %
 %		* man_server(+RootURL)
 %		Root of a manual server used for references to built-in
@@ -129,12 +135,13 @@ generate(file(PlFile, DocFile), Options) :-
 	    open(DocFile, write, Out, [encoding(utf8)]),
 	    with_output_to(Out, doc_for_file(PlFile, Options)),
 	    close(Out)).
-generate(directory(Dir, IndexFile, Members), Options) :-
+generate(directory(Dir, IndexFile, Title, Members), Options) :-
 	b_setval(pldoc_output, IndexFile),
 	setup_call_cleanup(
 	    open(IndexFile, write, Out, [encoding(utf8)]),
 	    with_output_to(Out, doc_for_dir(Dir,
-					    [ members(Members)
+					    [ members(Members),
+					      title(Title)
 					    | Options
 					    ])),
 	    close(Out)),
@@ -149,7 +156,7 @@ generate(directory(Dir, IndexFile, Members), Options) :-
 %		* file(PlFile, DocFile)
 %		Document PlFile in DocFile
 %
-%		* directory(Dir, IndexFile, Members)
+%		* directory(Dir, IndexFile, Title, Members)
 %		Document Dir in IndexFile.  Members is a list of
 %		documentation structures.
 
@@ -165,15 +172,21 @@ doc_target(FileOrDir, file(File, DocFile), Options) :-
 	    Options1 = [source_root(FileDir)|Options]
 	),
 	document_file(File, DocFile, Options1).
-doc_target(FileOrDir, directory(Dir, Index, Members), Options) :-
+doc_target(FileOrDir, directory(Dir, Index, Title, Members), Options) :-
 	absolute_file_name(FileOrDir, Dir,
 			   [ file_type(directory),
 			     file_errors(fail),
 			     access(read)
 			   ]), !,
 	(   option(source_root(_), Options)
-	->  Options1 = Options
-	;   Options1 = [source_root(Dir)|Options]
+	->  Options1 = Options,
+	    file_base_name(Dir, Title)
+	;   Options0 = [source_root(Dir)|Options],
+	    (	select_option(title(Title), Options0, Options1)
+	    ->	true
+	    ;	file_base_name(Dir, Title),
+		Options1 = Options0
+	    )
 	),
 	document_file(Dir, Index, Options1),
 	findall(Member,
@@ -182,7 +195,7 @@ doc_target(FileOrDir, directory(Dir, Index, Members), Options) :-
 		),
 		Members).
 
-target_directory(directory(_, Index, _), Dir) :-
+target_directory(directory(_, Index, _, _), Dir) :-
 	file_directory_name(Index, Dir).
 target_directory(file(_, DocFile), Dir) :-
 	file_directory_name(DocFile, Dir).
@@ -199,7 +212,7 @@ file_map([H|T]) -->
 	file_map(T).
 file_map(file(Src, Doc)) -->
 	[ file(Src, Doc) ].
-file_map(directory(_Dir, _Doc, Members)) -->
+file_map(directory(_Dir, _Doc, _Title, Members)) -->
 	file_map(Members).
 
 
@@ -315,11 +328,14 @@ blocked('INDEX.pl').
 %	Generate stand-alone documentation for the package Pack.
 
 doc_pack(Pack) :-
-	pack_property(Pack, directory(PackDir)), !,
+	pack_property(Pack, directory(PackDir)),
+	pack_property(Pack, title(Title)), !,
+	format(atom(PackTitle), 'Pack ~w -- ~w', [Pack, Title]),
 	directory_file_path(PackDir, prolog, SourceDir),
 	directory_file_path(PackDir, doc, DocDir),
 	doc_save(SourceDir,
-		 [ doc_root(DocDir),
+		 [ title(PackTitle),
+		   doc_root(DocDir),
 		   if(true),
 		   recursive(true)
 		 ]).
