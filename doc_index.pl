@@ -48,6 +48,7 @@
 :- use_module(library(readutil)).
 :- use_module(library(url)).
 :- use_module(library(option)).
+:- use_module(library(lists)).
 :- use_module(library(doc_http)).
 :- include(hooks).
 
@@ -217,22 +218,26 @@ dir_footer(_, _) -->
 %	Include text from a Wiki text-file.
 
 wiki_file(Dir, Type) -->
-	{ wiki_file_type(Type, Base),
-	  atomic_list_concat([Dir, /, Base], File),
-	  access_file(File, read), !,
-	  read_file_to_codes(File, String, []),
+	{ directory_files(Dir, Files),
+	  member(File, Files),
+	  wiki_file_type(Type, Pattern),
+	  downcase_atom(File, Pattern),
+	  directory_file_path(Dir, File, WikiFile),
+	  access_file(WikiFile, read), !,
+	  read_file_to_codes(WikiFile, String, []),
 	  wiki_codes_to_dom(String, [], DOM)
 	},
 	pldoc_html:html(DOM).
 
 %%	wiki_file_type(+Category, -File) is nondet.
+%
+%	Declare file pattern names that are included for README and TODO
+%	for a directory. Files are matched case-insensitively.
 
-wiki_file_type(readme, 'README').
-wiki_file_type(readme, 'README.TXT').
-wiki_file_type(readme, 'README.txt').
-wiki_file_type(todo,   'TODO').
-wiki_file_type(todo,   'TODO.TXT').
-wiki_file_type(todo,   'TODO.txt').
+wiki_file_type(readme, 'readme').
+wiki_file_type(readme, 'readme.txt').
+wiki_file_type(todo,   'todo').
+wiki_file_type(todo,   'todo.txt').
 
 %%	file_indices(+Files, +Options)// is det.
 %
