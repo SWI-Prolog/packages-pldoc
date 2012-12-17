@@ -272,7 +272,9 @@ file_index_header(File, Options) -->
 		   ]))).
 
 file_module_title(File) -->
-	{ module_property(M, file(File)),
+	{ (   module_property(M, file(File))
+	  ;   xref_module(File, M)
+	  ),
 	  doc_comment(M:module(Title), _, _, _)
 	}, !,
 	html([&(nbsp), ' -- ', Title]).
