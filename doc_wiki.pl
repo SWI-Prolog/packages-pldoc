@@ -197,6 +197,13 @@ list_item_prefix(ol, [w(N), '.', ' '|T], T) :-
 	atom_codes(N, [D]),
 	between(0'0, 0'9, D).
 
+%%	split_dt(+LineAfterDollar, -DT, -Rest)
+%
+%	First see whether the entire line is the item. This allows
+%	creating items holding : by using $ <tokens> :\n
+
+split_dt(In, DT, []) :-
+	append(DT, [':'], In), !.
 split_dt(In, DT, Rest) :-
 	append(DT, [':'|Rest0], In),
 	(   Rest0 == []
