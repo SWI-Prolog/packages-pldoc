@@ -1,6 +1,4 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
@@ -619,12 +617,13 @@ object_module(Section, Module) :-
 	    module_property(Module, file(PlFile))
 	).
 
-
 atom_pi(Text, Name/Arity) :-
 	atom(Text),
 	sub_atom(Text, Pre, _, Post, /),
 	sub_atom(Text, _, Post, 0, AA),
-	catch(atom_number(AA, Arity), _, fail), !,
+	atom_number(AA, Arity),
+	integer(Arity),
+	Arity >= 0, !,
 	sub_atom(Text, 0, Pre, _, Name).
 
 man_matches([], _) --> [].
@@ -668,6 +667,13 @@ dom_element(a, Att, Content, Path) -->
 	  rewrite_ref(Class, HREF, Path, Myref)
 	}, !,
 	html(a(href(Myref), \dom_list(Content, Path))).
+dom_element(span, Att, [CDATA], _) -->
+	{ memberchk(class='pred-ext', Att),
+	  atom_pi(CDATA, PI),
+	  documented(PI),
+	  http_link_to_id(pldoc_man, [predicate=CDATA], HREF)
+	},
+	html(a(href(HREF), CDATA)).
 dom_element(div, Att, _, _) -->
 	{ memberchk(class=navigate, Att) }, !.
 dom_element(html, _, Content, Path) --> !,	% do not emit a html for the second time
@@ -683,6 +689,17 @@ dom_element(Name, Attrs, Content, Path) -->
 	html_begin(Begin),
 	dom_list(Content, Path),
 	html_end(Name).
+
+%%	documented(+PI) is semidet.
+%
+%	True if we have documentation about PI
+
+documented(PI) :-
+	index_manual,
+	man_index(PI, _, _, _, _), !.
+documented(PI) :-
+	full_object(PI, Obj),
+	doc_comment(Obj, _, _, _), !.
 
 
 %%	rewrite_ref(+Class, +Ref0, +Path, -ManRef) is semidet.
@@ -768,11 +785,7 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
 %	If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
 name_to_object(Atom, Object) :-
-	atom(Atom),
-	atomic_list_concat([Name, AA], /, Atom),
-	catch(atom_number(AA, Arity), _, fail),
-	integer(Arity),
-	Arity >= 0,
+	atom_pi(Atom, Name/Arity),
 	(   atom_concat('f-', FuncName, Name)
 	->  Object = f(FuncName/Arity)
 	;   Object = Name/Arity
