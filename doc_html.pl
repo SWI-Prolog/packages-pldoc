@@ -1412,7 +1412,7 @@ canonical_pi(Name/Arity, Name/Arity, [Name, /, Arity]) :-
 	atom(Name), integer(Arity), !.
 canonical_pi(Name//Arity, Name/Arity2, [Name, //, Arity]) :-
 	atom(Name), integer(Arity), !,
-	Arity2 is Arity2+2.
+	Arity2 is Arity+2.
 
 
 %%	manref(+NameArity, -HREF, +Options) is det.
