@@ -1,6 +1,4 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@uva.nl
@@ -475,6 +473,17 @@ documentation(File, Request) :-
 	edit_options(Request, Options),
 	doc_for_wiki_file(WikiFile, Options).
 documentation(Path, Request) :-
+	pl_file(Path, File),
+	(   allowed_file(File)
+	->  true
+	;   throw(http_reply(forbidden(File)))
+	),
+	doc_reply_file(File, Request).
+
+:- public
+	doc_reply_file/2.
+
+doc_reply_file(File, Request) :-
 	http_parameters(Request,
 			[ public_only(Public),
 			  reload(Reload),
@@ -482,11 +491,6 @@ documentation(Path, Request) :-
 			],
 			[ attribute_declarations(param)
 			]),
-	pl_file(Path, File),
-	(   allowed_file(File)
-	->  true
-	;   throw(http_reply(forbidden(File)))
-	),
         (   exists_file(File)
         ->  true
         ;   throw(http_reply(not_found(File)))
