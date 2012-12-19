@@ -36,20 +36,32 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(doc_html).
+:- use_module(doc_htmlsrc).
 :- use_module(doc_index).
 
 /** <module> Document Prolog extension packs
 */
 
-:- http_handler(pldoc(packs), pldoc_packs, []).
-:- http_handler(pldoc(pack),  pack_documentation, []).
+:- http_handler(pldoc(pack),     http_redirect(moved, pldoc('pack/')), []).
+:- http_handler(pldoc('pack/'),  pldoc_pack, [prefix]).
 
-
-pldoc_packs(_Request) :-
+pldoc_pack(Request) :-
+	memberchk(path_info(PackPath), Request),
+	PackPath \== '', !,
+	(   pack_path(Pack, PackFile, PackPath)
+	->  list_pack(Pack, PackFile, Request)
+	;   http_404([], Request)
+	).
+pldoc_pack(_Request) :-
 	reply_html_page(
 	    pldoc(packs),
 	    title('Installed extension packs'),
 	    \pack_page([])).
+
+pack_path(Pack, PackFile, PackPath) :-
+	sub_atom(PackPath, B, _, A, /), !,
+	sub_atom(PackPath, 0, B, _, Pack),
+	sub_atom(PackPath, _, A, 0, PackFile).
 
 pack_page(Options) -->
 	html_requires(pldoc),
@@ -81,43 +93,44 @@ packs([]) --> [].
 packs([H|T]) --> pack(H), packs(T).
 
 pack(Pack) -->
-	{ http_link_to_id(pack_documentation, [pack=Pack], HREF),
+	{ uri_encoded(path, Pack, HREF),
 	  pack_property(Pack, version(Version)),
 	  (   pack_property(Pack, title(Title))
 	  ->  true
 	  ;   Title = '<no title>'
 	  )
 	},
-	html(tr([ td(class(pack_name),    a(href(HREF), Pack)),
+	html(tr([ td(class(pack_name),    a(href(HREF+'/'), Pack)),
 		  td(class(pack_version), Version),
 		  td(class(pack_title),   Title)
 		])).
 
 
-%%	pack_documentation(+Request)
+%%	list_pack(+Pack, +PackFile, +Request)
 %
-%	HTTP handler that creates a page   with  the PlDoc documentation
-%	for an installed pack.
+%	List a directory or file in a pack
 
-pack_documentation(Request) :-
-	http_parameters(Request,
-			[ pack(Pack, [])
-			]),
+list_pack(Pack, '', _) :- !,
 	reply_html_page(
 	    pldoc(pack),
 	    title('Documentation for pack ~w'-[Pack]),
 	    \pack_doc(Pack)).
+list_pack(Pack, File, Request) :-
+	pack_property(Pack, directory(PackDir)),
+	directory_file_path(PackDir, File, Path0),
+	absolute_file_name(Path0, Path),	% Canonical
+	sub_atom(Path, 0, _, _, PackDir),
+	pldoc_http:doc_reply_file(Path, Request).
 
 pack_doc(Pack) -->
 	{ pack_property(Pack, directory(PackDir)),
-	  directory_file_path(PackDir, prolog, SourceDir),
 	  pack_title(Pack, Title),
 	  findall(O, pack_option(Pack, O), Options)
 	},
-	html(h1(Title)),
-	dir_index(SourceDir,
+	dir_index(PackDir,
 		  [ if(true),
-		    recursive(true)
+		    recursive(true),
+		    title(Title)
 		  | Options
 		  ]).
 
