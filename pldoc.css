@@ -60,18 +60,22 @@ dt.keyword-bug, dt.keyword-deprecated, dt.keyword-tbd
 
 dt.pubdef
 { background: url("pub-bg.png") top left;
+  overflow: hidden;
 }
 
 dt.multidef
 { background: url("multi-bg.png") top left;
+  overflow: hidden;
 }
 
 dt.privdef
 { background: url("priv-bg.png") top left;
+  overflow: hidden;
 }
 
 dt.undoc, h2.undoc
 { background-color: #ffbc87;
+  overflow: hidden;
 }
 
 img.action
