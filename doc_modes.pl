@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2006, University of Amsterdam
+    Copyright (C): 1985-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -190,8 +189,15 @@ read_modes(In, Terms) :-
 
 read_modes(mode(end_of_file,[]), _, []) :- !.
 read_modes(T0, In, [T0|Rest]) :-
+	T0 = mode(Mode, _),
+	is_mode(Mode), !,
 	read_mode_term(In, T1),
 	read_modes(T1, In, Rest).
+read_modes(mode(Mode, Bindings), In, Modes) :-
+	maplist(call, Bindings),
+	print_message(warning, pldoc(invalid_mode(Mode))),
+	read_mode_term(In, T1),
+	read_modes(T1, In, Modes).
 
 read_mode_term(In, mode(Term, Bindings)) :-
 	read_term(In, Term,
@@ -352,12 +358,15 @@ qualify(M,      H, M:H).
 
 is_mode(Var) :-
 	var(Var), !, fail.
-is_mode(Head is Det) :-
+is_mode(Head is Det) :- !,
 	is_det(Det),
+	is_head(Head).
+is_mode(Head) :-
 	is_head(Head).
 
 is_det(Var) :-
 	var(Var), !, fail.
+is_det(failure).
 is_det(det).
 is_det(semidet).
 is_det(nondet).
@@ -366,8 +375,20 @@ is_det(multi).
 is_head(Var) :-
 	var(Var), !, fail.
 is_head(//(Head)) :- !,
-	is_head(Head).
+	is_mhead(Head).
+is_head(M:(//(Head))) :- !,
+	atom(M),
+	is_phead(Head).
 is_head(Head) :-
+	is_mhead(Head).
+
+is_mhead(M:Head) :- !,
+	atom(M),
+	is_phead(Head).
+is_mhead(Head) :-
+	is_phead(Head).
+
+is_phead(Head) :-
 	callable(Head),
 	functor(Head, _Name, Arity),
 	is_head_args(0, Arity, Head).
@@ -381,11 +402,18 @@ is_head_args(I0, Arity, Head) :-
 
 is_head_arg(Arg) :-
 	var(Arg), !.
+is_head_arg(...(Arg)) :- !,
+	is_head_arg_nva(Arg).
 is_head_arg(Arg) :-
+	is_head_arg_nva(Arg).
+
+is_head_arg_nva(Arg) :-
+	var(Arg), !.
+is_head_arg_nva(Arg) :-
 	Arg =.. [Ind,Arg1],
 	mode_indicator(Ind),
 	is_head_arg(Arg1).
-is_head_arg(Arg:Type) :-
+is_head_arg_nva(Arg:Type) :-
 	var(Arg),
 	is_type(Type).
 
@@ -468,3 +496,14 @@ compile_clause(Term, File:Line) :-
 
 clause_head((Head :- _Body), Head) :- !.
 clause_head(Head, Head).
+
+
+		 /*******************************
+		 *	       MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(pldoc(invalid_mode(Mode))) -->
+	[ 'Invalid mode declaration in PlDoc comment: ~q'-[Mode] ].
