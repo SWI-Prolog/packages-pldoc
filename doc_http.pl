@@ -214,7 +214,7 @@ prepare_editor.
 		[prefix, authentication(pldoc(read))]).
 :- http_handler(pldoc('index.html'), pldoc_index,   []).
 :- http_handler(pldoc(file),	   pldoc_file,	   []).
-:- http_handler(pldoc(directory),  pldoc_dir,	   []).
+:- http_handler(pldoc(place),	   go_place,	   []).
 :- http_handler(pldoc(edit),	   pldoc_edit,
 		[authentication(pldoc(edit))]).
 :- http_handler(pldoc(doc),	   pldoc_doc,	   [prefix]).
@@ -350,15 +350,20 @@ pldoc_edit(_Request) :-
 	throw(http_reply(forbidden(Location))).
 
 
-%%	pldoc_dir(+Request)
+%%	go_place(+Request)
 %
-%	Handler for /directory?dir=Dir, providing an index for
-%	Dir.  Mapped to /doc/Dir/index.html.
+%	HTTP handler to handle the places menu.
 
-pldoc_dir( Request) :-
+go_place(Request) :-
 	http_parameters(Request,
-			[ dir(Dir0, [])
+			[ place(Place, [])
 			]),
+	places(Place).
+
+places(':packs:') :- !,
+	http_link_to_id(pldoc_pack, [], HREF),
+	throw(http_reply(moved(HREF))).
+places(Dir0) :-
 	expand_alias(Dir0, Dir),
 	(   allowed_directory(Dir)
 	->  format(string(IndexFile), '~w/index.html', [Dir]),

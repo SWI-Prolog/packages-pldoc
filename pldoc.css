@@ -224,6 +224,10 @@ table.packs th
   text-align: left;
 }
 
+option.packs
+{ font-weight: bold;
+}
+
 /* Search */
 
 span.for

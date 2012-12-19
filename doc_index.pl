@@ -35,6 +35,7 @@
 	    file_index_header//2,	% +File, +Options, //
 	    doc_links//2,		% +Directory, +Options, //
 	    doc_file_href/2,		% +File, -HREF
+	    places_menu//1,		% +Dir, //
 	    source_directory/1		% ?Directory
 	  ]).
 :- use_module(doc_process).
@@ -473,12 +474,16 @@ places_menu(Dir) -->
 	{ findall(D, source_directory(D), List),
 	  sort(List, Dirs)
 	},
-	html(form([ action(location_by_id(pldoc_dir))
+	html(form([ action(location_by_id(go_place))
 		  ],
 		  [ input([type(submit), value('Go')]),
-		    select(name(dir),
-			   \source_dirs(Dirs, Dir))
+		    select(name(place),
+			   \packs_source_dirs(Dirs, Dir))
 		  ])).
+
+packs_source_dirs(Dirs, Dir) -->
+	packs_link,
+	source_dirs(Dirs, Dir).
 
 source_dirs([], _) -->
 	[].
@@ -493,6 +498,17 @@ source_dirs([H|T], WD) -->
 	},
 	html(option([onClick(Call)|Attrs], H)),
 	source_dirs(T, WD).
+
+packs_link -->
+	{ pack_property(_,_), !,
+	  http_link_to_id(pldoc_pack, [], HREF),
+	  format(atom(Call), 'document.location=\'~w\';', [HREF])
+	},
+	html(option([ class(packs),
+		      onClick(Call),
+		      value(':packs:')
+		    ],
+		    'List extension packs')).
 
 %%	source_directory(+Dir) is semidet.
 %%	source_directory(-Dir) is nondet.

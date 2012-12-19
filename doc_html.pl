@@ -774,16 +774,20 @@ object_page(Obj, Options) -->
 object_page_header(File, Options) -->
 	{ option(header(true), Options, true) }, !,
 	html(div(class(navhdr),
-		 [ \file_link(File),
+		 [ div(class(jump), \file_link(File)),
 		   div(class(search), \search_form(Options)),
 		   br(clear(right))
 		 ])).
 object_page_header(_, _) --> [].
 
-file_link(-) --> !.
+file_link(-) --> !,
+	places_menu(-).
 file_link(File) -->
-	html(div(class(jump),
-		 a(href(location_by_id(pldoc_doc)+File), File))).
+	{ file_directory_name(File, Dir)
+	},
+	places_menu(Dir),
+	html([ div(a(href(location_by_id(pldoc_doc)+File), File))
+	     ]).
 
 
 %%	object_synopsis(Obj, Options) is det.
