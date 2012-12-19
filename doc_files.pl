@@ -31,11 +31,12 @@
 
 :- module(pldoc_files,
 	  [ doc_save/2,			% +File, +Options
-	    doc_pack/1			% +Pack
+	    doc_pack/1			% +Pack (re-export from doc_pack)
 	  ]).
 :- use_module(library(pldoc), []).
 :- use_module(pldoc(doc_html)).
 :- use_module(pldoc(doc_index)).
+:- use_module(pldoc(doc_pack)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
 
@@ -333,39 +334,6 @@ prolog_file_in_dir(Dir, SubDir, Options) :-
 
 blocked('.plrc').
 blocked('INDEX.pl').
-
-
-		 /*******************************
-		 *	    PACK SUPPORT	*
-		 *******************************/
-
-%%	doc_pack(+Pack)
-%
-%	Generate stand-alone documentation for the package Pack.
-
-doc_pack(Pack) :-
-	pack_property(Pack, directory(PackDir)),
-	(   pack_property(Pack, title(Title))
-	->  format(atom(PackTitle), 'Pack ~w -- ~w', [Pack, Title])
-	;   format(atom(PackTitle), 'Pack ~w', [Pack])
-	),
-	findall(O, pack_option(Pack, O), Options),
-	directory_file_path(PackDir, prolog, SourceDir),
-	directory_file_path(PackDir, doc, DocDir),
-	doc_save(SourceDir,
-		 [ title(PackTitle),
-		   doc_root(DocDir),
-		   if(true),
-		   recursive(true)
-		 | Options
-		 ]).
-
-pack_option(Pack, Option) :-
-	pack_option(Option),
-	pack_property(Pack, Option).
-
-pack_option(readme(_)).
-pack_option(todo(_)).
 
 
 		 /*******************************

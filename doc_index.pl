@@ -30,11 +30,11 @@
 
 :- module(pldoc_index,
 	  [ doc_for_dir/2,		% +Dir, +Options
-	    dir_index/4,		% +Dir, +Options, //
-	    object_summaries/5,		% +Objs, +Section, +Options, //
-	    file_index_header/4,	% +File, +Options, //
-	    doc_links/4,		% +Directory, +Options, //
-	    doc_file_href/2,		% +File, -/doc/...
+	    dir_index//2,		% +Dir, +Options, //
+	    object_summaries//3,	% +Objs, +Section, +Options, //
+	    file_index_header//2,	% +File, +Options, //
+	    doc_links//2,		% +Directory, +Options, //
+	    doc_file_href/2,		% +File, -HREF
 	    source_directory/1		% ?Directory
 	  ]).
 :- use_module(doc_process).
