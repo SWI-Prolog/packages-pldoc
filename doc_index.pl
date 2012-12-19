@@ -280,7 +280,11 @@ file_index(File, Options) -->
 file_index_header(File, Options) -->
 	prolog:doc_file_index_header(File, Options), !.
 file_index_header(File, Options) -->
-	{ file_base_name(File, Label),
+	{ (   option(directory(Dir), Options),
+	      directory_file_path(Dir, Label, File)
+	  ->  true
+	  ;   file_base_name(File, Label)
+	  ),
 	  doc_file_href(File, HREF, Options)
 	},
 	html(tr(th([colspan(3), class(file)],
