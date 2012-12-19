@@ -41,7 +41,8 @@
 :- use_module(doc_wiki).
 :- use_module(doc_modes).
 :- use_module(doc_process).
-:- use_module(library('http/html_write')).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_path)).
 :- use_module(library(prolog_xref)).
 
 :- meta_predicate
@@ -126,7 +127,9 @@ is_meta(skin).
 print_html_head(Out, Options) :-
 	option(header(true), Options, true), !,
 	option(title(Title), Options, 'Prolog source'),
-	option(stylesheets(Sheets), Options, ['pllisting.css', 'pldoc.css']),
+	http_absolute_location(pldoc_resource('pldoc.css'), PlDocCSS, []),
+	http_absolute_location(pldoc_resource('pllisting.css'), PlListingCSS, []),
+	option(stylesheets(Sheets), Options, [PlListingCSS, PlDocCSS]),
 	format(Out,
 	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \c
 	       "http://www.w3.org/TR/html4/strict.dtd">~n~n', []),
