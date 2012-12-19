@@ -130,13 +130,10 @@ doc_server(Port, Options) :-
 	merge_options(ServerOptions,
 		      [ port(Port),
 			timeout(60),
-			keep_alive_timeout(1),
-			local(4000),	% small stacks for now
-			global(4000),
-			trail(4000)
+			keep_alive_timeout(1)
 		      ], HTTPOptions),
 	http_server(http_dispatch, HTTPOptions),
-	assert(doc_server_port(Port)),
+	assertz(doc_server_port(Port)),
 	print_message(informational, pldoc(server_started(Port))).
 
 %%	doc_current_server(-Port) is det.
@@ -166,7 +163,9 @@ doc_current_server(Port) :-
 doc_browser :-
 	doc_browser([]).
 doc_browser(Spec) :-
-	doc_current_server(Port),
+	catch(doc_current_server(Port),
+	      error(existence_error(http_server, pldoc), _),
+	      doc_server(Port)),
 	browser_url(Spec, Request),
 	format(string(URL), 'http://localhost:~w~w', [Port, Request]),
 	www_open_url(URL).
