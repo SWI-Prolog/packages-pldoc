@@ -509,6 +509,8 @@ packs_link -->
 		      value(':packs:')
 		    ],
 		    'List extension packs')).
+packs_link -->
+	[].
 
 %%	source_directory(+Dir) is semidet.
 %%	source_directory(-Dir) is nondet.
