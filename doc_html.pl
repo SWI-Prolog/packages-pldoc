@@ -331,7 +331,8 @@ ensure_doc_objects(File) :-
 	    )
 	).
 ensure_doc_objects(File) :-
-	xref_source(File).
+	xref_source(File), !.
+ensure_doc_objects(_).
 
 %%	module_info(+File, -ModuleOptions, +OtherOptions) is det.
 %

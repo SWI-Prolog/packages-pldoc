@@ -212,6 +212,18 @@ tr.private
   background-color: #fbffa6;
 }
 
+/* Packs */
+
+table.packs
+{ margin-left: 5%;
+  border: 1px solid;
+}
+
+table.packs th
+{ background: url("h2-bg.png") top left;
+  text-align: left;
+}
+
 /* Search */
 
 span.for

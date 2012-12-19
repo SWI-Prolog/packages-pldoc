@@ -62,6 +62,7 @@
 :- use_module(pldoc(doc_wiki)).
 :- use_module(pldoc(doc_util)).
 :- use_module(pldoc(doc_access)).
+:- use_module(pldoc(doc_pack)).
 
 /** <module> Documentation server
 

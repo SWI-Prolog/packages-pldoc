@@ -62,6 +62,8 @@
 		       members(list),
 		       qualify(boolean),
 		       title(atom),
+		       if(oneof([true,loaded])),
+		       recursive(boolean),
 		       secref_style(oneof([number, title, number_title])),
 		       pass_to(doc_links/4, 2)
 		     ]).
@@ -154,16 +156,8 @@ dir_index(Dir, Options) -->
 dir_source_files(_, Files, Options) :-
 	option(members(Members), Options), !,
 	findall(F, member(file(F,_Doc), Members), Files).
-dir_source_files(DirSpec, Files, _Options) :-
-	absolute_file_name(DirSpec, Dir,
-			   [ file_type(directory),
-			     access(read)
-			   ]),
-	findall(F, source_file_in_dir(Dir, F), Files).
-
-source_file_in_dir(Dir, File) :-
-	source_file(File),
-	file_directory_name(File, Dir).
+dir_source_files(Dir, Files, Options) :-
+	directory_source_files(Dir, Files, Options).
 
 %%	subdir_links(+Dir, +Options)// is det.
 %

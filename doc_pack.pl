@@ -55,6 +55,11 @@ pack_page(Options) -->
 	html_requires(pldoc),
 	object_page_header(-, Options),
 	html([ h1('Installed extension packs'),
+	       p([ 'The following extension packages are installed in ',
+		   'the this Prolog system.  Other packages can be found at ',
+		   a(href('http://www.swi-prolog.org/pack/list'),
+		     'the SWI-Prolog website')
+		 ]),
 	       \pack_table(Options)
 	     ]).
 
@@ -68,7 +73,7 @@ pack_table(_Options) -->
 	  sort(Packs0, Packs)
 	},
 	html(table(class(packs),
-		   [ tr([th('Pack'), th('Title')])
+		   [ tr([th('Pack'), th('Version'), th('Title')])
 		   | \packs(Packs)
 		   ])).
 
@@ -77,13 +82,15 @@ packs([H|T]) --> pack(H), packs(T).
 
 pack(Pack) -->
 	{ http_link_to_id(pack_documentation, [pack=Pack], HREF),
+	  pack_property(Pack, version(Version)),
 	  (   pack_property(Pack, title(Title))
 	  ->  true
 	  ;   Title = '<no title>'
 	  )
 	},
-	html(tr([ td(class(pack_name),  a(href(HREF), Pack)),
-		  td(class(pack_title), Title)
+	html(tr([ td(class(pack_name),    a(href(HREF), Pack)),
+		  td(class(pack_version), Version),
+		  td(class(pack_title),   Title)
 		])).
 
 
@@ -110,8 +117,8 @@ pack_doc(Pack) -->
 	html(h1(Title)),
 	dir_index(SourceDir,
 		  [ if(true),
-		    recursive(true),
-		    Options
+		    recursive(true)
+		  | Options
 		  ]).
 
 
