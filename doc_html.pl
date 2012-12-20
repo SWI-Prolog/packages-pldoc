@@ -254,7 +254,7 @@ prolog_file(FileSpec, Options) -->
 	       \file_header(File, FileOptions)
 	     | \objects(Objects, FileOptions)
 	     ]),
-	undocumented(Objects, FileOptions).
+	undocumented(File, Objects, FileOptions).
 
 %%	doc_resources(+Options)// is det.
 %
@@ -303,7 +303,19 @@ doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 	pairs_values(ByLine, Objs0),
 	module_info(File, ModuleOptions, Options),
 	file_info(Objs0, Objs1, FileOptions, ModuleOptions),
-	doc_hide_private(Objs1, Objects, ModuleOptions).
+	doc_hide_private(Objs1, ObjectsSelf, ModuleOptions),
+	include_reexported(ObjectsSelf, Objects, File, FileOptions).
+
+include_reexported(SelfObjects, Objects, File, Options) :-
+	option(include_reexported(true), Options),
+	option(module(Module), Options),
+	option(public(Exports), Options),
+	select_undocumented(Exports, Module, SelfObjects, Undoc),
+	re_exported_doc(Undoc, File, Module, REObjs, _),
+	REObjs \== [], !,
+	append(SelfObjects, REObjs, Objects).
+include_reexported(Objects, Objects, _, _).
+
 
 %%	ensure_doc_objects(+File)
 %
@@ -667,25 +679,47 @@ pop_mode(Mode, [H|Rest0], Rest) -->
 	html_end(H),
 	pop_mode(Mode, Rest0, Rest).
 
-%%	undocumented(+Objects, +Options)// is det.
+%%	undocumented(+File, +Objects, +Options)// is det.
 %
 %	Describe undocumented predicates if the file is a module file.
 
-undocumented(Objs, Options) -->
+undocumented(File, Objs, Options) -->
 	{ memberchk(module(Module), Options),
 	  memberchk(public(Exports), Options),
 	  select_undocumented(Exports, Module, Objs, Undoc),
-	  Undoc \== []
+	  re_exported_doc(Undoc, File, Module, REObjs, ReallyUnDoc)
 	}, !,
-	html([ h2(class(undoc), 'Undocumented predicates'),
-	       p(['The following predicates are exported, but not ',
-		  'or incorrectly documented.'
-		 ]),
-	       dl(class(undoc),
-		  \undocumented_predicates(Undoc, Options))
-	     ]).
-undocumented(_, _) -->
+	re_exported_doc(REObjs, Options),
+	undocumented(ReallyUnDoc, Options).
+undocumented(_, _, _) -->
 	[].
+
+re_exported_doc([], _) --> !.
+re_exported_doc(Objs, Options) -->
+	reexport_header(Objs, Options),
+	objects(Objs, Options).
+
+reexport_header(_, Options) -->
+	{ option(reexport_header(true), Options, true)
+	}, !,
+	html([ h2(class(wiki), 'Re-exported predicates'),
+	       p([ 'The following predicates are re-exported from other ',
+		   'modules'
+		 ])
+	     ]).
+reexport_header(_, _) -->
+	[].
+
+undocumented([], _) --> !.
+undocumented(UnDoc, Options) -->
+	 html([ h2(class(undoc), 'Undocumented predicates'),
+		p(['The following predicates are exported, but not ',
+		   'or incorrectly documented.'
+		  ]),
+		dl(class(undoc),
+		   \undocumented_predicates(UnDoc, Options))
+	      ]).
+
 
 undocumented_predicates([], _) -->
 	[].
@@ -738,6 +772,24 @@ is_pi(_:PI) :- !,
 	is_pi(PI).
 is_pi(_/_).
 is_pi(_//_).
+
+
+%%	re_exported_doc(+Undoc:list(pi), +File:atom, +Module:atom,
+%%			-ImportedDoc, -ReallyUnDoc:list(pi))
+
+re_exported_doc([], _, _, [], []).
+re_exported_doc([PI|T0], File, Module, [doc(Orig:PI,Pos,Comment)|ObjT], UnDoc) :-
+	pi_to_head(PI, Head),
+	(   predicate_property(Module:Head, imported_from(Orig))
+	->  true
+	;   xref_defined(File, Head, imported(File2)),
+	    ensure_doc_objects(File2),
+	    xref_module(File2, Orig)
+	),
+	doc_comment(Orig:PI, Pos, _, Comment), !,
+	re_exported_doc(T0, File, Module, ObjT, UnDoc).
+re_exported_doc([PI|T0], File, Module, REObj, [PI|UnDoc]) :-
+	re_exported_doc(T0, File, Module, REObj, UnDoc).
 
 
 		 /*******************************

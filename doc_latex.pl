@@ -146,13 +146,19 @@ current_options([]).
 
 doc_latex(Spec, OutFile, Options) :-
 	load_urldefs,
+	merge_options(Options,
+		      [ include_reexported(true)
+		      ],
+		      Options1),
 	retractall(documented(_)),
-	asserta(options(Options), Ref),
-	call_cleanup(phrase(process_items(Spec, [body], Options), Tokens),
-		     erase(Ref)),
-	open(OutFile, write, Out),
-	call_cleanup(print_latex(Out, Tokens, Options),
-		     close(Out)),
+	setup_call_cleanup(
+	    asserta(options(Options), Ref),
+	    phrase(process_items(Spec, [body], Options1), Tokens),
+	    erase(Ref)),
+	setup_call_cleanup(
+	    open(OutFile, write, Out),
+	    print_latex(Out, Tokens, Options1),
+	    close(Out)),
 	latex_summary(Options).
 
 process_items([], Mode, _) --> !,
