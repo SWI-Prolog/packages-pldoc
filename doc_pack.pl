@@ -34,16 +34,28 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_parameters)).
 :- use_module(doc_html).
-:- use_module(doc_htmlsrc).
 :- use_module(doc_index).
 
-/** <module> Document Prolog extension packs
+/** <module> PlDoc for Prolog extension packs
+
+This module profiles PlDoc support specific   to Prolog extension packs.
+It extends the PlDoc web-browser with the ability to lists the installed
+packs and provide an overview of  a   pack,  whether  loaded or not. The
+predicate  doc_pack/1  can  be  used    to   generate  stand-alone  HTML
+documentation for a pack.
 */
 
 :- http_handler(pldoc(pack),     http_redirect(moved, pldoc('pack/')), []).
 :- http_handler(pldoc('pack/'),  pldoc_pack, [prefix]).
+
+%%	pldoc_pack(+Request)
+%
+%	HTTP handler that handles /pack/ in the PlDoc server. Without an
+%	additional  path,  it  lists  the    installed  packs.  With  an
+%	additional package name, it lists  the   content  of  a pack and
+%	finally, /pack/<pack>/<file> can be used to get documentation or
+%	the source of a pack file.
 
 pldoc_pack(Request) :-
 	memberchk(path_info(PackPath), Request),
@@ -141,7 +153,11 @@ pack_doc(Pack) -->
 
 %%	doc_pack(+Pack)
 %
-%	Generate stand-alone documentation for the package Pack.
+%	Generate stand-alone documentation for  the   package  Pack. The
+%	documentation is generated in a directory =doc= inside the pack.
+%	The  index  page  consists  of  the    content  of  =readme=  or
+%	=|readme.txt|= in the main directory of the pack and an index of
+%	all files and their public predicates.
 
 doc_pack(Pack) :-
 	pack_property(Pack, directory(PackDir)),
