@@ -48,9 +48,7 @@ in progress, providing search and guaranteed consistency with the loaded
 version. Creating stand-alone files as  provided   by  this  file can be
 useful for printing or distribution.
 
-@tbd	Check links
-@tbd	Nice frontend for common scenarios
-	- Default save into a doc subdirectory?
+@tbd	Generate a predicate index?
 */
 
 :- predicate_options(doc_save/2, 2,
@@ -103,7 +101,18 @@ useful for printing or distribution.
 %		Using =inline=, include the CSS file into the created
 %		files.  Currently, only the default =copy= is supported.
 %
-%	@tbd	Inline CSS files
+%	The typical use-case is to document the Prolog files that belong
+%	to a project in the  current  directory.   To  do  this load the
+%	Prolog  files  and  run  the   goal    below.   This  creates  a
+%	sub-directory  =doc=  with  an  index  file  =|index.html|=.  It
+%	replicates the directory structure  of   the  source  directory,
+%	creating an HTML file for each Prolog file and an index file for
+%	each sub-directory. A  copy  of  the   required  CSS  and  image
+%	resources is copied to the =doc= directory.
+%
+%	  ==
+%	  ?- doc_save(., [recursive(true)]).
+%	  ==
 
 doc_save(Spec, Options) :-
 	doc_target(Spec, Target, Options),

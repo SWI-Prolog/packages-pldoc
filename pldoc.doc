@@ -17,10 +17,9 @@
 
 \title{SWI-Prolog Source Documentation}
 \author{Jan Wielemaker \\
-	HCS, \\
-	University of Amsterdam \\
+	VU University, Amsterdam \\
 	The Netherlands \\
-	E-mail: \email{wielemak@science.uva.nl}}
+	E-mail: \email{J.Wielemaker@vu.nl}}
 
 \maketitle
 
@@ -50,9 +49,9 @@ Prolog and integrates PlDoc to provide a comprehensive searchable
 When developing Prolog source that has to be maintained for a longer
 period or is developed by a ---possibly distributed--- team some basic
 quality mechanisms need to be adopted. A shared and well designed
-codingstyle is one of them. In addition, documentation of source-files
-and their primary interfaces as well as a testing framework must be
-established.
+codingstyle \cite{DBLP:dblpjournals/tplp/CovingtonBOWP12} is one of
+them. In addition, documentation of source-files and their primary
+interfaces as well as a testing framework must be established.
 
 In our view, hitherto existing documentation and testing frameworks
 fell short realising the basic needs in a lightweight and easy to
@@ -736,6 +735,10 @@ Prolog source-files have a \emph{reload} button attached. Clicking this
 reloads the source file if it was modified and refreshes the page. This
 supports a comfortable edit-view loop to maintain the source-code
 documentation.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{docfiles.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

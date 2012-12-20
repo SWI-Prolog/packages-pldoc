@@ -4,6 +4,7 @@ configure
 t.pl
 test.*
 latex.tex
+docfiles.tex
 pldoc.tex
 pldoc.html
 pldoc.pdf
