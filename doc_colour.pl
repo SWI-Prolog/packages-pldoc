@@ -63,7 +63,7 @@ colour_fragments(Source, Fragments) :-
 	F = fragment(_,_,_),
 	retractall(F),
 	prolog_canonical_source(Source, SourceID),
-	xref_source(SourceID),
+	xref_source(SourceID, [silent(true)]),
 	setup_call_cleanup(
 	    prolog_open_source(SourceID, Stream),
 	    prolog_colourise_stream(Stream, SourceID, assert_fragment),
