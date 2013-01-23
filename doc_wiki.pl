@@ -296,10 +296,29 @@ row([]) -->
 	[].
 
 cell(td(C)) -->
-	tokens(C0),
+	face_tokens(C0),
 	['|'], !,
 	{ strip_ws_tokens(C0, C)
 	}.
+
+face_tokens([]) -->
+	[].
+face_tokens(Tokens) -->
+	face_token(H),				% Deal with embedded *|...|*, etc.
+	token('|'),
+	face_tokens(Face),
+	token('|'),
+	face_token(H), !,
+	{ append([[H,'|'], Face, ['|', H], Rest], Tokens) },
+	face_tokens(Rest).
+face_tokens([H|T]) -->
+	token(H),
+	face_tokens(T).
+
+face_token(=) --> [=].
+face_token(*) --> [*].
+face_token('_') --> ['_'].
+
 
 rest_table([N-['|'|RL1]|LT], N, [tr(R0)|RL], Rest) :- !,
 	phrase(row(R0), RL1),
