@@ -334,7 +334,7 @@ ensure_doc_objects(File) :-
 	;   no_comments(File, TimeChecked),
 	    time_file(File, TimeChecked)
 	->  true
-	;   xref_source(File, [silent(true)]),
+	;   xref_source(File, [silent(true), comments(store)]),
 	    retractall(no_comments(File, _)),
 	    (	doc_file_has_comments(File)
 	    ->	true
@@ -343,7 +343,7 @@ ensure_doc_objects(File) :-
 	    )
 	).
 ensure_doc_objects(File) :-
-	xref_source(File, [silent(true)]), !.
+	xref_source(File, [silent(true), comments(store)]), !.
 ensure_doc_objects(_).
 
 %%	module_info(+File, -ModuleOptions, +OtherOptions) is det.
