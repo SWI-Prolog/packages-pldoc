@@ -49,6 +49,7 @@ user:file_search_path(pldoc, library(pldoc)).
 		library(debug),
 		library(option),
 		library(lists),
+		library(apply),
 		library(operators),
 		library(prolog_source)
 	      ],
@@ -320,7 +321,8 @@ process_structured_comment(FilePos, Comment, Prefixes) :-
 	    compile_clause('$pldoc'(Id, FilePos, Title, Comment), FilePos)
 	;   prolog_load_context(module, Module),
 	    process_modes(Lines, Module, FilePos, Modes, _, RestLines)
-	->  store_modes(Modes, FilePos),
+	->  maplist(compile_mode, Modes, ModeDecls),
+	    maplist(store_mode(FilePos), ModeDecls),
 	    modes_to_predicate_indicators(Modes, AllPIs),
 	    decl_module(AllPIs, M, [PI0|PIs]),
 	    summary_from_lines(RestLines, Codes),
@@ -332,8 +334,10 @@ process_structured_comment(FilePos, Comment, Prefixes) :-
 	), !.
 process_structured_comment(Location, Comment, _) :-
 	print_message(warning,
-		      pldoc(invalid_comment(Location, Comment))),
-	fail.
+		      pldoc(invalid_comment(Location, Comment))).
+
+store_mode(Pos, mode(Head, Det)) :-
+	compile_clause('$mode'(Head, Det), Pos).
 
 decl_module([], M, []) :-
 	(   var(M)

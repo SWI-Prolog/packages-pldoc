@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2012, University of Amsterdam
+    Copyright (C): 2006-2013, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 
 :- module(pldoc_modes,
 	  [ process_modes/6,		% +Lines, +M, +FP, -Modes, -Av, -RLines
-	    store_modes/2,		% +Modes, +SourcePos
+	    compile_mode/2,		% +PlDocMode, +ModeTerm
 	    mode/2,			% ?:Head, -Det
 	    is_mode/1,			% @Mode
 	    mode_indicator/1,		% ?Atom
@@ -256,28 +256,24 @@ extract_varnames(mode(_, Bindings), VN0, VN) :- !,
 	extract_varnames(Bindings, VN0, VN).
 extract_varnames(Name=_, [Name|VN], VN).
 
-%%	store_modes(+Modes, +SourcePos) is det.
+%%	compile_mode(+Mode, -Compiled) is det.
 %
-%	Assert modes into the database with the given position.
+%	Compile  a  PlDoc  mode  declararion   into  a  term  mode(Head,
+%	Determinism).
 %
-%	@param Modes	  List if mode-terms.  See process_modes/6.
-%	@param SourcePos  Term File:Line
+%	@param Mode	  List if mode-terms.  See process_modes/6.
 
-store_modes([], _).
-store_modes([mode(Mode, _Bindings)|T], Pos) :-
-	store_mode(Mode, Pos),
-	store_modes(T, Pos).
+compile_mode(mode(Mode, _Bindings), Compiled) :-
+	compile_mode2(Mode, Compiled).
 
-store_mode(Var, _) :-
+compile_mode2(Var, _) :-
 	var(Var), !,
 	throw(error(instantiation_error,
 		    context(_, 'PlDoc: Mode declaration expected'))).
-store_mode(Head0 is Det, Pos) :- !,
-	dcg_expand(Head0, Head),
-	compile_clause('$mode'(Head, Det), Pos).
-store_mode(Head0, Pos) :-
-	dcg_expand(Head0, Head),
-	compile_clause('$mode'(Head, unknown), Pos).
+compile_mode2(Head0 is Det, mode(Head, Det)) :- !,
+	dcg_expand(Head0, Head).
+compile_mode2(Head0, mode(Head, unknown)) :-
+	dcg_expand(Head0, Head).
 
 dcg_expand(M:Head0, M:Head) :-
 	atom(M), !,
