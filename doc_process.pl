@@ -313,31 +313,66 @@ process_structured_comment(FilePos, Comment, _) :- % already processed
 	locally_defined(M:'$pldoc'/4),
 	catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail), !.
 process_structured_comment(FilePos, Comment, Prefixes) :-
+	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
+	      ( print_message(warning, E),
+		fail
+	      )), !,
+	maplist(store_comment(FilePos), Compiled).
+process_structured_comment(FilePos, Comment, _) :-
+	print_message(warning,
+		      pldoc(invalid_comment(FilePos, Comment))).
+
+%%	compile_comment(+Comment, +FilePos, +Prefixes, -Compiled) is semidet.
+%
+%	Compile structured Comment into a list   of  terms that describe
+%	the comment. Compiled contains the following terms:
+%
+%	  * section(Id, Pos, Title, Comment)
+%	  Generated from /** <module> Title Comment */ comments.
+%	  * predicate(PI, Summary, Comment)
+%	  Comment for predicate PI
+%	  * link(FromPI, ToPI)
+%	  Indicate that FromPI shares its comment with ToPI.  The actual
+%	  comment is in ToPI.
+%	  * mode(Head, Determinism)
+%	  Mode declaration.  Head is a term with Mode(Type) terms and
+%	  Determinism describes the associated determinism (=det=,
+%	  etc.).
+
+compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	string_to_list(Comment, CommentCodes),
 	indented_lines(CommentCodes, Prefixes, Lines),
 	(   section_comment_header(Lines, Header, RestLines)
 	->  Header = \section(Type, Title),
 	    Id =.. [Type,Title],
-	    compile_clause('$pldoc'(Id, FilePos, Title, Comment), FilePos)
+	    Compiled = [section(Id, FilePos, Title, Comment)]
 	;   prolog_load_context(module, Module),
 	    process_modes(Lines, Module, FilePos, Modes, _, RestLines)
 	->  maplist(compile_mode, Modes, ModeDecls),
-	    maplist(store_mode(FilePos), ModeDecls),
 	    modes_to_predicate_indicators(Modes, AllPIs),
 	    decl_module(AllPIs, M, [PI0|PIs]),
+	    maplist(link_term(M:PI0), PIs, Links),
 	    summary_from_lines(RestLines, Codes),
 	    string_to_list(Summary, Codes),
-	    compile_clause(M:'$pldoc'(PI0, FilePos, Summary, Comment),
-			   FilePos),
-	    forall(member(PI, PIs),
-		   compile_clause(M:'$pldoc_link'(PI, PI0), FilePos))
+	    append([ ModeDecls,
+		     [ predicate(M:PI0, Summary, Comment) ],
+		     Links
+		   ], Compiled)
 	), !.
-process_structured_comment(Location, Comment, _) :-
-	print_message(warning,
-		      pldoc(invalid_comment(Location, Comment))).
 
-store_mode(Pos, mode(Head, Det)) :-
+
+store_comment(Pos, section(Id, FilePos, Title, Comment)) :- !,
+	compile_clause('$pldoc'(Id, FilePos, Title, Comment), Pos).
+store_comment(Pos, predicate(M:PI, Summary, Comment)) :- !,
+	compile_clause(M:'$pldoc'(PI, Pos, Summary, Comment), Pos).
+store_comment(Pos, link(PI, M:PI0)) :- !,
+	compile_clause(M:'$pldoc_link'(PI, PI0), Pos).
+store_comment(Pos, mode(Head, Det)) :- !,
 	compile_clause('$mode'(Head, Det), Pos).
+store_comment(_, Term) :-
+	type_error(pldoc_term, Term).
+
+link_term(To, From, link(From,To)).
 
 decl_module([], M, []) :-
 	(   var(M)
