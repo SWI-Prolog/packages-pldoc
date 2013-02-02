@@ -34,6 +34,7 @@
 	  [ doc_comment/4,		% ?Object, ?Pos, ?Summary, ?Comment
 	    doc_file_has_comments/1,	% +File
 	    is_structured_comment/2,	% +Comment, -Prefixes
+	    parse_comment/3,		% +Comment, +FilePos, -Parsed
 	    process_comments/3,		% +Comments, +StartTermPos, +File
 	    doc_file_name/3		% +Source, -Doc, +Options
 	  ]).
@@ -304,6 +305,28 @@ process_comment(Pos, Comment, File) :-
 	process_structured_comment(FilePos, Comment, Prefixes).
 process_comment(_, _, _).
 
+%%	parse_comment(+Comment, +FilePos, -Parsed) is semidet.
+%
+%	True when Comment is a  structured   comment  and  Parsed is its
+%	parsed representation. Parsed is a list of the following terms:
+%
+%	  * section(Id, Title, Comment)
+%	  Generated from /** <module> Title Comment */ comments.
+%	  * predicate(PI, Summary, Comment)
+%	  Comment for predicate PI
+%	  * link(FromPI, ToPI)
+%	  Indicate that FromPI shares its comment with ToPI.  The actual
+%	  comment is in ToPI.
+%	  * mode(Head, Determinism)
+%	  Mode declaration.  Head is a term with Mode(Type) terms and
+%	  Determinism describes the associated determinism (=det=,
+%	  etc.).
+
+parse_comment(Comment, FilePos, Parsed) :-
+	is_structured_comment(Comment, Prefixes), !,
+	compile_comment(Comment, FilePos, Prefixes, Parsed).
+
+
 %%	process_structured_comment(+FilePos,
 %%				   +Comment:string,
 %%				   +Prefixed:list) is det.
@@ -325,19 +348,9 @@ process_structured_comment(FilePos, Comment, _) :-
 %%	compile_comment(+Comment, +FilePos, +Prefixes, -Compiled) is semidet.
 %
 %	Compile structured Comment into a list   of  terms that describe
-%	the comment. Compiled contains the following terms:
+%	the comment.
 %
-%	  * section(Id, Pos, Title, Comment)
-%	  Generated from /** <module> Title Comment */ comments.
-%	  * predicate(PI, Summary, Comment)
-%	  Comment for predicate PI
-%	  * link(FromPI, ToPI)
-%	  Indicate that FromPI shares its comment with ToPI.  The actual
-%	  comment is in ToPI.
-%	  * mode(Head, Determinism)
-%	  Mode declaration.  Head is a term with Mode(Type) terms and
-%	  Determinism describes the associated determinism (=det=,
-%	  etc.).
+%	@see parse_comment/3 for the terms in Compiled.
 
 compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	string_to_list(Comment, CommentCodes),
@@ -345,7 +358,7 @@ compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	(   section_comment_header(Lines, Header, RestLines)
 	->  Header = \section(Type, Title),
 	    Id =.. [Type,Title],
-	    Compiled = [section(Id, FilePos, Title, Comment)]
+	    Compiled = [section(Id, Title, Comment)]
 	;   prolog_load_context(module, Module),
 	    process_modes(Lines, Module, FilePos, Modes, _, RestLines)
 	->  maplist(compile_mode, Modes, ModeDecls),
@@ -361,8 +374,8 @@ compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	), !.
 
 
-store_comment(Pos, section(Id, FilePos, Title, Comment)) :- !,
-	compile_clause('$pldoc'(Id, FilePos, Title, Comment), Pos).
+store_comment(Pos, section(Id, Title, Comment)) :- !,
+	compile_clause('$pldoc'(Id, Pos, Title, Comment), Pos).
 store_comment(Pos, predicate(M:PI, Summary, Comment)) :- !,
 	compile_clause(M:'$pldoc'(PI, Pos, Summary, Comment), Pos).
 store_comment(Pos, link(PI, M:PI0)) :- !,
