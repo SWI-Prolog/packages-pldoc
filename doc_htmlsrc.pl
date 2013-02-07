@@ -75,22 +75,36 @@ cross-reference based technology as used by PceEmacs.
 %
 %	Colourise Prolog source as HTML. The idea   is to first create a
 %	sequence of fragments and  then  to   apply  these  to the code.
-%	Options are passed to print_html_head/2.
+%	Options are passed to print_html_head/2. Options are passed to
 %
-%	@param In	A filename
+%	  * print_html_head/2
+%	  * print_html_footer/2.
+%	  * html_fragments/6
+%
+%	@param In	A filename.  Can also be an abstract name,
+%			which is subject to library(prolog_source)
+%			abstract file handling. See
+%			prolog_open_source/2.  Note that this cannot
+%			be a stream as we need to read the file three
+%			times: (1) xref, (2) assign colours and (3)
+%			generate HTML.
 %	@param Out	Term stream(Stream) or file-name specification
 
 source_to_html(Src, stream(Out), MOptions) :- !,
 	meta_options(is_meta, MOptions, Options),
+	(   option(title(_), Options)
+	->  HeadOptions = Options
+	;   file_base_name(Src, Title),
+	    HeadOptions = [title(Title)|Options]
+	),
 	retractall(lineno),		% play safe
 	retractall(nonl),		% play safe
 	colour_fragments(Src, Fragments),
 	setup_call_cleanup(
-	    ( open(Src, read, In),
+	    ( open_source(Src, In),
 	      asserta(user:thread_message_hook(_,_,_), Ref)
 	    ),
-	    ( file_base_name(Src, Base),
-	      print_html_head(Out, [title(Base)|Options]),
+	    ( print_html_head(Out, HeadOptions),
 	      html_fragments(Fragments, In, Out, [], State, Options),
 	      copy_rest(In, Out, State, State1),
 	      pop_state(State1, Out, In)
@@ -105,6 +119,11 @@ source_to_html(Src, FileSpec, Options) :-
 	    open(OutFile, write, Out, [encoding(utf8)]),
 	    source_to_html(Src, stream(Out), Options),
 	    close(Out)).
+
+open_source(Id, Stream) :-
+	prolog:xref_open_source(Id, Stream), !.
+open_source(File, Stream) :-
+	open(File, read, Stream).
 
 is_meta(skin).
 
@@ -126,7 +145,7 @@ is_meta(skin).
 %
 %		* skin(Closure)
 %		Called using call(Closure, Where, Out), where Where
-%		is one of =header= or =footer=.  Thes calls are made
+%		is one of =header= or =footer=.  These calls are made
 %		just after opening =body= and before closing =body=.
 
 print_html_head(Out, Options) :-
