@@ -1,11 +1,9 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2011, University of Amsterdam
+    Copyright (C): 1985-2013, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -34,12 +32,8 @@
 	  [ colour_fragments/2		% +Source, -Fragments
 	  ]).
 :- use_module(library(prolog_xref)).
-:- use_module(library(lists)).
-:- use_module(library(operators)).
-:- use_module(library(debug)).
 :- use_module(library(prolog_source)).
 :- use_module(library(prolog_colour)).
-:- use_module(doc_process).
 
 /** <module> Source colouring support
 
@@ -63,7 +57,7 @@ colour_fragments(Source, Fragments) :-
 	F = fragment(_,_,_),
 	retractall(F),
 	prolog_canonical_source(Source, SourceID),
-	xref_source(SourceID, [silent(true), comments(store)]),
+	xref_source(SourceID, [silent(true)]),
 	setup_call_cleanup(
 	    prolog_open_source(SourceID, Stream),
 	    prolog_colourise_stream(Stream, SourceID, assert_fragment),
