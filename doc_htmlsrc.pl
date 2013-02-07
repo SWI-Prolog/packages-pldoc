@@ -85,21 +85,26 @@ source_to_html(Src, stream(Out), MOptions) :- !,
 	retractall(lineno),		% play safe
 	retractall(nonl),		% play safe
 	colour_fragments(Src, Fragments),
-	open(Src, read, In),
-	asserta(user:message_hook(_,_,_), Ref),
-	call_cleanup((file_base_name(Src, Base),
-		      print_html_head(Out, [title(Base)|Options]),
-		      html_fragments(Fragments, In, Out, [], State, Options),
-		      copy_rest(In, Out, State, State1),
-		      pop_state(State1, Out, In)),
-		     (erase(Ref),
-		      close(In))),
+	setup_call_cleanup(
+	    ( open(Src, read, In),
+	      asserta(user:thread_message_hook(_,_,_), Ref)
+	    ),
+	    ( file_base_name(Src, Base),
+	      print_html_head(Out, [title(Base)|Options]),
+	      html_fragments(Fragments, In, Out, [], State, Options),
+	      copy_rest(In, Out, State, State1),
+	      pop_state(State1, Out, In)
+	    ),
+	    ( erase(Ref),
+	      close(In)
+	    )),
 	print_html_footer(Out, Options).
 source_to_html(Src, FileSpec, Options) :-
 	absolute_file_name(FileSpec, OutFile, [access(write)]),
-	open(OutFile, write, Out, [encoding(utf8)]),
-	call_cleanup(source_to_html(Src, stream(Out), Options),
-		     close(Out)).
+	setup_call_cleanup(
+	    open(OutFile, write, Out, [encoding(utf8)]),
+	    source_to_html(Src, stream(Out), Options),
+	    close(Out)).
 
 is_meta(skin).
 

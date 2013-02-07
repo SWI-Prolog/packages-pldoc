@@ -716,6 +716,9 @@ pldoc_search(Request) :-
 		 *     HTTP PARAMETER TYPES	*
 		 *******************************/
 
+:- public
+	param/2.				% used in pack documentation server
+
 param(public_only,
       [ boolean,
 	default(true),
