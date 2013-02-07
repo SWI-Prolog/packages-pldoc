@@ -218,16 +218,27 @@ extracting module doc_wiki.pl into HTML+CSS.
 %		If =true=, provide edit buttons. Default, these buttons
 %		are suppressed.
 %
-%	@param File	Prolog file specification.
+%		* title(+Title)
+%		Specify the page title.  Default is the base name of the
+%		file.
+%
+%	@param File	Prolog file specification or xref source id.
 
 doc_for_file(FileSpec, Options) :-
-	absolute_file_name(FileSpec,
-			   [ file_type(prolog),
-			     access(read)
-			   ],
-			   File),
-	file_base_name(File, Base),
-	Title = Base,
+	(   xref_current_source(FileSpec)
+	->  true
+	;   absolute_file_name(FileSpec,
+			       [ file_type(prolog),
+				 access(read)
+			       ],
+			       File)
+	),
+	(   option(title(Title), Options)
+	->  true
+	;   atom(File)
+	->  file_base_name(File, Title)
+	;   format(atom(Title), '~w', [FileSpec]) % emergency
+	),
 	doc_write_page(
 	    pldoc(result),
 	    title(Title),
@@ -291,16 +302,24 @@ doc_resources(Options) -->
 %	@param File	Prolog canonical filename
 
 doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
+	xref_current_source(FileSpec), !,
+	File = FileSpec,
+	findall(Object, xref_doc_object(File, Object), Objects0),
+	reply_file_objects(File, Objects0, Objects, FileOptions, Options).
+doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 	absolute_file_name(FileSpec, File,
 			   [ file_type(prolog),
 			     access(read)
 			   ]),
-	Pos = File:Line,
 	ensure_doc_objects(File),
+	Pos = File:Line,
 	findall(Line-doc(Obj,Pos,Comment),
 		doc_comment(Obj, Pos, _, Comment), Pairs),
 	keysort(Pairs, ByLine),
 	pairs_values(ByLine, Objs0),
+	reply_file_objects(File, Objs0, Objects, FileOptions, Options).
+
+reply_file_objects(File, Objs0, Objects, FileOptions, Options) :-
 	module_info(File, ModuleOptions, Options),
 	file_info(Objs0, Objs1, FileOptions, ModuleOptions),
 	doc_hide_private(Objs1, ObjectsSelf, ModuleOptions),
@@ -316,6 +335,17 @@ include_reexported(SelfObjects, Objects, File, Options) :-
 	append(SelfObjects, REObjs, Objects).
 include_reexported(Objects, Objects, _, _).
 
+
+%%	xref_doc_object(File, DocObject) is nondet.
+
+xref_doc_object(File, doc(M:module(Title),File:0,Comment)) :-
+	xref_comment(File, Title, Comment),
+	xref_module(File, M).
+xref_doc_object(File, doc(M:Name/Arity,File:0,Comment)) :-
+	xref_comment(File, Head, _Summary, Comment),
+	xref_module(File, Module),
+	strip_module(Module:Head, M, Plain),
+	functor(Plain, Name, Arity).
 
 %%	ensure_doc_objects(+File)
 %
