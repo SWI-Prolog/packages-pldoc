@@ -171,7 +171,10 @@ read_mode_terms(Text, File:Line, End, Terms) :-
 	format(Out, '~s~w', [Text, End]),
 	close(Out),
 	open_memory_file(MemFile, read, In),
-	set_stream(In, file_name(File)),
+	(   atom(File)			% can be PceEmacs buffer
+	->  set_stream(In, file_name(File))
+	;   true
+	),
 	stream_property(In, position(Pos0)),
 	set_line(Pos0, Line, Pos),
 	set_stream_position(In, Pos),
