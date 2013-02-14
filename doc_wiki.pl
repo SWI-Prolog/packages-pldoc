@@ -944,7 +944,6 @@ prolog_symbol_char(?).
 prolog_symbol_char(@).
 prolog_symbol_char(\).
 prolog_symbol_char(^).
-prolog_symbol_char(`).
 prolog_symbol_char(~).
 
 
