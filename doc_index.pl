@@ -263,9 +263,7 @@ file_indices([H|T], Options) -->
 %	Create an index for File.
 
 file_index(File, Options) -->
-	{ Pos = File:_Line,
-	  findall(doc(Obj,Pos,Summary),
-		  doc_comment(Obj, Pos, Summary, _), Objs0),
+	{ doc_summaries(File, Objs0),
 	  module_info(File, ModuleOptions, Options),
 	  doc_hide_private(Objs0, Objs1, ModuleOptions),
 	  sort(Objs1, Objs)
@@ -273,6 +271,23 @@ file_index(File, Options) -->
 	html([ \file_index_header(File, Options)
 	     | \object_summaries(Objs, File, ModuleOptions)
 	     ]).
+
+doc_summaries(File, Objects) :-
+	xref_current_source(FileSpec),
+	xref_option(FileSpec, comments(collect)), !,
+	Pos = File:0,
+	findall(doc(Obj,Pos,Summary),
+		xref_doc_summary(Obj, Pos, Summary), Objects).
+doc_summaries(File, Objects) :-
+	Pos = File:_Line,
+	findall(doc(Obj,Pos,Summary),
+		doc_comment(Obj, Pos, Summary, _), Objects).
+
+xref_doc_summary(M:Name/Arity, File:_, Summary) :-
+	xref_comment(File, Head, Summary, _Comment),
+	xref_module(File, Module),
+	strip_module(Module:Head, M, Plain),
+	functor(Plain, Name, Arity).
 
 %%	file_index_header(+File, +Options)// is det.
 %
