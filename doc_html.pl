@@ -298,11 +298,22 @@ doc_resources(Options) -->
 %
 %		* doc(PI:predicate_indicator, File:Line, Comment)
 %
+%	We distinguish three different states for FileSpec:
+%
+%	  1. File was cross-referenced with collection enabled.  All
+%	     information is in the xref database.
+%	  2. File was loaded. If comments are not loaded,
+%	     cross-reference the file, while _storing_ the comments
+%	     as the compiler would do.
+%	  3. Neither of the above.  In this case we cross-reference the
+%	     file.
+%
 %	@param FileSpec File specification as used for load_files/2.
 %	@param File	Prolog canonical filename
 
 doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
-	xref_current_source(FileSpec), !,
+	xref_current_source(FileSpec),
+	xref_option(FileSpec, comments(collect)), !,
 	File = FileSpec,
 	findall(Object, xref_doc_object(File, Object), Objects0),
 	reply_file_objects(File, Objects0, Objects, FileOptions, Options).
@@ -311,6 +322,7 @@ doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 			   [ file_type(prolog),
 			     access(read)
 			   ]),
+	source_file(File), !,
 	ensure_doc_objects(File),
 	Pos = File:Line,
 	findall(Line-doc(Obj,Pos,Comment),
@@ -318,6 +330,15 @@ doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 	keysort(Pairs, ByLine),
 	pairs_values(ByLine, Objs0),
 	reply_file_objects(File, Objs0, Objects, FileOptions, Options).
+doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
+	absolute_file_name(FileSpec, File,
+			   [ file_type(prolog),
+			     access(read)
+			   ]),
+	xref_source(File, [silent(true)]),
+	findall(Object, xref_doc_object(File, Object), Objects0),
+	reply_file_objects(File, Objects0, Objects, FileOptions, Options).
+
 
 reply_file_objects(File, Objs0, Objects, FileOptions, Options) :-
 	module_info(File, ModuleOptions, Options),
@@ -347,12 +368,14 @@ xref_doc_object(File, doc(M:Name/Arity,File:0,Comment)) :-
 	strip_module(Module:Head, M, Plain),
 	functor(Plain, Name, Arity).
 
-%%	ensure_doc_objects(+File)
+%%	ensure_doc_objects(+File) is det.
 %
-%	Ensure we have documentation about  File.   If  the  file is not
-%	loaded or we have no comments for the file because it was loaded
-%	before comment collection was enabled,  run the cross-referencer
-%	on it to collect the comments and meta-information.
+%	Ensure we have documentation about File.  If we have no comments
+%	for the file because it was loaded before comment collection was
+%	enabled, run the cross-referencer on it  to collect the comments
+%	and meta-information.
+%
+%	@param File is a canonical filename that is loaded.
 
 :- dynamic
 	no_comments/2.
@@ -373,8 +396,7 @@ ensure_doc_objects(File) :-
 	    )
 	).
 ensure_doc_objects(File) :-
-	xref_source(File, [silent(true), comments(store)]), !.
-ensure_doc_objects(_).
+	xref_source(File, [silent(true)]).
 
 %%	module_info(+File, -ModuleOptions, +OtherOptions) is det.
 %
