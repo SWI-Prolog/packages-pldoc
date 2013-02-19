@@ -457,8 +457,10 @@ private(Module:PI, _Options) :-
 multifile(Obj, _Options) :-
 	strip_module(user:Obj, Module, PI),
 	pi_to_head(PI, Head),
-	predicate_property(Module:Head, multifile).
-
+	(   predicate_property(Module:Head, multifile)
+	;   xref_module(Source, Module),
+	    xref_defined(Source, Head, multifile(_))
+	), !.
 
 pi_to_head(Var, _) :-
 	var(Var), !, fail.
