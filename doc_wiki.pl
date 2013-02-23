@@ -881,6 +881,9 @@ resolve_file(_, Options, Options).
 
 
 existing_file(Name, Options, Rest) :-
+	catch(existing_file_p(Name, Options, Rest), _, fail).
+
+existing_file_p(Name, Options, Rest) :-
 	nb_current(pldoc_file, RelativeTo),
 	RelativeTo \== [],
 	(   compound(Name)
