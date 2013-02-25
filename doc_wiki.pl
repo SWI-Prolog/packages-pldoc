@@ -961,14 +961,17 @@ url_protocol(mailto).
 
 peek_end_url(space) -->
 	peek(End),
-	{ space_atom(End) }, !.
+	{ space_token(End) }, !.
 peek_end_url(space, [], []) :- !.
 peek_end_url(Token) -->
 	peek(Token), !.
 
-space_atom(' ').
-space_atom('\r').
-space_atom('\n').
+space_token(' ') :- !.
+space_token('\r') :- !.
+space_token('\n') :- !.
+space_token(T) :-
+	\+ atom(T),			% high level format like p(...)
+	\+ T = w(_).
 
 %%	autolink_extension(?Ext, ?Type) is nondet.
 %
@@ -1428,7 +1431,7 @@ tokens_no_whitespace([Word|T]) -->
 	tokens_no_whitespace(T).
 tokens_no_whitespace([H|T]) -->
 	[H],
-	{ \+ space_atom(H) },
+	{ \+ space_token(H) },
 	tokens_no_whitespace(T).
 
 token(Token) -->
