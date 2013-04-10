@@ -681,7 +681,7 @@ pldoc_object(Request) :-
 pldoc_search(Request) :-
 	http_parameters(Request,
 			[ for(For,
-			      [ length > 1,
+			      [ optional(true),
 				description('String to search for')
 			      ]),
 			  in(In,

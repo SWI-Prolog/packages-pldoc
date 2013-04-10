@@ -159,6 +159,25 @@ hidden(Name, Value) -->
 %		=summary=
 
 search_reply(For, Options) -->
+	{ var(For) }, !,
+	html([ \html_requires(pldoc),
+	       \doc_links('', [for('')|Options]),
+	       h1(class(wiki), 'Using PlDoc search'),
+	       ul([ li([ 'If you pause typing, the search box will display ',
+			 'an auto completion list.  Selecting an object jumps ',
+			 'immediately to the corresponding documentation.'
+		       ]),
+		    li([ 'Searching for ', i('Name/Arity'), i('Name//Arity'),
+			 i('Name'), ' or ', i('C-function'), ' ensures that ',
+			 'matching definitions appear first in the search ',
+			 'results'
+		       ]),
+		    li([ 'Other searches search through the name and summary ',
+			 'descriptions in the manual.'
+		       ])
+		  ])
+	     ]).
+search_reply(For, Options) -->
 	{ search_doc(For, PerCategory, Options),
 	  PerCategory \== [],
 	  option(resultFormat(Format), Options, summary),
@@ -166,8 +185,8 @@ search_reply(For, Options) -->
 	}, !,
 	html([ \html_requires(pldoc),
 	       \doc_links('', [for(For)|Options]),
-	       div(class('search-results'),
-		   ['Search results for ', span(class(for), ['"', For, '"'])]),
+	       h1(class(wiki),
+		  ['Search results for ', span(class(for), ['"', For, '"'])]),
 	       div(class('search-counts'),
 		   [ Matches, ' matches; ',
 		     \count_by_category(PerCategory)
@@ -177,7 +196,7 @@ search_reply(For, Options) -->
 search_reply(For, Options) -->
 	html([ \html_requires(pldoc),
 	       \doc_links('', [for(For)|Options]),
-	       h1(class(search), 'No matches')
+	       h1(class(wiki), 'No matches')
 	     ]).
 
 count_by_category([]) -->
@@ -272,7 +291,7 @@ category_title(Category) -->
 
 search_doc(Search, PerType, Options) :-
 	findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
-	keysort(Tuples0, Tuples),
+	sort(Tuples0, Tuples),
 	group_pairs_by_key(Tuples, PerCat0),
 	key_sort_order(PerCat0, PerCat1),
 	keysort(PerCat1, PerCat2),
@@ -315,12 +334,19 @@ matching_object(Search, Type-(Section-Obj), Options) :-
 	prolog:doc_object_summary(Obj, Type, Section, _),
 	matching_category(In, Type).
 matching_object(Search, Type-(Section-Obj), Options) :-
-	catch(atom_to_term(Search, Obj, _), _, fail),
+	(   atom_codes(Search, Codes),
+	    phrase(predicate_spec(Obj), Codes)
+	;   (   current_predicate(Search, _:_)
+	    ->  Obj = (Search/_)
+	    )
+	;   catch(atom_to_term(Search, Obj, _), _, fail)
+	),
 	nonvar(Obj),
 	option(search_in(In), Options, all),
 	prolog:doc_object_summary(Obj, Type, Section, _),
 	matching_category(In, Type).
 matching_object(Search, Match, Options) :-
+	atom_length(Search, Len), Len > 1,
 	atom_codes(Search, Codes),
 	phrase(search_spec(For0), Codes),
 	(   For0 = not(_)
@@ -328,6 +354,16 @@ matching_object(Search, Match, Options) :-
 	;   optimise_search(For0, For),
 	    exec_search(For, Match, Options)
 	).
+
+predicate_spec(Name/Arity) -->
+	string(NameCodes),
+	"/",
+	(   "/"
+	->  integer(DCGArity),
+	    {Arity is DCGArity+2}
+	;   integer(Arity)
+	), eos, !,
+	{ atom_codes(Name, NameCodes) }.
 
 %%	optimise_search(+Spec, -Optimised)
 %
