@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006-2009, University of Amsterdam
+    Copyright (C): 2006-2013, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -46,6 +45,18 @@
 :- use_module(library(memfile)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
+
+
+/** <module> PlDoc wiki parser
+
+This file defines the PlDoc wiki parser,  which parses both comments and
+wiki text files. The original version of this SWI-Prolog wiki format was
+largely modeled after Twiki (http://twiki.org/).  The current version is
+extended to take many aspects from   markdown, in particular the doxygen
+refinement thereof.
+
+@see http://www.stack.nl/~dimitri/doxygen/manual/markdown.html
+*/
 
 
 		 /*******************************
@@ -1061,7 +1072,9 @@ tokenize_lines([I-H0|T0], [I-H|T]) :-
 %
 %	Create a list of tokens, where  is  token   is  either  a ' ' to
 %	denote spaces, a  term  w(Word)  denoting   a  word  or  an atom
-%	denoting a punctuation character.
+%	denoting a punctuation  character.   Underscores  (_)  appearing
+%	inside an alphanumerical string are considered part of the word.
+%	E.g., "hello_world_" tokenizes into [w(hello_world), '_'].
 
 line_tokens([H|T]) -->
 	line_token(H), !,
