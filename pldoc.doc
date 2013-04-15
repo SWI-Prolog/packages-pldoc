@@ -230,7 +230,7 @@ system that allows for runtime verification and static type analysis
 
 \subsection*{Examples}
 
-\begin{verbatim}
+\begin{code}
 %%	length(+List:list, -Length:int) is det.
 %%	length(?List:list, -Length:int) is nondet.
 %%	length(?List:list, +Length:int) is det.
@@ -238,7 +238,7 @@ system that allows for runtime verification and static type analysis
 %	True if List is a list of length Length.
 %
 %	@compat iso
-\end{verbatim}
+\end{code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Tags: \chr{@}param, etc.}
@@ -369,24 +369,56 @@ is started by a \chr{|} sign and the cells are separated by the same
 character.  The last cell must be ended with \chr{|}.  Multiple lines
 that parse into a table-row together form a table.  Example:
 
-\begin{verbatim}
+\begin{code}
 	| Algorithm    | Time (sec) |
 	| Depth first  | 1.0        |
 	| Breath first | 0.7        |
 	| A*           | 0.3        |
-\end{verbatim}
+\end{code}
 
     \item [Section Headers]
 Section headers are creates using one of the constructs below taken
 from TWiki.  Section headers are normally not used in the source-code,
 but can be useful inside README and TODO files.  See \secref{dirindex}.
 
-\begin{verbatim}
+\begin{code}
 ---+ Section level 1
 ---++ Section level 2
 ---+++ Section level 3
 ---++++ Section level 4
-\end{verbatim}
+\end{code}
+
+In addition, PlDoc recognises the \jargon{markdown} syntax, including
+named sections as defined by \program{doxygen}. A section is named
+(labeled) using an optional sequence \verb${\#$\textit{name}\verb$}$.
+The three code sections below provide examples. Note that section
+headers should be positioned at the left margin, the \texttt{\#} must be
+followed by blank space and the underline length must match the title
+\emph{after} spacing in the section title has been normalized.
+
+\begin{code}
+Section level 1
+===============
+
+Section level 2
+---------------
+\end{code}
+
+\begin{code}
+# Section level 1
+## Section level 2
+### Section level 3
+#### Section level 4
+\end{code}
+
+\begin{code}
+Section level 1		{#label}
+===============
+
+# Section level 1	{#label}
+\end{code}
+
+
 
     \item [Code (verbatim)]
 Verbatim is embedded between lines containing only \verb$==$, as shown
@@ -394,12 +426,12 @@ in the example below.  The indentation of the \verb$==$ must match and
 the indentation of the verbatim text is reduced by the indentation of
 the \verb$==$ marks.
 
-\begin{verbatim}
+\begin{code}
 	==
 	small(X) :-
 		X < 5.
 	==
-\end{verbatim}
+\end{code}
 
     \item [Rules]
 A single line starting at column 1 with at least two dashes is

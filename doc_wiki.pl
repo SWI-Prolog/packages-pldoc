@@ -133,7 +133,11 @@ take_block([0-[-,-|More]|LT], _, Block, LT) :-	% seperation line
 take_block([_-[@|_]], _, _, _) :- !,		% starts @tags section
 	fail.
 take_block([_-L1|LT], _, Section, LT) :-
-	section_line(L1, Section), !.
+	twiki_section_line(L1, Section), !.
+take_block([0-L1|LT], _, Section, LT) :-
+	md_section_line(L1, Section), !.
+take_block([0-L1,0-L2|LT], _, Section, LT) :-
+	md_section_line(L1, L2, Section), !.
 take_block([_-Verb|Lines], _, Verb, Lines) :-
 	verbatim_term(Verb), !.
 take_block([I-L1|LT], BaseIndent, Elem, Rest) :- !,
@@ -357,13 +361,13 @@ rest_par([I-L1|LT], ['\n'|Par], BI, MaxI0, MaxI, Rest) :-
 	rest_par(LT, PT, BI, MaxI1, MaxI, Rest).
 
 
-%%	section_line(+Tokens, -Section) is det.
+%%	twiki_section_line(+Tokens, -Section) is semidet.
 %
 %	Extract a section using the Twiki   conventions. The section may
 %	be preceeded by [Word], in which case we generate an anchor name
 %	Word for the section.
 
-section_line([-,-,-|Rest], Section) :-
+twiki_section_line([-,-,-|Rest], Section) :-
 	plusses(Rest, Section).
 
 plusses([+, ' '|Rest], h1(Attrs, Content)) :-
@@ -383,6 +387,52 @@ hdr_attributes(List, Attrs, Content) :-
 	;   Attrs = class(wiki),
 	    strip_ws_tokens(List, Content)
 	).
+
+%%	md_section_line(+Tokens, -Section) is semidet.
+%
+%	Handle markdown section lines staring with #
+
+md_section_line([#, ' '|Rest], h1(Attrs, Content)) :-
+	md_section_attributes(Rest, Attrs, Content).
+md_section_line([#, #, ' '|Rest], h2(Attrs, Content)) :-
+	md_section_attributes(Rest, Attrs, Content).
+md_section_line([#, #, #, ' '|Rest], h3(Attrs, Content)) :-
+	md_section_attributes(Rest, Attrs, Content).
+md_section_line([#, #, #, #, ' '|Rest], h4(Attrs, Content)) :-
+	md_section_attributes(Rest, Attrs, Content).
+
+md_section_attributes(List, Attrs, Content) :-
+	append(Content, ['{', '#', w(Name), '}'], List), !,
+	Attrs = [class(wiki), name(Name)].
+md_section_attributes(Content, Attrs, Content) :-
+	Attrs = [class(wiki)].
+
+md_section_line(Line1, Line2, Header) :-
+	hdr_underline(C, Type),
+	underlined(Line1, Line2, C, Content, RestLine1), !,
+	Header =.. [Type, Attrs, Content],
+	(   RestLine1 = [' ', '{', '#', w(Name), '}']
+	->  Attrs = [class(wiki), name(Name)]
+	;   RestLine1 = []
+	->  Attrs = [class(wiki)]
+	).
+
+hdr_underline(=, h1).
+hdr_underline(-, h2).
+
+underlined([w(Word)|T], Under, C, [w(Word)|Content], Rest) :-
+	atom_length(Word, Len),
+	take_n_c(Under, C, Len, RC), !,
+	underlined(T, RC, C, Content, Rest).
+underlined([H|T], [C|R], C, [H|Content], Rest) :- !,
+	underlined(T, R, C, Content, Rest).
+underlined(Rest, [], _, [], Rest).
+
+take_n_c(Under, _, 0, Under) :- !.
+take_n_c([C|T], C, N, Under) :-
+	N > 0,
+	N2 is N-1,
+	take_n_c(T, C, N2, Under).
 
 
 %%	strip_ws_tokens(+Tokens, -Stripped)
