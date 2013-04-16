@@ -662,6 +662,7 @@ object(Obj, Mode0, Mode, Options) -->
 		  doc_comment(Obj, Pos, _Summary, Comment),
 		  Pairs)
 	}, !,
+	{ b_setval(pldoc_object, Obj) },
 	object(Obj, Pairs, Mode0, Mode, Options).
 
 object(Obj, Pairs, Mode0, Mode, Options) -->

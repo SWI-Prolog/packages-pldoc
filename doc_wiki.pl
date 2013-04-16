@@ -45,6 +45,7 @@
 :- use_module(library(memfile)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
+:- use_module(library(debug)).
 
 
 /** <module> PlDoc wiki parser
@@ -647,30 +648,65 @@ structure_tag(center).
 verbatim_term(pre(_,_)).
 verbatim_term(\term(_,_)).
 
+%%	matches(:Goal, -Input, -Last)//
+%
+%	True when Goal runs successfully on the DCG input and Input
+%	is the list of matched tokens.
+
+matches(Goal, Input, Last, List, Rest) :-
+	call(Goal, List, Rest),
+	input(List, Rest, Input, Last).
+
+input([H|T0], Rest, Input, Last) :-
+	(   T0 == Rest
+	->  Input = [H],
+	    Last = H
+	;   Input = [H|T],
+	    input(T0, Rest, T, Last)
+	).
+
+
 %%	wiki_faces(-WithFaces, +ArgNames)// is nondet.
 %
 %	Apply font-changes and automatic  links   to  running  text. The
 %	faces are applied after discovering   the structure (paragraphs,
 %	lists, tables, keywords).
 
-wiki_faces([], _) -->
+wiki_faces([EmphTerm|T], ArgNames) -->
+	emphasis_start(C),
+	matches(wiki_faces(Emph, ArgNames), Input, Last),
+	emphasis_end(C),
+	{ emph_markdown(Last, Input),
+	  emphasis_term(C, Emph, EmphTerm)
+	}, !,
+	wiki_faces_int(T, ArgNames).
+wiki_faces(Faces, ArgNames) -->
+	wiki_faces_int(Faces, ArgNames).
+
+wiki_faces_int([], _) -->
 	[].
-wiki_faces([H|T], ArgNames) -->
+wiki_faces_int([Before,EmphTerm|T], ArgNames) -->
+	emphasis_before(Before),
+	emphasis_start(C),
+	matches(wiki_faces(Emph, ArgNames), Input, Last),
+	emphasis_end(C),
+	{ emph_markdown(Last, Input),
+	  emphasis_term(C, Emph, EmphTerm)
+	}, !,
+	wiki_faces_int(T, ArgNames).
+wiki_faces_int([H|T], ArgNames) -->
 	wiki_face(H, ArgNames),
 	wiki_faces(T, ArgNames).
+
 
 wiki_face(var(Arg), ArgNames) -->
 	[w(Arg)],
 	{ memberchk(Arg, ArgNames)
 	}, !.
-wiki_face(b(Bold), _) -->
-	[*, w(Bold), *], !.
 wiki_face(b(Bold), ArgNames) -->
-	[*,'|'], wiki_faces(Bold, ArgNames), ['|',*], !.
-wiki_face(i(Italic), _) -->
-	['_', w(Italic), '_'], !.
+	[*,'|'], wiki_faces_int(Bold, ArgNames), ['|',*], !.
 wiki_face(i(Italic), ArgNames) -->
-	['_','|'], wiki_faces(Italic, ArgNames), ['|','_'], !.
+	['_','|'], wiki_faces_int(Italic, ArgNames), ['|','_'], !.
 wiki_face(code(Code), _) -->
 	[=, w(Code), =], !.
 wiki_face(code(Code), _) -->
@@ -730,6 +766,68 @@ wiki_face(FT, ArgNames) -->
 wiki_words([]) --> [].
 wiki_words([Word|T]) --> [w(Word)], wiki_words(T).
 wiki_words([Punct|T]) --> [Punct], {atomic(Punct)}, wiki_words(T).
+
+%%	emphasis_term(+Emphasis, +Tokens, -Term) is det.
+%%	emphasis_before(-Before)// is semidet.
+%%	emphasis_start(-Emphasis)// is semidet.
+%%	emphasis_end(+Emphasis)// is semidet.
+%
+%	Primitives for Doxygen emphasis handling.
+
+emphasis_term('_',   Term, i(Term)).
+emphasis_term('*',   Term, b(Term)).
+emphasis_term('__',  Term, strong(Term)).
+emphasis_term('**',  Term, strong(Term)).
+
+emph_markdown(_, [w(_)]) :- !.
+emph_markdown(Last, Tokens) :-
+	\+ emphasis_after_sep(Last),
+	(   catch(b_getval(pldoc_object, Obj), _, fail)
+	->  true
+	;   Obj = '??'
+	),
+	debug(markdown(emphasis), '~q: additionally emphasis: ~p',
+	      [Obj, Tokens]).
+
+emphasis_before(Before) -->
+	[Before],
+	{ emphasis_start_sep(Before) }.
+
+emphasis_start_sep(' ').
+emphasis_start_sep('<').
+emphasis_start_sep('{').
+emphasis_start_sep('(').
+emphasis_start_sep('[').
+emphasis_start_sep(',').
+emphasis_start_sep(':').
+emphasis_start_sep(';').
+
+emphasis_start(Which), [w(Word)] -->
+	emphasis(Which),
+	[w(Word)].
+
+emphasis(**)   --> [*, *].
+emphasis(*)    --> [*].
+emphasis('__') --> ['_', '_'].
+emphasis('_')  --> ['_'].
+
+emphasis_end(Which), [After] -->
+	emphasis(Which),
+	[ After ], !,
+	{ After \= w(_) }.
+emphasis_end(Which) -->
+	emphasis(Which).
+
+% these characters should not be before a closing * or _.
+
+emphasis_after_sep(' ').
+emphasis_after_sep('(').
+emphasis_after_sep('[').
+emphasis_after_sep('<').
+emphasis_after_sep('=').
+emphasis_after_sep('+').
+emphasis_after_sep('\\').
+emphasis_after_sep('@').
 
 
 %%	arg_list(-Atoms) is nondet.
