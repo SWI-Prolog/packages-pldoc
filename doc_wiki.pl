@@ -775,6 +775,13 @@ wiki_face(Link, _ArgNames) -->		% [[Label][Link]]
 	wiki_link(Link, [label(Label), relative(true), end(']')]),
 	[']',']'], !,
 	{ make_label(LabelParts, Label) }.
+wiki_face(Link, _ArgNames) -->		% Markdown: [Label](Link)
+	['['],
+	tokens(LabelParts),
+	[']','('],
+	wiki_link(Link, [label(Label), relative(true), end(')')]),
+	[')'], !,
+	{ make_label(LabelParts, Label) }.
 wiki_face(Link, _ArgNames) -->
 	wiki_link(Link, []), !.
 wiki_face(Word, _) -->
