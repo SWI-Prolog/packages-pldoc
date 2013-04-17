@@ -60,6 +60,7 @@
 	    file//1,			% +File, //
 	    file//2,			% +File, +Options, //
 	    include//3,			% +File, +Type, +Options //
+	    image//2,			% +Source, +Options //
 	    tags//1,			% +Tags, //
 	    term//2,			% +Term, +Bindings, //
 	    file_header//2,		% +File, +Options, //
@@ -1906,7 +1907,13 @@ include(File, image, Options) -->
 			  type('image/svg+xml')
 			], Attrs)
 	},
-	html(object(Attrs, [])).
+	(   { option(caption(Caption), Options) }
+	->  html(div(class(figure),
+		     [ div(class(image), object(Attrs, [])),
+		       div(class(caption), Caption)
+		     ]))
+	;   html(object(Attrs, []))
+	).
 include(File, image, Options) -->
 	{ file_href(File, HREF, Options), !,
 	  include(image_attribute, Options, Attrs0),
@@ -1916,7 +1923,13 @@ include(File, image, Options) -->
 			  src(HREF)
 			], Attrs)
 	},
-	html(img(Attrs)).
+	(   { option(caption(Caption), Options) }
+	->  html(div(class(figure),
+		     [ div(class(image), img(Attrs)),
+		       div(class(caption), Caption)
+		     ]))
+	;   html(img(Attrs))
+	).
 include(File, wiki, _Options) -->	% [[file.txt]] is included
 	{ access_file(File, read), !,
 	  read_file_to_codes(File, String, []),

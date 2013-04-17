@@ -604,6 +604,14 @@ brackets. For example
 The [[open.png]] icon is used open an existing file.
 \end{code}
 
+The markdown alternative for images is also supported, and looks as
+below.  The current implementation only deals with image \emph{files},
+not external resources.
+
+\begin{code}
+    ![Caption](File)
+\end{code}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Directory indices}

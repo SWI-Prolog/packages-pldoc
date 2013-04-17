@@ -768,20 +768,26 @@ wiki_face(\include(Name, Type, Options), _) -->
 	  file_name_extension(Base, Ext, Name),
 	  resolve_file(Name, Options, [])
 	}, !.
+wiki_face(\include(Name, Type, [caption(Caption)|Options]), _) -->
+	(   ['!','['], tokens(Caption), [']','(']
+	->  file_name(Base, Ext), [')'],
+	    { autolink_extension(Ext, Type), !,
+	      file_name_extension(Base, Ext, Name),
+	      resolve_file(Name, Options, [])
+	    }
+	), !.
 wiki_face(Link, _ArgNames) -->		% [[Label][Link]]
-	['[','['],
-	tokens(LabelParts),
-	[']','['],
-	wiki_link(Link, [label(Label), relative(true), end(']')]),
-	[']',']'], !,
-	{ make_label(LabelParts, Label) }.
+	(   ['[','['], tokens(LabelParts), [']','[']
+	->  wiki_link(Link, [label(Label), relative(true), end(']')]),
+	    [']',']'], !,
+	    { make_label(LabelParts, Label) }
+	).
 wiki_face(Link, _ArgNames) -->		% Markdown: [Label](Link)
-	['['],
-	tokens(LabelParts),
-	[']','('],
-	wiki_link(Link, [label(Label), relative(true), end(')')]),
-	[')'], !,
-	{ make_label(LabelParts, Label) }.
+	(   ['['], tokens(LabelParts), [']','(']
+	->  wiki_link(Link, [label(Label), relative(true), end(')')]),
+	    [')'], !,
+	    { make_label(LabelParts, Label) }
+	).
 wiki_face(Link, _ArgNames) -->
 	wiki_link(Link, []), !.
 wiki_face(Word, _) -->

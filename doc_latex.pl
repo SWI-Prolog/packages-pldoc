@@ -656,15 +656,24 @@ include(PI, predicate, _) --> !,
 	->  []
 	;   latex(cmd(item(['[[', \predref(PI), ']]'])))
 	).
-include(File, Type, _) -->
+include(File, Type, Options) -->
 	{ existing_linked_file(File, Path) }, !,
-	include_file(Path, Type).
+	include_file(Path, Type, Options).
 include(File, _, _) -->
 	latex(code(['[[', File, ']]'])).
 
-include_file(Path, image) --> !,
+include_file(Path, image, Options) -->
+	{ option(caption(Caption), Options) }, !,
+	latex(cmd(begin(figure, [no_escape(htbp)]))),
+	latex(cmd(begin(center))),
+	latex(cmd(includegraphics(Path))),
+	latex(cmd(end(center))),
+	latex(cmd(caption(Caption))),
+	latex(cmd(end(figure))).
+
+include_file(Path, image, _) --> !,
 	latex(cmd(includegraphics(Path))).
-include_file(Path, Type) -->
+include_file(Path, Type, _) -->
 	{ assertion(memberchk(Type, [prolog,wiki])),
 	  current_options(Options0),
 	  select_option(stand_alone(_), Options0, Options1, _),
