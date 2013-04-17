@@ -1252,12 +1252,20 @@ word([0'_, C1|T]) -->
 word([]) -->
 	[].
 
+alphas([C0|T]) -->
+	[C0],  { code_type(C0, alpha) }, !,
+	alphas(T).
+alphas([]) -->
+	[].
 
 %%	verbatim(+Lines, -Pre, -RestLines) is det.
 %
 %	Extract a verbatim environment.  The  returned   Pre  is  of the
-%	format pre(Class, String). The indentation of  the leading == is
-%	substracted from the indentation of the verbatim lines.
+%	format pre(Attributes, String). The indentation   of the leading
+%	fence is substracted from the indentation of the verbatim lines.
+%	Two types of fences are supported:   the  traditional =|==|= and
+%	the Doxygen =|~~~|= (minimum  3   =|~|=  characters), optionally
+%	followed by =|{.ext}|= to indicate the language.
 %
 %	Verbatim environment is delimited as
 %
@@ -1267,9 +1275,12 @@ word([]) -->
 %		...,
 %	==
 
-verbatim([Indent-"=="|Lines], Indent-pre(class(code),Pre), RestLines) :-
+verbatim([Indent-Line|Lines],
+	 Indent-pre([class(code), ext(Ext)],Pre),
+	 RestLines) :-
+	verbatim_fence(Line, Fence, Ext),
 	verbatim_body(Lines, Indent, [10|PreCodes], [],
-		      [Indent-"=="|RestLines]), !,
+		      [Indent-Fence|RestLines]), !,
 	atom_codes(Pre, PreCodes).
 
 verbatim_body(Lines, _, PreT, PreT, Lines).
@@ -1278,6 +1289,27 @@ verbatim_body([I-L|Lines], Indent, [10|Pre], PreT, RestLines) :-
 	phrase(pre_indent(PreI), Pre, PreT0),
 	verbatim_line(L, PreT0, PreT1),
 	verbatim_body(Lines, Indent, PreT1, PreT, RestLines).
+
+verbatim_fence(Line, Fence, '') :-
+	Line == "==", !,
+	Fence = Line.
+verbatim_fence(Line, Fence, Ext) :-
+	tilde_fence(Line, Fence, 0, Ext).
+
+tilde_fence([0'~|T0], [0'~|F0], C0, Ext) :- !,
+	C1 is C0+1,
+	tilde_fence(T0, F0, C1, Ext).
+tilde_fence(List, [], C, Ext) :-
+	C >= 3,
+	(   List == []
+	->  Ext = ''
+	;   phrase(fence_ext(ExtCodes), List),
+	    atom_codes(Ext, ExtCodes)
+	).
+
+fence_ext(Ext) -->
+	"{.", alphas(Ext), "}".
+
 
 %%	pre_indent(+Indent)// is det.
 %
