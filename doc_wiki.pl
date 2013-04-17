@@ -614,6 +614,12 @@ same_tag(_, L, L, []).
 %	Given the wiki structure, analyse the content of the paragraphs,
 %	list items and table cells and apply font faces and links.
 
+wiki_faces([dt(Class, \term(Term, Bindings)), dd(Descr0)|T0],
+	   ArgNames,
+	   [dt(Class, \term(Term, Bindings)), dd(Descr)|T]) :- !,
+	varnames(Bindings, VarNames, ArgNames),
+	wiki_faces(Descr0, VarNames, Descr),
+	wiki_faces(T0, ArgNames, T).
 wiki_faces(DOM0, ArgNames, DOM) :-
 	structure_term(DOM0, Functor, Content0), !,
 	wiki_faces_list(Content0, ArgNames, Content),
@@ -623,6 +629,10 @@ wiki_faces(Verb, _, Verb) :-
 wiki_faces(Content0, ArgNames, Content) :-
 	assertion(is_list(Content0)),
 	phrase(wiki_faces(Content, ArgNames), Content0), !.
+
+varnames([], List, List).
+varnames([Name=_|T0], [Name|T], List) :-
+	varnames(T0, T, List).
 
 wiki_faces_list([], _, []).
 wiki_faces_list([H0|T0], Args, [H|T]) :-

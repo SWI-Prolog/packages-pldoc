@@ -341,7 +341,9 @@ it is common to describe the behaviour on different terms.  Such
 lists must be written as below.  <Term1>, etc. must be valid Prolog
 terms and end in the newline.  The Wiki adds \verb$' . '$ to the text
 and reads it using the operator definitions also used to read
-the mode terms.  See \secref{modes}.
+the mode terms.  See \secref{modes}.  Variable names encountered in
+the \arg{Term} are used for indentifying variables in the following
+\arg{Description}.
 
 \begin{code}
    * Term1

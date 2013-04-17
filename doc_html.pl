@@ -60,7 +60,6 @@
 	    file//1,			% +File, //
 	    file//2,			% +File, +Options, //
 	    include//3,			% +File, +Type, +Options //
-	    image//2,			% +Source, +Options //
 	    tags//1,			% +Tags, //
 	    term//2,			% +Term, +Bindings, //
 	    file_header//2,		% +File, +Options, //
