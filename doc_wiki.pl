@@ -699,7 +699,6 @@ wiki_faces_int([H|T], ArgNames) -->
 	wiki_face(H, ArgNames),
 	wiki_faces(T, ArgNames).
 
-
 wiki_face(var(Arg), ArgNames) -->
 	[w(Arg)],
 	{ memberchk(Arg, ArgNames)
@@ -712,11 +711,17 @@ wiki_face(code(Code), _) -->
 	[=, w(Code), =], !.
 wiki_face(code(Code), _) -->
 	[=,'|'], wiki_words(Code), ['|',=], !.
+wiki_face(Code, _) -->
+	['`'], code_words(Words), ['`'],
+	{ atomic_list_concat(Words, Text),
+	  catch(atom_to_term(Text, Term, Vars), _, fail), !,
+	  code_face(Text, Term, Vars, Code)
+	}.
 wiki_face(Face, _) -->
 	[ w(Name) ], arg_list(List),
 	{ atomic_list_concat([Name|List], Text),
 	  catch(atom_to_term(Text, Term, Vars), _, fail),
-	  term_face(Term, Vars, Face)
+	  term_face(Text, Term, Vars, Face)
 	}, !.
 wiki_face(\predref(Name/Arity), _) -->
 	[ w(Name), '/' ], arity(Arity),
@@ -767,6 +772,28 @@ wiki_face(FT, ArgNames) -->
 wiki_words([]) --> [].
 wiki_words([Word|T]) --> [w(Word)], wiki_words(T).
 wiki_words([Punct|T]) --> [Punct], {atomic(Punct)}, wiki_words(T).
+
+%%	code_words(-Words)//
+%
+%	True when Words is the  content   as  it  appears in =|`code`|=,
+%	where =|``|= is mapped to =|`|=.
+
+code_words([]) --> [].
+code_words([Word|T]) --> [w(Word)], code_words(T).
+code_words(CodeL) --> ['`','`'], {CodeL = ['`'|T]}, code_words(T).
+code_words([Punct|T]) --> [Punct], {atomic(Punct)}, code_words(T).
+
+%%	code_face(+Text, +Term, +Vars, -Code) is det.
+%
+%	Deal with =|`... code ...`|=  sequences.   Text  is  the matched
+%	text, Term is the parsed Prolog term   and Code is the resulting
+%	intermediate code.
+
+code_face(Text, Var, _, Code) :-
+	var(Var), !,
+	Code = var(Text).
+code_face(Text, _, _, code(Text)).
+
 
 %%	emphasis_term(+Emphasis, +Tokens, -Term) is det.
 %%	emphasis_before(-Before)// is semidet.
@@ -863,20 +890,21 @@ arg_list_close([H|T], Depth) -->
 	arg_list_close(T, Depth).
 
 
-%%	term_face(+Term, +Vars, -Face) is semidet.
+%%	term_face(+Text, +Term, +Vars, -Face) is semidet.
 %
 %	Process embedded Prolog-terms. Currently   processes  Alias(Arg)
 %	terms that refer to files.  Future   versions  will also provide
 %	pretty-printing of Prolog terms.
 
-term_face(Term, _Vars, \file(Name, FileOptions)) :-
+term_face(_Text, Term, _Vars, \file(Name, FileOptions)) :-
 	ground(Term),
 	compound(Term),
 	Term =.. [Alias,_],
 	user:file_search_path(Alias, _),
 	existing_file(Term, FileOptions, []), !,
 	format(atom(Name), '~q', [Term]).
-
+term_face(Text, Term, Vars, Face) :-
+	code_face(Text, Term, Vars, Face).
 
 %%	make_label(+Parts, -Label) is det.
 %

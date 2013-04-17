@@ -521,8 +521,29 @@ New code should use the backtick as described in \secref{inlinecode}.
 \label{sec:inlinecode}
 
 Inline code can be realised using the \verb$=$ switch described in
-\secref{emph} or the markdown backtick. TBD: Complete.
+\secref{emph} or the markdown backtick. In addition, it can use the
+mardown/Doxygen \jargon{backtick} (\verb$`$) convention: a string
+that is delimited by backticks is considered code, provided:
 
+    \begin{itemize}
+    \item An internal double backtick is translated into a single
+          backtick.
+    \item Inline code is limited to the current structure (paragraph,
+          table cell, list item, etc.
+    \item The content of the code block is valid Prolog syntax.
+	  Note that in Doxygen, the syntax is not validated and
+	  a single quote cancels the recognition as code.  The
+	  latter is a problematic in Prolog because single
+	  quotes are often required.
+    \end{itemize}
+
+Currently, `Var` is typeset as a variable (italics) and other terms
+are typeset using a fixed-width code font.
+
+In addition, compound terms in canonical notation (i.e.,
+\mbox{\textit{functor}\texttt{(},\textit{...args...}\texttt{)}} that can
+be parsed are first verified as a file-specification for
+absolute_file_name/3 and otherwise rendered as \jargon{code}.
 
 
 \subsubsection{Links}
