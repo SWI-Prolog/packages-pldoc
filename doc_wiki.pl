@@ -280,17 +280,23 @@ term_item(li(Tokens),
 	    ;	TermTokens = Tokens,
 		Descr = []
 	    )
-	->  new_memory_file(MemFile),
-	    open_memory_file(MemFile, write, Out),
-	    forall(member(T, TermTokens),
-		   write_token(Out, T)),
-	    write(Out, ' .\n'),
-	    close(Out),
-	    open_memory_file(MemFile, read, In),
-	    catch(call_cleanup((read_dt_term(In, Term, Bindings),
-				read_dt_term(In, end_of_file, [])),
-			       (close(In),
-				free_memory_file(MemFile))),
+	->  setup_call_cleanup(
+		( new_memory_file(MemFile),
+		  open_memory_file(MemFile, write, Out)
+		),
+		( forall(member(T, TermTokens),
+			 write_token(Out, T)),
+		  write(Out, ' .\n')
+		),
+		close(Out)),
+	    catch(setup_call_cleanup(
+		      open_memory_file(MemFile, read, In,
+				       [ free_on_close(true)
+				       ]),
+		      ( read_dt_term(In, Term, Bindings),
+			read_dt_term(In, end_of_file, [])
+		      ),
+		      close(In)),
 		  _, fail)
 	).
 
