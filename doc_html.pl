@@ -61,7 +61,7 @@
 	    file//2,			% +File, +Options, //
 	    include//3,			% +File, +Type, +Options //
 	    tags//1,			% +Tags, //
-	    term//2,			% +Term, +Bindings, //
+	    term//3,			% +Text, +Term, +Bindings, //
 	    file_header//2,		% +File, +Options, //
 	    objects//2,			% +Objects, +Options, //
 	    object_ref//2,		% +Object, +Options, //
@@ -1416,21 +1416,21 @@ pred_det(Det) -->
 	html([' is ', b(class=det, Det)]).
 
 
-%%	term(+Term, +Bindings)// is det.
+%%	term(+Text, +Term, +Bindings)// is det.
 %
 %	Process the \term element as produced by doc_wiki.pl.
 %
 %	@tbd	Properly merge with pred_head//1
 
-term(Atom, []) -->
+term(_, Atom, []) -->
 	{ atomic(Atom) }, !,
 	html(span(class=functor, Atom)).
-term(Term, Bindings) -->
+term(_, Term, Bindings) -->
 	{ is_mode(Term is det),		% HACK. Bit too strict?
 	  bind_vars(Bindings)
 	}, !,
 	pred_head(Term).
-term(Term, Bindings) -->
+term(_, Term, Bindings) -->
 	{ bind_vars(Term, Bindings) },
 	argtype(Term).
 

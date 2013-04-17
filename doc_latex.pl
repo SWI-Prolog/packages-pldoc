@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007, University of Amsterdam
+    Copyright (C): 2007-2013, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -408,8 +407,8 @@ latex(dd(_, Content)) -->
 	latex(Content).
 latex(dd(Content)) -->
 	latex(Content).
-latex(dt(class=term, \term(Term, Bindings))) -->
-	termitem(Term, Bindings).
+latex(dt(class=term, \term(Text, Term, Bindings))) -->
+	termitem(Text, Term, Bindings).
 latex(dt(Content)) -->
 	latex(cmd(item(opt(Content)))).
 latex(table(Attrs, Content)) -->
@@ -670,7 +669,6 @@ include_file(Path, image, Options) -->
 	latex(cmd(end(center))),
 	latex(cmd(caption(Caption))),
 	latex(cmd(end(figure))).
-
 include_file(Path, image, _) --> !,
 	latex(cmd(includegraphics(Path))).
 include_file(Path, Type, _) -->
@@ -1080,13 +1078,13 @@ argtype(Term) -->
 		 ]) },
 	latex(S).
 
-%%	term(+Term, +Bindings)// is det.
+%%	term(+Text, +Term, +Bindings)// is det.
 %
 %	Process the \term element as produced by doc_wiki.pl.
 %
 %	@tbd	Properly merge with pred_head//1
 
-term(Term, Bindings) -->
+term(_, Term, Bindings) -->
 	{ bind_vars(Bindings) },
 	term(Term).
 
@@ -1113,11 +1111,11 @@ term_with_args(Functor, Args) -->
 	latex(cmd(term(Functor, \pred_args(Args, 1)))).
 
 
-%%	termitem(+Term, +Bindings)// is det.
+%%	termitem(+Text, +Term, +Bindings)// is det.
 %
 %	Create a termitem or one of its variations.
 
-termitem(Term, Bindings) -->
+termitem(_Text, Term, Bindings) -->
 	{ bind_vars(Bindings) },
 	termitem(Term).
 

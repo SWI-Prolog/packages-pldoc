@@ -267,11 +267,12 @@ term_items([LI|LIs], DLItems, Tail) :-
 %%	term_item(+LI, -DLItem, ?Tail) is semidet.
 %
 %	If LI is of the form <Term> followed  by a newline, return it as
-%	dt-dd  tuple.  The  <dt>  item    contains  a  term  \term(Term,
-%	Bindings).
+%	dt-dd  tuple.  The  <dt>  item    contains  a  term
+%
+%	    \term(Text, Term, Bindings).
 
 term_item(li(Tokens),
-	  [ dt(class=term, \term(Term, Bindings)),
+	  [ dt(class=term, \term(Text, Term, Bindings)),
 	    dd(Descr)
 	  | Tail
 	  ], Tail) :-
@@ -294,7 +295,8 @@ term_item(li(Tokens),
 				       [ free_on_close(true)
 				       ]),
 		      ( read_dt_term(In, Term, Bindings),
-			read_dt_term(In, end_of_file, [])
+			read_dt_term(In, end_of_file, []),
+			memory_file_to_atom(MemFile, Text)
 		      ),
 		      close(In)),
 		  _, fail)
@@ -312,7 +314,7 @@ read_dt_term(In, Term, Bindings) :-
 		  ]).
 
 terms_to_predicate_includes([], []).
-terms_to_predicate_includes([dt(class=term, \term([[PI]], [])), dd([])|T0],
+terms_to_predicate_includes([dt(class=term, \term(_, [[PI]], [])), dd([])|T0],
 			    [\include(PI, predicate, [])|T]) :-
 	is_pi(PI),
 	terms_to_predicate_includes(T0, T).
@@ -614,9 +616,9 @@ same_tag(_, L, L, []).
 %	Given the wiki structure, analyse the content of the paragraphs,
 %	list items and table cells and apply font faces and links.
 
-wiki_faces([dt(Class, \term(Term, Bindings)), dd(Descr0)|T0],
+wiki_faces([dt(Class, \term(Text, Term, Bindings)), dd(Descr0)|T0],
 	   ArgNames,
-	   [dt(Class, \term(Term, Bindings)), dd(Descr)|T]) :- !,
+	   [dt(Class, \term(Text, Term, Bindings)), dd(Descr)|T]) :- !,
 	varnames(Bindings, VarNames, ArgNames),
 	wiki_faces(Descr0, VarNames, Descr),
 	wiki_faces(T0, ArgNames, T).
@@ -681,7 +683,7 @@ structure_tag(center).
 %	True if Term must be passes verbatim.
 
 verbatim_term(pre(_,_)).
-verbatim_term(\term(_,_)).
+verbatim_term(\term(_,_,_)).
 
 %%	matches(:Goal, -Input, -Last)//
 %
