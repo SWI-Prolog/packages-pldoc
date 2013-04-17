@@ -457,12 +457,18 @@ line may not be a valid list opening line. The line following a blank
 line must either be indented more than the initial line or may not be a
 valid list opening line.
 
-    \item [Rules]
-A single line starting at column 1 with at least two dashes is
-translated into a horizontal rule over the page.  For example:
+    \item [Rulers]
+PlDoc accepts both the original PlDoc and markdown conventions for
+rulers. A PlDoc ruler is a line with at least two dashes (-) that starts
+at the left-most column.  A markdown ruler holds at least three ruler
+characters and any number of spaces.  The ruler characters are the
+dash (-), underscore (\verb$_$) or asterisk (\verb$*$).  Below are
+three examples, the last two of which are valid markdown.
 
 \begin{code}
 --
+***
+		- - -
 \end{code}
 
 \end{description}

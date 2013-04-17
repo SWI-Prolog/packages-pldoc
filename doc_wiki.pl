@@ -128,8 +128,11 @@ take_block([N-['|'|RL1]|LT], _, Table, Rest) :-
 	phrase(row(R0), RL1),
 	rest_table(LT, N, RL, Rest), !,
 	Table = table(class=wiki, [tr(R0)|RL]).
-take_block([0-[-,-|More]|LT], _, Block, LT) :-	% seperation line
-	maplist(=(-), More), !,
+take_block([0-[-,-|More]|LT], _, Block, LT) :-  % seperation line
+       maplist(=(-), More), !,
+       Block = hr([]).
+take_block([_-Line|LT], _, Block, LT) :-	% seperation line
+	ruler(Line), !,
 	Block = hr([]).
 take_block([_-[@|_]], _, _, _) :- !,		% starts @tags section
 	fail.
@@ -152,6 +155,21 @@ take_block([I-L1|LT], BaseIndent, Elem, Rest) :- !,
 	).
 take_block([Verb|Lines], _, Verb, Lines).
 
+%%	ruler(+Line) is semidet.
+%
+%	True if Line contains 3 ruler chars and otherwise spaces.
+
+ruler([C0|Line]) :-
+	rule_char(C0),
+	phrase(ruler(C0, 1), Line).
+
+ruler(C, N) --> [C], !, { N2 is N+1 }, ruler(C, N2).
+ruler(C, N) --> [' '], !, ruler(C, N).
+ruler(_, N) --> { N >= 3 }.
+
+rule_char('-').
+rule_char('_').
+rule_char('*').
 
 %%	list_item(+Lines, ?Type, ?Indent, -LI0, -LIT, -RestLines) is det.
 %
