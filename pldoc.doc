@@ -418,20 +418,44 @@ Section level 1		{#label}
 # Section level 1	{#label}
 \end{code}
 
-
-
-    \item [Code (verbatim)]
-Verbatim is embedded between lines containing only \verb$==$, as shown
-in the example below.  The indentation of the \verb$==$ must match and
-the indentation of the verbatim text is reduced by the indentation of
-the \verb$==$ marks.
+    \item [Code blocks]
+There are two ways to write a code block. The first one is
+\jargon{fenced}. Here, the block is preceeded and followed by a fence
+line.  The traditional PlDoc fence line is \verb$==$.  Doxygen fence
+lines are also accepted.  They contain at least three tilde (\chr{~})
+characters, where the opening fence line may be followed by a file
+extension between curly brackets.  In all cases, the code is indented
+relative to the indentation of the fence line.  Below are two examples,
+the first being the traditional PlDoc style.  The second is the Doxygen
+style, showing a code block that is indented (because it is a body
+fragment) and that is flagged as Prolog source. Note that the
+\verb${.pl}$ is optional.
 
 \begin{code}
-	==
-	small(X) :-
-		X < 5.
-	==
+  ==
+  small(X) :-
+     X < 2.
+  ==
 \end{code}
+
+\begin{code}
+  ~~~{.pl}
+    ...,
+    format('Hello ~w~n', [World]),
+    ...,
+  ~~~
+\end{code}
+
+The second form of code blocks are \jargon{indented blocks}. Such a
+block must be indented between 4 and 8 characters, relative to the
+indentation of the last preceeding non-blank line. The block is opened
+with a blank line and closed by a blank line or a line that is indented
+less than the indentation of the initial line. It is allowed to have a
+single blank line in the middle of a code block, provided that the next
+line is again indented at least as much as the initial line. The initial
+line may not be a valid list opening line. The line following a blank
+line must either be indented more than the initial line or may not be a
+valid list opening line.
 
     \item [Rules]
 A single line starting at column 1 with at least two dashes is

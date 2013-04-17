@@ -1208,12 +1208,19 @@ normalise_white_space2(Text) -->
 %
 %	Convert Indent-Codes into Indent-Tokens
 
-tokenize_lines([], []) :- !.
-tokenize_lines(Lines, [Pre|T]) :-
-	verbatim(Lines, Pre, RestLines), !,
-	tokenize_lines(RestLines, T).
-tokenize_lines([I-H0|T0], [I-H|T]) :-
+tokenize_lines(Lines, TokenLines) :-
+	tokenize_lines(Lines, 0, TokenLines).
+
+tokenize_lines([], _, []) :- !.
+tokenize_lines(Lines, Indent, [Pre|T]) :-
+	verbatim(Lines, Indent, Pre, RestLines), !,
+	tokenize_lines(RestLines, Indent, T).
+tokenize_lines([I-H0|T0], Indent0, [I-H|T]) :-
 	phrase(line_tokens(H), H0),
+	(   H == []
+	->  Indent = Indent0
+	;   Indent = I
+	),
 	tokenize_lines(T0, T).
 
 
@@ -1259,7 +1266,7 @@ alphas([C0|T]) -->
 alphas([]) -->
 	[].
 
-%%	verbatim(+Lines, -Pre, -RestLines) is det.
+%%	verbatim(+Lines, +EnvIndent, -Pre, -RestLines) is det.
 %
 %	Extract a verbatim environment.  The  returned   Pre  is  of the
 %	format pre(Attributes, String). The indentation   of the leading
@@ -1270,18 +1277,29 @@ alphas([]) -->
 %
 %	Verbatim environment is delimited as
 %
-%	==
-%		...,
-%		verbatim(Lines, Pre, Rest)
-%		...,
-%	==
+%	  ==
+%	    ...,
+%	    verbatim(Lines, Pre, Rest)
+%	    ...,
+%	  ==
+%
+%	In addtion, a verbatim environment may   simply be indented. The
+%	restrictions are described in the documentation.
 
-verbatim([Indent-Line|Lines],
+verbatim([Indent-Line|Lines], _,
 	 Indent-pre([class(code), ext(Ext)],Pre),
 	 RestLines) :-
 	verbatim_fence(Line, Fence, Ext),
 	verbatim_body(Lines, Indent, [10|PreCodes], [],
 		      [Indent-Fence|RestLines]), !,
+	atom_codes(Pre, PreCodes).
+verbatim([_-[],Indent-Line|Lines], EnvIndent,
+	 Indent-pre(class(code),Pre),
+	 RestLines) :-
+	Indent >= EnvIndent+4, Indent =< EnvIndent+8,
+	valid_verbatim_opening(Line),
+	indented_verbatim_body([Indent-Line|Lines], Indent, [10|PreCodes],
+			       RestLines), !,
 	atom_codes(Pre, PreCodes).
 
 verbatim_body(Lines, _, PreT, PreT, Lines).
@@ -1310,6 +1328,36 @@ tilde_fence(List, [], C, Ext) :-
 
 fence_ext(Ext) -->
 	"{.", alphas(Ext), "}".
+
+%%	indented_verbatim_body(+Lines, +Indent, -Pre, -RestLines)
+%
+%	Takes more verbatim lines. The input   ends  with the first line
+%	that is indented less than Indent. There cannot be more than one
+%	consequtive empty line in the verbatim body.
+
+indented_verbatim_body([I-L|T0], Indent, [10|Pre], RestLines) :-
+	L \== "", I >= Indent, !,
+	PreI is I-Indent,
+	phrase(pre_indent(PreI), Pre, PreT0),
+	verbatim_line(L, PreT0, PreT1),
+	indented_verbatim_body(T0, Indent, PreT1, RestLines).
+indented_verbatim_body([_-"",I-L|T0], Indent, [10,10|Pre], RestLines) :-
+	(   I > Indent
+	->  L \== ""
+	;   I == Indent
+	->  valid_verbatim_opening(L)
+	),
+	PreI is I-Indent,
+	phrase(pre_indent(PreI), Pre, PreT0),
+	verbatim_line(L, PreT0, PreT1),
+	indented_verbatim_body(T0, Indent, PreT1, RestLines).
+indented_verbatim_body(Lines, _, [], Lines).
+
+valid_verbatim_opening(Line) :-
+	Line \== "",
+	\+ ( phrase(line_tokens(Tokens), Line),
+	     list_item_prefix(_Type, Tokens, _Rest)
+	   ).
 
 
 %%	pre_indent(+Indent)// is det.
