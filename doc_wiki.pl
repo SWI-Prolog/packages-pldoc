@@ -1418,11 +1418,7 @@ indented_verbatim_body([I-L|T0], Indent, [10|Pre], RestLines) :-
 	verbatim_line(L, PreT0, PreT1),
 	indented_verbatim_body(T0, Indent, PreT1, RestLines).
 indented_verbatim_body([_-"",I-L|T0], Indent, [10,10|Pre], RestLines) :-
-	(   I > Indent
-	->  L \== ""
-	;   I == Indent
-	->  valid_verbatim_opening(L)
-	),
+	valid_verbatim_opening(L),
 	PreI is I-Indent,
 	phrase(pre_indent(PreI), Pre, PreT0),
 	verbatim_line(L, PreT0, PreT1),
