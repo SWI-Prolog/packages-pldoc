@@ -1287,7 +1287,7 @@ normalise_white_space2(Text) -->
 %	Convert Indent-Codes into Indent-Tokens
 
 tokenize_lines(Lines, TokenLines) :-
-	tokenize_lines(Lines, 0, TokenLines).
+	tokenize_lines(Lines, -1, TokenLines).
 
 tokenize_lines([], _, []) :- !.
 tokenize_lines(Lines, Indent, [Pre|T]) :-
@@ -1374,6 +1374,7 @@ verbatim([Indent-Line|Lines], _,
 verbatim([_-[],Indent-Line|Lines], EnvIndent,
 	 Indent-pre(class(code),Pre),
 	 RestLines) :-
+	EnvIndent >= 0,
 	Indent >= EnvIndent+4, Indent =< EnvIndent+8,
 	valid_verbatim_opening(Line),
 	indented_verbatim_body([Indent-Line|Lines], Indent, [10|PreCodes],
