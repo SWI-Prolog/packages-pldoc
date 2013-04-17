@@ -612,7 +612,7 @@ latex_section(Level, Attrs, Content) -->
 	section_label(Attrs).
 
 section_label(Attrs) -->
-	{ memberchk(name(Name), Attrs), !,
+	{ memberchk(id(Name), Attrs), !,
 	  delete_unsafe_label_chars(Name, SafeName),
 	  atom_concat('sec:', SafeName, Label)
 	},

@@ -383,7 +383,7 @@ hdr_attributes(List, Attrs, Content) :-
 	strip_leading_ws(List, List2),
 	(   List2 = ['[',w(Name),']'|List3]
 	->  strip_ws_tokens(List3, Content),
-	    Attrs = [class(wiki), name(Name)]
+	    Attrs = [class(wiki), id(Name)]
 	;   Attrs = class(wiki),
 	    strip_ws_tokens(List, Content)
 	).
@@ -403,7 +403,7 @@ md_section_line([#, #, #, #, ' '|Rest], h4(Attrs, Content)) :-
 
 md_section_attributes(List, Attrs, Content) :-
 	append(Content, ['{', '#', w(Name), '}'], List), !,
-	Attrs = [class(wiki), name(Name)].
+	Attrs = [class(wiki), id(Name)].
 md_section_attributes(Content, Attrs, Content) :-
 	Attrs = [class(wiki)].
 
@@ -412,7 +412,7 @@ md_section_line(Line1, Line2, Header) :-
 	underlined(Line1, Line2, C, Content, RestLine1), !,
 	Header =.. [Type, Attrs, Content],
 	(   RestLine1 = [' ', '{', '#', w(Name), '}']
-	->  Attrs = [class(wiki), name(Name)]
+	->  Attrs = [class(wiki), id(Name)]
 	;   RestLine1 = []
 	->  Attrs = [class(wiki)]
 	).
