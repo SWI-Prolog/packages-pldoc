@@ -1169,6 +1169,7 @@ space_token(T) :-
 autolink_extension(Ext, prolog) :-
 	user:prolog_file_type(Ext,prolog).
 autolink_extension(txt, wiki).
+autolink_extension(md,  wiki).
 autolink_extension(gif, image).
 autolink_extension(png, image).
 autolink_extension(jpg, image).

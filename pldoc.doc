@@ -559,10 +559,10 @@ absolute_file_name/3 and otherwise rendered as \jargon{code}.
 \tt name//arity & Create a link to a DCG rule \\
 \tt name.ext	& If <name>.<ext> is the name of an existing file
 		  and <ext> is one of \fileext{pl}, \fileext{txt},
-		  \fileext{png}, \fileext{gif}, \fileext{jpeg},
+		  \fileext{md}, \fileext{png}, \fileext{gif}, \fileext{jpeg},
 		  \fileext{jpg} or \fileext{svg}, create a link to the file. \\
-\tt prot\verb$://$url	& If <prot> is one of \const{http} or
-		  \const{ftp}, create a link. \\
+\tt prot\verb$://$url & If <prot> is one of \const{http}, \const{https}
+		  or \const{ftp}, create a link. \\
 \tt\chr{<}url\chr{>} & Create a hyperlink to URL.  This construct
 		  supports the expand_url_path/2 using the construct
 		  <alias>:<local>.  <local> can be empty. \\
