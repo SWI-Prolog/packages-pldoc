@@ -423,10 +423,14 @@ but can be useful inside README and TODO files.  See \secref{dirindex}.
 In addition, PlDoc recognises the \jargon{markdown} syntax, including
 named sections as defined by \program{doxygen}. A section is named
 (labeled) using an optional sequence \verb${\#$\textit{name}\verb$}$.
-The three code sections below provide examples. Note that section
-headers should be positioned at the left margin, the \texttt{\#} must be
-followed by blank space and the underline length must match the title
-\emph{after} spacing in the section title has been normalized.
+The three code sections below provide examples. Note that \texttt{\#}
+section headers should be positioned at the left margin and the
+\texttt{\#} must be followed by blank space. If the header is
+underlined, the underline is a line that only contains \const{=} or
+\const{-} characters. There must be a minimum of three\footnote{Markdown
+demands two, but this results in ambiguities with the \texttt{==} fence
+for code blocks.} of such characters.
+
 
 \begin{code}
 Section level 1

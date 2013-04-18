@@ -140,7 +140,7 @@ take_block([_-L1|LT], _, Section, LT) :-
 	twiki_section_line(L1, Section), !.
 take_block([0-L1|LT], _, Section, LT) :-
 	md_section_line(L1, Section), !.
-take_block([0-L1,0-L2|LT], _, Section, LT) :-
+take_block([_-L1,0-L2|LT], _, Section, LT) :-
 	md_section_line(L1, L2, Section), !.
 take_block([_-Verb|Lines], _, Verb, Lines) :-
 	verbatim_term(Verb), !.
@@ -436,31 +436,23 @@ md_section_attributes(Content, Attrs, Content) :-
 	Attrs = [class(wiki)].
 
 md_section_line(Line1, Line2, Header) :-
-	hdr_underline(C, Type),
-	underlined(Line1, Line2, C, Content, RestLine1), !,
-	Header =.. [Type, Attrs, Content],
-	(   RestLine1 = [' ', '{', '#', w(Name), '}']
-	->  Attrs = [class(wiki), id(Name)]
-	;   RestLine1 = []
-	->  Attrs = [class(wiki)]
-	).
+	Line1 \== [],
+	section_underline(Line2, Type), !,
+	(   phrase(labeled_section_line(Title, Attrs), Line1)
+	->  true
+	;   Title = Line1,
+	    Attrs = []
+	),
+	Header =.. [Type, [class(wiki)|Attrs], Title].
 
-hdr_underline(=, h1).
-hdr_underline(-, h2).
+section_underline([=,=,=|T], h1) :-
+	maplist(=(=), T), !.
+section_underline([-,-,-|T], h2) :-
+	maplist(=(-), T), !.
 
-underlined([w(Word)|T], Under, C, [w(Word)|Content], Rest) :-
-	atom_length(Word, Len),
-	take_n_c(Under, C, Len, RC), !,
-	underlined(T, RC, C, Content, Rest).
-underlined([H|T], [C|R], C, [H|Content], Rest) :- !,
-	underlined(T, R, C, Content, Rest).
-underlined(Rest, [], _, [], Rest).
-
-take_n_c(Under, _, 0, Under) :- !.
-take_n_c([C|T], C, N, Under) :-
-	N > 0,
-	N2 is N-1,
-	take_n_c(T, C, N2, Under).
+labeled_section_line(Title, Attrs) -->
+	tokens(Title), [' ', '{', '#', w(Name), '}'], !,
+	{ Attrs = [id(Name)] }.
 
 
 %%	strip_ws_tokens(+Tokens, -Stripped)
