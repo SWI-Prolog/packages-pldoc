@@ -241,19 +241,22 @@ system that allows for runtime verification and static type analysis
 \end{code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Tags: \chr{@}param, etc.}
+\section{Tags: \chr{@}see, etc.}
 \label{sec:tags}
 
 Optionally, the description may be followed by one or more \emph{tags}.
-Our tag convention is strongly based on the conventions of javaDoc.
+Our tag convention is strongly based on the conventions used by javaDoc.
 It is adviced to place tags in the order they are described below.
 
 \begin{description}
-    \definition{\chr{@}param {\it Name Description}}
-Defines the parameters. Each parameter has its own param tag. The first
-word is the name of the parameter. The remainder of the tag is the
-description. Parameter declarations must appear in the argument order
+    \definition{\chr{@}arg {\it Name Description}}
+Defines the predicate arguments. Each argument has its own \const{@arg}
+tag. The first word is the name of the argument. The remainder of the
+tag is the description. Arguments declarations normally appear in order
 used by the predicate.
+
+    \definition{\chr{@}param {\it Name Description}}
+This is a synonym for \const{@arg}, using the JavaDoc tag name.
 
     \definition{\chr{@}throws {\it Term Description}}
 Error condition. First Prolog term is the error term. Remainder is the

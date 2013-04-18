@@ -714,8 +714,8 @@ predref(Name//Arity) -->
 %	Emit tag list produced by the   Wiki processor from the @keyword
 %	commands.
 
-tags([\params(Params)|Rest]) --> !,
-	params(Params),
+tags([\args(Params)|Rest]) --> !,
+	args(Params),
 	tags_list(Rest).
 tags(List) -->
 	tags_list(List).
@@ -752,24 +752,24 @@ tag_value_list([H|T]) -->
 	;   []
 	).
 
-%%	params(+Params:list) is det.
+%%	args(+Params:list) is det.
 %
-%	Called from \params(List) created by   doc_wiki.pl.  Params is a
-%	list of param(Name, Descr).
+%	Called from \args(List) created by   doc_wiki.pl.  Params is a
+%	list of arg(Name, Descr).
 
-params(Params) -->
-	latex([ cmd(begin(parameters)),
-		\param_list(Params),
-		cmd(end(parameters))
+args(Params) -->
+	latex([ cmd(begin(arguments)),
+		\arg_list(Params),
+		cmd(end(arguments))
 	      ]).
 
-param_list([]) -->
+arg_list([]) -->
 	[].
-param_list([H|T]) -->
-	param(H),
-	param_list(T).
+arg_list([H|T]) -->
+	argument(H),
+	arg_list(T).
 
-param(param(Name,Descr)) -->
+argument(arg(Name,Descr)) -->
 	[ nl(1) ],
 	latex(cmd(arg(Name))), [ latex(' & ') ],
 	latex(Descr), [latex(' \\\\')].

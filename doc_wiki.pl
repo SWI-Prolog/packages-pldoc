@@ -523,9 +523,9 @@ collect_tags([Indent-[@,String|L0]|Lines], [Order-tag(Tag,Value)|Tags]) :-
 %	If String denotes a know tag-name,
 
 tag_name(w(Name), Tag, Order) :-
-	(   renamed_tag(Name, Tag),
+	(   renamed_tag(Name, Tag, Level),
 	    tag_order(Tag, Order)
-	->  print_message(warning, pldoc(deprecated_tag(Name, Tag)))
+	->  print_message(Level, pldoc(deprecated_tag(Name, Tag)))
 	;   tag_order(Name, Order)
 	->  Tag = Name
 	;   print_message(warning, pldoc(unknown_tag(Name))),
@@ -541,11 +541,12 @@ rest_tag([L|Lines0], Indent, [L|VT], Lines) :-
 	rest_tag(Lines0, Indent, VT, Lines).
 
 
-%%	renamed_tag(+DeprecatedTag:atom, -Tag:atom) is semidet.
+%%	renamed_tag(+DeprecatedTag:atom, -Tag:atom, -Warn) is semidet.
 %
 %	Declaration for deprecated tags.
 
-renamed_tag(exception, throws).
+renamed_tag(exception, throws, warning).
+renamed_tag(param,     arg,    silent).
 
 
 %%	tag_order(+Tag:atom, -Order:int) is semidet.
@@ -559,7 +560,7 @@ renamed_tag(exception, throws).
 
 tag_order(Tag, Order) :-
 	pldoc:tag_order(Tag, Order), !.
-tag_order(param,       100).
+tag_order(arg,         100).
 tag_order(error,       200).		% same as throw
 tag_order(throws,      300).
 tag_order(author,      400).
@@ -582,25 +583,25 @@ tag_order(tbd,	      1200).
 %	Descr is a list of tokens.
 
 combine_tags([], []).
-combine_tags([tag(param, V1)|T0], [\params([P1|PL])|Tags]) :- !,
-	param_tag(V1, P1),
-	param_tags(T0, PL, T1),
+combine_tags([tag(arg, V1)|T0], [\args([P1|PL])|Tags]) :- !,
+	arg_tag(V1, P1),
+	arg_tags(T0, PL, T1),
 	combine_tags(T1, Tags).
 combine_tags([tag(Tag,V0)|T0], [\tag(Tag, [V0|Vs])|T]) :-
 	same_tag(Tag, T0, T1, Vs),
 	combine_tags(T1, T).
 
-param_tag([PT|Descr0], param(PN, Descr)) :-
+arg_tag([PT|Descr0], arg(PN, Descr)) :-
 	word_of(PT, PN),
 	strip_leading_ws(Descr0, Descr).
 
-word_of(w(W), W) :- !.			% TBD: check non-word param
+word_of(w(W), W) :- !.			% TBD: check non-word arg
 word_of(W, W).
 
-param_tags([tag(param, V1)|T0], [P1|PL], T) :- !,
-	param_tag(V1, P1),
-	param_tags(T0, PL, T).
-param_tags(T, [], T).
+arg_tags([tag(arg, V1)|T0], [P1|PL], T) :- !,
+	arg_tag(V1, P1),
+	arg_tags(T0, PL, T).
+arg_tags(T, [], T).
 
 same_tag(Tag, [tag(Tag, V)|T0], T, [V|Vs]) :- !,
 	same_tag(Tag, T0, T, Vs).
@@ -648,8 +649,8 @@ wiki_faces_list([H0|T0], Args, [H|T]) :-
 %	and re-pack the structure.
 
 structure_term(\tags(Tags), tags, [Tags]) :- !.
-structure_term(\params(Params), params, [Params]) :- !.
-structure_term(param(Name,Descr), param(Name), [Descr]) :- !.
+structure_term(\args(Params), args, [Params]) :- !.
+structure_term(arg(Name,Descr), arg(Name), [Descr]) :- !.
 structure_term(\tag(Name,Value), tag(Name), [Value]) :- !.
 structure_term(\include(What,Type,Opts), include(What,Type,Opts), []) :- !.
 structure_term(dl(Att, Args), dl(Att), [Args]) :- !.

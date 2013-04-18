@@ -34,7 +34,7 @@ a.builtin
 { font-style: italic;
 }
 
-table.paramlist td
+table.arglist,table.paramlist td
 { vertical-align: top;
 }
 

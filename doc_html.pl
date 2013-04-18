@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2012, University of Amsterdam
+    Copyright (C): 2009-2013, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -102,7 +102,7 @@ extracting module doc_wiki.pl into HTML+CSS.
 */
 
 :- public
-	params//1,			% Called from \Term output created
+	args//1,			% Called from \Term output created
 	pred_dt//3,			% by the wiki renderer
 	section//2,
 	tag//2.
@@ -1061,24 +1061,24 @@ tag_title(tbd,    'To be done').
 tag_title(see,    'See also').
 tag_title(error,  'Errors').
 
-%%	params(+Params:list) is det.
+%%	args(+Params:list) is det.
 %
-%	Called from \params(List) created by   doc_wiki.pl.  Params is a
-%	list of param(Name, Descr).
+%	Called from \args(List) created by   doc_wiki.pl.  Params is a
+%	list of arg(Name, Descr).
 
-params(Params) -->
-	html([ dt(class=tag, 'Parameters:'),
-	       dd(table(class=paramlist,
-			\param_list(Params)))
+args(Params) -->
+	html([ dt(class=tag, 'Arguments:'),
+	       dd(table(class=arglist,
+			\arg_list(Params)))
 	     ]).
 
-param_list([]) -->
+arg_list([]) -->
 	[].
-param_list([H|T]) -->
-	param(H),
-	param_list(T).
+arg_list([H|T]) -->
+	argument(H),
+	arg_list(T).
 
-param(param(Name,Descr)) -->
+argument(arg(Name,Descr)) -->
 	html(tr([td(var(Name)), td(class=argdescr, ['- '|Descr])])).
 
 
