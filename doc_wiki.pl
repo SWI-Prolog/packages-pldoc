@@ -744,7 +744,8 @@ wiki_face(b(Bold), ArgNames) -->
 wiki_face(i(Italic), ArgNames) -->
 	['_','|'], wiki_faces_int(Italic, ArgNames), ['|','_'], !.
 wiki_face(code(Code), _) -->
-	[=, w(Code), =], !.
+	[=], eq_code_words(Words), [=], !,
+	{ atomic_list_concat(Words, Code) }.
 wiki_face(code(Code), _) -->
 	[=,'|'], wiki_words(Code), ['|',=], !.
 wiki_face(Code, _) -->
@@ -831,6 +832,37 @@ code_words([]) --> [].
 code_words([Word|T]) --> [w(Word)], code_words(T).
 code_words(CodeL) --> ['`','`'], {CodeL = ['`'|T]}, code_words(T).
 code_words([Punct|T]) --> [Punct], {atomic(Punct)}, code_words(T).
+
+%%	eq_code_words(-Words)//
+%
+%	Stuff that can be between single `=`.  This is limited to
+%
+%		- Start and end must be a word
+%		- In between may be the following punctuation chars:
+%		  =|.-:/|=, notably dealing with file names and
+%		  identifiers in various external languages.
+
+eq_code_words([Word]) -->
+	[ w(Word) ].
+eq_code_words([Word|T]) -->
+	[ w(Word) ], eq_code_internals(T, [End]), [w(End)].
+
+eq_code_internals(T, T) --> [].
+eq_code_internals([H|T], Tail) -->
+	eq_code_internal(H),
+	eq_code_internals(T, Tail).
+
+eq_code_internal(Word) -->
+	[w(Word)].
+eq_code_internal(Punct) -->
+	[Punct],
+	{ eq_code_internal_punct(Punct) }.
+
+eq_code_internal_punct('.').
+eq_code_internal_punct('-').
+eq_code_internal_punct(':').
+eq_code_internal_punct('/').
+
 
 %%	code_face(+Text, +Term, +Vars, -Code) is det.
 %

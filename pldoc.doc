@@ -496,24 +496,27 @@ that
 	  identified structure (paragraph, list item, etc.)
 \end{itemize}
 
-Note that \verb$=word=$ is limited to a single word.  This construct
-is not part of markdown, but kept for backward compatibility reasons.
-New code should use the backtick as described in \secref{inlinecode}.
+Note that \verb$=identifier=$ is limited to a an \jargon{identifier},
+such as a file name, XML name, etc. Identifiers must start and end with
+an alphanumerical character, while the following internal characters are
+allowed: \verb$.-/:$. This markup is specifically meant to deal with
+code that is either not Prolog code or invalid Prolog code. Valid Prolog
+code should use the backtick as described in \secref{inlinecode}.
 
 \begin{table}
 \begin{center}
 \begin{tabular}{|l|p{0.7\linewidth}|}
 \hline
 \tt *bold*	& Typeset text in \textbf{bold} for
-		  limited content. \\
+		  limited content (see running text). \\
 \tt *|bold|*	& Typeset text in \textbf{bold}.
 		  Content can be long. \\
 \tt _emphasize_ & Typeset text as \emph{emphasize} for
-		  limited content. \\
+		  limited content (see running text). \\
 \tt _|emphasize|_ & Typeset text as \emph{emphasize}.
 		  Content can be long. \\
-\tt =code=      & Typeset text \texttt{fixed} font.
-		  Content must be a single word. \\
+\tt =code=      & Typeset text \texttt{fixed} font for
+		  identifiers (see running text). \\
 \tt =|code|=    & Typeset text \texttt{fixed} font.
 		  Content can be long. \\
 \tt Word	& Capitalised words that appear as argument-name
