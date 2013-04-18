@@ -46,6 +46,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
+:- use_module(library(apply)).
 
 
 /** <module> PlDoc wiki parser
@@ -129,19 +130,15 @@ take_block([N-['|'|RL1]|LT], _, Table, Rest) :-
 	rest_table(LT, N, RL, Rest), !,
 	Table = table(class=wiki, [tr(R0)|RL]).
 take_block([0-[-,-|More]|LT], _, Block, LT) :-  % seperation line
-       maplist(=(-), More), !,
-       Block = hr([]).
+	maplist(=(-), More), !,
+	Block = hr([]).
 take_block([_-Line|LT], _, Block, LT) :-	% seperation line
 	ruler(Line), !,
 	Block = hr([]).
 take_block([_-[@|_]], _, _, _) :- !,		% starts @tags section
 	fail.
-take_block([_-L1|LT], _, Section, LT) :-
-	twiki_section_line(L1, Section), !.
-take_block([0-L1|LT], _, Section, LT) :-
-	md_section_line(L1, Section), !.
-take_block([_-L1,0-L2|LT], _, Section, LT) :-
-	md_section_line(L1, L2, Section), !.
+take_block(Lines, _BaseIndent, Section, RestLines) :-
+	section_header(Lines, Section, RestLines), !.
 take_block([_-Verb|Lines], _, Verb, Lines) :-
 	verbatim_term(Verb), !.
 take_block([I-L1|LT], BaseIndent, Elem, Rest) :- !,
@@ -206,6 +203,9 @@ rest_list_item(Lines, _Type, Indent, RestItem, RestLines) :-
 %
 %	Process paragraphs and verbatim blocks (==..==) in bullet-lists.
 
+take_blocks_at_indent(Lines, _, [], Lines) :-
+	skip_empty_lines(Lines, Lines1),
+	section_header(Lines1, _, _), !.
 take_blocks_at_indent(Lines, N, [Block|RestBlocks], RestLines) :-
 	take_block(Lines, N, Block, Rest0), !,
 	take_blocks_at_indent(Rest0, N, RestBlocks, RestLines).
@@ -389,6 +389,17 @@ rest_par([I-L1|LT], ['\n'|Par], BI, MaxI0, MaxI, Rest) :-
 	rest_par(LT, PT, BI, MaxI1, MaxI, Rest).
 
 
+%%	section_header(+Lines, -Section, -RestLines) is semidet.
+%
+%	Get a section line from the input.
+
+section_header([_-L1|LT], Section, LT) :-
+	twiki_section_line(L1, Section), !.
+section_header([0-L1|LT], Section, LT) :-
+	md_section_line(L1, Section), !.
+section_header([_-L1,0-L2|LT], Section, LT) :-
+	md_section_line(L1, L2, Section), !.
+
 %%	twiki_section_line(+Tokens, -Section) is semidet.
 %
 %	Extract a section using the Twiki   conventions. The section may
@@ -438,7 +449,7 @@ md_section_attributes(Content, Attrs, Content) :-
 md_section_line(Line1, Line2, Header) :-
 	Line1 \== [],
 	section_underline(Line2, Type),
-	phrase(wiki_words(_), Line1),	% Should not have structure elements
+	phrase(wiki_words(_), Line1), !,% Should not have structure elements
 	(   phrase(labeled_section_line(Title, Attrs), Line1)
 	->  true
 	;   Title = Line1,
@@ -814,7 +825,7 @@ wiki_face(FT, ArgNames) -->
 	}.
 
 wiki_words([]) --> [].
-wiki_words([Word|T]) --> [w(Word)], wiki_words(T).
+wiki_words([Word|T]) --> [w(Word)], !, wiki_words(T).
 wiki_words([Punct|T]) --> [Punct], {atomic(Punct)}, wiki_words(T).
 
 %%	code_words(-Words)//
