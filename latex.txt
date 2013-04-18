@@ -25,7 +25,9 @@ We generate latex.tex from latex.txt using this Makefile fragment:
 .SUFFIXES: .txt .tex
 
 .txt.tex:
-	pl -f script.pl -g "doc_latex('$*.txt','$*.tex',[stand_alone(false)]),halt" -t "halt(1)"
+	swipl -f script.pl \
+	    -g "doc_latex('$*.txt','$*.tex',[stand_alone(false)]),halt" \
+	    -t "halt(1)"
 ==
 
 ---+++ Predicate reference for the LaTeX backend

@@ -15,7 +15,8 @@
 
 \begin{document}
 
-\title{SWI-Prolog Source Documentation}
+\title{SWI-Prolog Source Documentation \\
+       Version 2}
 \author{Jan Wielemaker \\
 	VU University, Amsterdam \\
 	The Netherlands \\
@@ -34,6 +35,13 @@ as a web-server for the loaded project during program development.
 The SWI-Prolog website (\url{http:www.swi-prolog.org}) is written in
 Prolog and integrates PlDoc to provide a comprehensive searchable
 \url[online manual]{http://www.swi-prolog.org/pldoc/index.html}.
+
+Version~2 of PlDoc extends the syntax with
+\url[Markdown]{http://en.wikipedia.org/wiki/Markdown} markup as
+specified by \url[Docygen]{http://www.stack.nl/~dimitri/doxygen/}.
+Based on experience with version~1, PlDoc~2 both tightens some rules
+to avoid misinterpretations and relaxes others that were considered
+too conservative.
 \end{abstract}
 
 \pagebreak
@@ -98,9 +106,9 @@ a web-server that can be used to browse the documentation.
 Structured comments come in two flavours, the line-comment (\%) based
 one, seen mostly in the Prolog community and the block-comment
 (\verb$/*$\ldots\verb$*/$) based one, commonly seen in the Java and C
-domain.  As we cannot determine the argument-names, type and modes
-from following (predicate) code itself, we must supply this in the
-comment.\footnote{See \secref{motivation:modes}.}.  The overall
+domains.  As we cannot determine the argument names, type and modes
+from following (predicate) source itself, we must supply this in the
+comment.\footnote{See \secref{motivation:modes}.}  The overall
 structure of the comment therefore is:
 
 \begin{shortlist}
@@ -109,15 +117,22 @@ structure of the comment therefore is:
     \item JavaDoc style tags (\chr{@}keyword value, see \secref{tags})
 \end{shortlist}
 
-Using the \verb$/*$\ldots\verb$*/$ style comment, the type and mode
-declarations start at the first non-blank line and are ended by a blank
-line. Using \chr{\%} line-comments, the declaration is ended by the
-first line that starts with a single \%. E.g., the following two
-fragments are identical wrt. PlDoc. Skipping blank-lines in \verb$/**$
-comments allows to start the comment on the second line.
+The \verb$/*$\ldots\verb$*/$ style comment starts with
+\verb$/**$<white>. The type and mode declarations start at the first
+non-blank line and are ended by a blank line.
+
+The \chr{\%}-style line comments start with \verb$%!$<white> or, for
+compatibility reasons, with \verb$%%$<white>.\footnote{The \texttt{\%\%}
+leader was considered to give too many false positives on arbitrary
+source code. It is still accepted, but invalid comments are silently
+ignored, while invalid comments that start with \texttt{\%!} result in a
+warning.} The type and mode declaration is ended by the first line that
+starts with a single \%. E.g., the following two fragments are identical
+wrt. PlDoc. Skipping blank-lines in \verb$/**$ comments allows to start
+the comment on the second line.
 
 \begin{code}
-%%	predicate(-Arg:type) is nondet
+%!	predicate(-Arg:type) is nondet
 %	Predicate ...
 \end{code}
 
@@ -180,6 +195,7 @@ informally described below:
 		\ora <head>['//'] \\
 <determinism>	\isa 'det' \\
 		\ora 'semidet' \\
+		\ora 'failure' \\
 		\ora 'nondet' \\
 		\ora 'multi' \\
 <head>		\isa <functor>'('<argspec> {',' <argspec>}')' \\
@@ -192,22 +208,33 @@ informally described below:
 \end{tabular}
 \end{center}
 
-The \jargon{determinism} values originate from Mercury. Predicates
-marked as \const{det} must succeed exactly once and not leave any
-choice-points. The \const{semidet} indicator is used for predicates that
-either fail or succeed deterministically. The \const{nondet} indicator
-is the most general one and implies no constraints on the number of
-times the predicate succeeds and whether or not it leaves choice-points
-on the last success. Finally, \const{multi} is as \const{nondet}, but
-demands the predicate to succeed at least one time. Informally,
-\const{det} is used for deterministic transformations (e.g.\
-arithmetic), \const{semidet} for tests, \const{nondet} and
-\const{multi} for \jargon{generators}.
+The \jargon{determinism} values originate from Mercury. Their meaning is
+explained in the table below. Informally, \const{det} is used for
+deterministic transformations (e.g.\ arithmetic), \const{semidet} for
+tests, \const{nondet} and \const{multi} for \jargon{generators}.  The
+\const{failure} indicator is rarely used.  It mostly appears in hooks
+or the recovery goal of catch/3.
+
+\begin{center}
+\begin{tabular}{l|p{0.7\linewidth}}
+\hline
+\bf Determinism & \bf Predicate behaviour \\
+\hline
+\const{det}     & Succeeds exactly once without a choice point \\
+\const{semidet} & Fails or Succeeds exactly once without a choice-point \\
+\const{failure} & Always fails \\
+\const{nondet}  & No constraints on the number of times the predicate
+		  succeeds and whether or not it leaves choice-points
+		  on the last success. \\
+\const{multi}   & As \const{nondet}, but succeeds at least one time. \\
+\hline
+\end{tabular}
+\end{center}
 
 Instantiation patterns are:
 
 \begin{center}
-\begin{tabular}{lp{0.7\linewidth}}
+\begin{tabular}{l|p{0.7\linewidth}}
 \hline
 + &	Argument must be fully instantiated to a term that satisfies the
 	type. \\
@@ -231,9 +258,9 @@ system that allows for runtime verification and static type analysis
 \subsection*{Examples}
 
 \begin{code}
-%%	length(+List:list, -Length:int) is det.
-%%	length(?List:list, -Length:int) is nondet.
-%%	length(?List:list, +Length:int) is det.
+%!	length(+List:list, -Length:int) is det.
+%!	length(?List:list, -Length:int) is nondet.
+%!	length(?List:list, +Length:int) is det.
 %
 %	True if List is a list of length Length.
 %
@@ -499,12 +526,14 @@ that
 	  identified structure (paragraph, list item, etc.)
 \end{itemize}
 
-Note that \verb$=identifier=$ is limited to a an \jargon{identifier},
-such as a file name, XML name, etc. Identifiers must start and end with
-an alphanumerical character, while the following internal characters are
-allowed: \verb$.-/:$. This markup is specifically meant to deal with
-code that is either not Prolog code or invalid Prolog code. Valid Prolog
-code should use the backtick as described in \secref{inlinecode}.
+Note that \verb$=$<identifier>\verb$=$ is limited to a an
+\jargon{identifier}, such as a file name, XML name, etc. Identifiers
+must start and end with an alphanumerical character, while characters
+from the set \verb$.-/:$ may appear internally. Note that this set
+explicitly does not allow for white space in code spans delimited by a
+single \const{=}. This markup is specifically meant to deal with code
+that is either not Prolog code or invalid Prolog code. Valid Prolog code
+should use the backtick as described in \secref{inlinecode}.
 
 \begin{table}
 \begin{center}
@@ -644,7 +673,7 @@ source. The two fragments below illustrate the relation between an
 \fileext{pl} file and a \fileext{txt} file.
 
 \begin{code}
-%%	read_setup(+File, -Setup) is det.
+%!	read_setup(+File, -Setup) is det.
 %
 %	Read application setup information from File.  The details
 %	on setup are described in setup.txt.
@@ -925,7 +954,6 @@ with minimal layout conventions taken largely from plaintext newsnet and
 E-mail, Wiki input is much easier to read in the source-file than HTML
 without syntax support from an editor.
 
-
 \subsection*{Types and modes}
 \label{sec:motivation:modes}
 
@@ -957,6 +985,29 @@ is written in Prolog. Output as HTML is suitable for browsing and not
 very high quality printing on virtually all platforms. Output to
 \LaTeX{} requires more infrastructure for processing and allows for
 producing high-quality PDF documents.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Compatibility and standards}
+
+Initially, the PlDoc wiki language was based on
+\url[Twiki]{http://www.twiki.org}. Currently,
+\url[markdown]{http://en.wikipedia.org/wiki/Markdown} is a wiki syntax
+that is widely accepted and not tight to a single system.  In PlDoc~2,
+we have adopted markdown, including many of the limitations and
+extensions introduced by
+\url[Docygen]{http://www.stack.nl/~dimitri/doxygen/}.  Limitations are
+needed to avoid ambiguities due to the common use of symbol charaters
+in programming languages. Extensions are desirable to make use of
+already existing conventions and support requirements of program
+documentation.
+
+Some of the changes in PlDoc~2 are to achieve compatibility with the
+\url[Prolog Commons]{http://prolog-commons.org/} project. The library
+documentation conventions of this project will be based on PlDoc and the
+Ciao lpdoc standards.  It is likely that there will be more changes to
+the PlDoc format to synchronise with Commons.  We do not anticipate
+significant impact on existing documentation.
+
 
 \bibliographystyle{name}
 \bibliography{pl}
