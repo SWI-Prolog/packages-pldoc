@@ -1,12 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2011, University of Amsterdam
-			 VU University Amsterdam
+    Copyright (C): 2011-2013, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -84,9 +82,6 @@ well formatted HTML documents.
 %
 %	True if Comment is a structured comment that should use Prefixes
 %	to extract the plain text using indented_lines/3.
-%
-%	@tbd	=|%% SWI begin|= and =|%% SICStus begin|= are used by chr.
-%		We need a more general mechanism to block some comments.
 
 is_structured_comment(_Pos-Comment, Prefixes) :- !,
 	is_structured_comment(Comment, Prefixes).
@@ -95,14 +90,11 @@ is_structured_comment(Comment, Prefixes) :-
 	phrase(structured_comment(Prefixes), Comment, _).
 is_structured_comment(Comment, Prefixes) :-
 	string_to_atom(Comment, CommentA),
-	sub_atom(CommentA, 0, _, _, '%%'), !,
+	structured_command_start(Start, Prefixes),
+	sub_atom(CommentA, 0, _, _, Start), !,
 	sub_atom(CommentA, 2, 1, _, Space),
 	char_type(Space, space),
-	\+ blanks_to_nl(Comment),
-	\+ sub_atom(CommentA, 2, _, _, ' SWI '),	% HACK
-	\+ sub_atom(CommentA, 2, _, _, ' SICStus '),	% HACK
-	\+ sub_atom(CommentA, 2, _, _, ' Mats '),	% HACK
-	Prefixes = ["%"].
+	\+ blanks_to_nl(CommentA).
 is_structured_comment(Comment, Prefixes) :-
 	string_to_atom(Comment, CommentA),
 	sub_atom(CommentA, 0, _, _, '/**'), !,
@@ -110,8 +102,10 @@ is_structured_comment(Comment, Prefixes) :-
 	char_type(Space, space),
 	Prefixes = ["/**", " *"].
 
-blanks_to_nl(Comment) :-
-	string_to_atom(Comment, CommentA),
+structured_command_start('%%', ["%"]).		% Deprecated
+structured_command_start('%!', ["%!", "%"]).	% New style
+
+blanks_to_nl(CommentA) :-
 	sub_atom(CommentA, At, 1, _, Char),
 	At >= 2,
 	(   char_type(Char, end_of_line)
@@ -337,13 +331,24 @@ process_structured_comment(FilePos, Comment, _) :- % already processed
 	catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail), !.
 process_structured_comment(FilePos, Comment, Prefixes) :-
 	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
-	      ( print_message(warning, E),
-		fail
-	      )), !,
+	      comment_warning(Prefixes, E)),
 	maplist(store_comment(FilePos), Compiled).
 process_structured_comment(FilePos, Comment, _) :-
 	print_message(warning,
 		      pldoc(invalid_comment(FilePos, Comment))).
+
+%%	comment_warning(+Prefixes, +Error) is failure.
+%
+%	Print a warning  on  structured  comments   that  could  not  be
+%	processed. Since the recommended magic   sequence is now =|%!|=,
+%	we remain silent about comments that start with =|%%|=.
+
+comment_warning(["%"], E) :-
+	print_message(silent, E),
+	fail.
+comment_warning(_, E) :-
+	print_message(warning, E),
+	fail.
 
 %%	compile_comment(+Comment, +FilePos, +Prefixes, -Compiled) is semidet.
 %
