@@ -437,7 +437,8 @@ md_section_attributes(Content, Attrs, Content) :-
 
 md_section_line(Line1, Line2, Header) :-
 	Line1 \== [],
-	section_underline(Line2, Type), !,
+	section_underline(Line2, Type),
+	phrase(wiki_words(_), Line1),	% Should not have structure elements
 	(   phrase(labeled_section_line(Title, Attrs), Line1)
 	->  true
 	;   Title = Line1,
@@ -1324,7 +1325,7 @@ tokenize_lines([I-H0|T0], Indent0, [I-H|T]) :-
 	->  Indent = Indent0
 	;   Indent = I
 	),
-	tokenize_lines(T0, T).
+	tokenize_lines(T0, Indent, T).
 
 
 %%	line_tokens(-Tokens:list)// is det.
@@ -1386,7 +1387,7 @@ alphas([]) -->
 %	    ...,
 %	  ==
 %
-%	In addtion, a verbatim environment may   simply be indented. The
+%	In addition, a verbatim environment may  simply be indented. The
 %	restrictions are described in the documentation.
 
 verbatim([Indent-Line|Lines], _,
@@ -1446,6 +1447,7 @@ indented_verbatim_body([I-L|T0], Indent, [10|Pre], RestLines) :-
 	verbatim_line(L, PreT0, PreT1),
 	indented_verbatim_body(T0, Indent, PreT1, RestLines).
 indented_verbatim_body([_-"",I-L|T0], Indent, [10,10|Pre], RestLines) :-
+	I >= Indent,
 	valid_verbatim_opening(L),
 	PreI is I-Indent,
 	phrase(pre_indent(PreI), Pre, PreT0),
