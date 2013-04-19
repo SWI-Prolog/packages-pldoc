@@ -1401,11 +1401,12 @@ alphas([]) -->
 %	In addition, a verbatim environment may  simply be indented. The
 %	restrictions are described in the documentation.
 
-verbatim([Indent-Line|Lines], _,
+verbatim(Lines, _,
 	 Indent-pre([class(code), ext(Ext)],Pre),
 	 RestLines) :-
-	verbatim_fence(Line, Fence, Ext),
-	verbatim_body(Lines, Indent, [10|PreCodes], [],
+	skip_empty_lines(Lines, [Indent-FenceLine|CodeLines]),
+	verbatim_fence(FenceLine, Fence, Ext),
+	verbatim_body(CodeLines, Indent, [10|PreCodes], [],
 		      [Indent-Fence|RestLines]), !,
 	atom_codes(Pre, PreCodes).
 verbatim([_-[],Indent-Line|Lines], EnvIndent,
