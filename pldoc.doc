@@ -489,9 +489,9 @@ with a blank line and closed by a blank line or a line that is indented
 less than the indentation of the initial line. It is allowed to have a
 single blank line in the middle of a code block, provided that the next
 line is again indented at least as much as the initial line. The initial
-line may not be a valid list opening line. The line following a blank
-line must either be indented more than the initial line or may not be a
-valid list opening line.
+line as well as a line that follows a blank line may not be a valid list
+opening line or a table row, i.e., it may not start with one of
+\verb$*-$ followed by a space or \verb$|$.
 
     \item [Rulers]
 PlDoc accepts both the original PlDoc and markdown conventions for

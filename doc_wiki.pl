@@ -1414,8 +1414,9 @@ verbatim([_-[],Indent-Line|Lines], EnvIndent,
 	EnvIndent >= 0,
 	Indent >= EnvIndent+4, Indent =< EnvIndent+8,
 	valid_verbatim_opening(Line),
-	indented_verbatim_body([Indent-Line|Lines], Indent, [10|PreCodes],
-			       RestLines), !,
+	indented_verbatim_body([Indent-Line|Lines], Indent,
+			       CodeLines, RestLines), !,
+	lines_code_text(CodeLines, Indent, [10|PreCodes]),
 	atom_codes(Pre, PreCodes).
 
 verbatim_body(Lines, _, PreT, PreT, Lines).
@@ -1445,32 +1446,44 @@ tilde_fence(List, [], C, Ext) :-
 fence_ext(Ext) -->
 	"{.", alphas(Ext), "}".
 
-%%	indented_verbatim_body(+Lines, +Indent, -Pre, -RestLines)
+%%	indented_verbatim_body(+Lines, +Indent, -CodeLines, -RestLines)
 %
 %	Takes more verbatim lines. The input   ends  with the first line
 %	that is indented less than Indent. There cannot be more than one
 %	consequtive empty line in the verbatim body.
 
-indented_verbatim_body([I-L|T0], Indent, [10|Pre], RestLines) :-
-	L \== "", I >= Indent, !,
-	PreI is I-Indent,
-	phrase(pre_indent(PreI), Pre, PreT0),
-	verbatim_line(L, PreT0, PreT1),
-	indented_verbatim_body(T0, Indent, PreT1, RestLines).
-indented_verbatim_body([_-"",I-L|T0], Indent, [10,10|Pre], RestLines) :-
+indented_verbatim_body([I-L|T0], Indent, [I-L|T], RestLines) :-
+	L \== [], I >= Indent, !,
+	indented_verbatim_body(T0, Indent, T, RestLines).
+indented_verbatim_body([I0-[],I-L|T0], Indent, [I0-[],I-L|T], RestLines) :-
 	I >= Indent,
 	valid_verbatim_opening(L),
-	PreI is I-Indent,
-	phrase(pre_indent(PreI), Pre, PreT0),
-	verbatim_line(L, PreT0, PreT1),
-	indented_verbatim_body(T0, Indent, PreT1, RestLines).
+	indented_verbatim_body(T0, Indent, T, RestLines).
 indented_verbatim_body(Lines, _, [], Lines).
 
+%%	valid_verbatim_opening(+Line) is semidet.
+%
+%	Tests that line does not look like a list item or table.
+
+valid_verbatim_opening([0'||_]) :- !, fail.
 valid_verbatim_opening(Line) :-
-	Line \== "",
+	Line \== [],
 	\+ ( phrase(line_tokens(Tokens), Line),
 	     list_item_prefix(_Type, Tokens, _Rest)
 	   ).
+
+%%	lines_code_text(+Lines, +Indent, -Codes) is det.
+%
+%	Extract the actual code content from a list of line structures.
+
+lines_code_text([], _, []).
+lines_code_text([_-[]|T0], Indent, [10|T]) :- !,
+	lines_code_text(T0, Indent, T).
+lines_code_text([I-Line|T0], Indent, [10|T]) :-
+	PreI is I-Indent,
+	phrase(pre_indent(PreI), T, T1),
+	verbatim_line(Line, T1, T2),
+	lines_code_text(T0, Indent, T2).
 
 
 %%	pre_indent(+Indent)// is det.
