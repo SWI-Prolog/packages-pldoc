@@ -333,9 +333,13 @@ process_structured_comment(FilePos, Comment, Prefixes) :-
 	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
 	      comment_warning(Prefixes, E)),
 	maplist(store_comment(FilePos), Compiled).
-process_structured_comment(FilePos, Comment, _) :-
-	print_message(warning,
+process_structured_comment(FilePos, Comment, Prefixes) :-
+	prefixes_level(Prefixes, Level),
+	print_message(Level,
 		      pldoc(invalid_comment(FilePos, Comment))).
+
+prefixes_level(["%"], silent) :- !.
+prefixes_level(_, warning).
 
 %%	comment_warning(+Prefixes, +Error) is failure.
 %
@@ -343,11 +347,9 @@ process_structured_comment(FilePos, Comment, _) :-
 %	processed. Since the recommended magic   sequence is now =|%!|=,
 %	we remain silent about comments that start with =|%%|=.
 
-comment_warning(["%"], E) :-
-	print_message(silent, E),
-	fail.
-comment_warning(_, E) :-
-	print_message(warning, E),
+comment_warning(Prefixes, E) :-
+	prefixes_level(Prefixes, Level),
+	print_message(Level, E),
 	fail.
 
 %%	compile_comment(+Comment, +FilePos, +Prefixes, -Compiled) is semidet.
