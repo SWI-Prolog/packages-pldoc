@@ -425,8 +425,8 @@ read_n_codes(In, N, Codes) :-
 	get_code(In, C0),
 	read_n_codes(N, C0, In, Codes).
 
-read_n_codes(1, C, _, [C]) :- !.
 read_n_codes(_, -1, _, []) :- !.
+read_n_codes(1, C, _, [C]) :- !.
 read_n_codes(N, C, In, [C|T]) :-
 	get_code(In, C2),
 	N2 is N - 1,
