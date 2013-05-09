@@ -249,14 +249,16 @@ split_dt(In, DT, Rest) :-
 %%	ul_to_dl(+UL, -DL) is semidet.
 %
 %	Translate an UL list into a DL list   if  all entries are of the
-%	form "* <term> nl, <description>" or all   items  are of the for
+%	form "* <term> nl, <description>" and at least one <description>
+%	is   non-empty,   or    all    items     are    of    the   form
 %	[[PredicateIndicator]].
 
 ul_to_dl(ul(Items), Description) :-
 	term_items(Items, DLItems, []),
 	(   terms_to_predicate_includes(DLItems, Preds)
 	->  Description = dl(class(predicates), Preds)
-	;   Description = dl(class(termlist), DLItems)
+	;   member(dd(DD), DLItems), DD \== []
+	->  Description = dl(class(termlist), DLItems)
 	).
 
 term_items([], T, T).

@@ -373,7 +373,8 @@ terms and end in the newline.  The Wiki adds \verb$' . '$ to the text
 and reads it using the operator definitions also used to read
 the mode terms.  See \secref{modes}.  Variable names encountered in
 the \arg{Term} are used for indentifying variables in the following
-\arg{Description}.
+\arg{Description}.  At least one \arg{Description} must be non-empty
+to avoid confusion with a simple item list.
 
 \begin{code}
    * Term1
