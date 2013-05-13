@@ -126,6 +126,8 @@ blanks_to_nl(_).
 structured_comment(["%"]) -->
 	"%%", space,
 	\+ separator_line.
+structured_comment(["%"]) -->
+	"%!", space.
 structured_comment(Prefixes) -->
 	"/**", space,
 	{ Prefixes = ["/**", " *"]
