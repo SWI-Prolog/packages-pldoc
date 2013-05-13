@@ -83,27 +83,28 @@ well formatted HTML documents.
 %	True if Comment is a structured comment that should use Prefixes
 %	to extract the plain text using indented_lines/3.
 
-is_structured_comment(_Pos-Comment, Prefixes) :- !,
-	is_structured_comment(Comment, Prefixes).
 is_structured_comment(Comment, Prefixes) :-
-	is_list(Comment), !,
-	phrase(structured_comment(Prefixes), Comment, _).
-is_structured_comment(Comment, Prefixes) :-
-	string_to_atom(Comment, CommentA),
-	structured_command_start(Start, Prefixes),
-	sub_atom(CommentA, 0, _, _, Start), !,
-	sub_atom(CommentA, 2, 1, _, Space),
-	char_type(Space, space),
-	\+ blanks_to_nl(CommentA).
-is_structured_comment(Comment, Prefixes) :-
-	string_to_atom(Comment, CommentA),
-	sub_atom(CommentA, 0, _, _, '/**'), !,
-	sub_atom(CommentA, 3, 1, _, Space),
-	char_type(Space, space),
-	Prefixes = ["/**", " *"].
+	is_structured_comment(Comment, Prefixes, _Style).
 
-structured_command_start('%%', ["%"]).		% Deprecated
-structured_command_start('%!', ["%!", "%"]).	% New style
+is_structured_comment(_Pos-Comment, Prefixes, Style) :- !,
+	is_structured_comment(Comment, Prefixes, Style).
+is_structured_comment(Comment, Prefixes, Style) :-
+	is_list(Comment), !,
+	phrase(structured_comment(Prefixes, Style), Comment, _).
+is_structured_comment(Comment, Prefixes, Style) :-
+	string_to_atom(Comment, CommentA),
+	structured_command_start(Start, Prefixes, Style),
+	sub_atom(CommentA, 0, Len, _, Start), !,
+	sub_atom(CommentA, Len, 1, _, Space),
+	char_type(Space, space),
+	(   Style == block
+	->  true
+	;   \+ blanks_to_nl(CommentA)
+	).
+
+structured_command_start('%%',  ["%"], percent_percent).	% Deprecated
+structured_command_start('%!',  ["%"], percent_bang).		% New style
+structured_command_start('/**', ["/**", " *"], block).		% block
 
 blanks_to_nl(CommentA) :-
 	sub_atom(CommentA, At, 1, _, Char),
@@ -118,17 +119,17 @@ blanks_to_nl(CommentA) :-
 	).
 blanks_to_nl(_).
 
-%%	structured_comment(-Prefixes:list(codes)) is semidet.
+%%	structured_comment(-Prefixes:list(codes), -Style) is semidet.
 %
 %	Grammar rule version of the above.  Avoids the need for
 %	conversion.
 
-structured_comment(["%"]) -->
+structured_comment(["%"], percent_percent) -->
 	"%%", space,
 	\+ separator_line.
-structured_comment(["%"]) -->
+structured_comment(["%"], percent_bang) -->
 	"%!", space.
-structured_comment(Prefixes) -->
+structured_comment(Prefixes, block) -->
 	"/**", space,
 	{ Prefixes = ["/**", " *"]
 	}.
@@ -295,10 +296,10 @@ process_comments([Pos-Comment|T], TermPos, File) :-
 	).
 
 process_comment(Pos, Comment, File) :-
-	is_structured_comment(Comment, Prefixes), !,
+	is_structured_comment(Comment, Prefixes, Style), !,
 	stream_position_data(line_count, Pos, Line),
 	FilePos = File:Line,
-	process_structured_comment(FilePos, Comment, Prefixes).
+	process_structured_comment(FilePos, Comment, Prefixes, Style).
 process_comment(_, _, _).
 
 %%	parse_comment(+Comment, +FilePos, -Parsed) is semidet.
@@ -325,32 +326,33 @@ parse_comment(Comment, FilePos, Parsed) :-
 
 %%	process_structured_comment(+FilePos,
 %%				   +Comment:string,
-%%				   +Prefixed:list) is det.
+%%				   +Prefixed:list,
+%%				   +Style) is det.
 
-process_structured_comment(FilePos, Comment, _) :- % already processed
+process_structured_comment(FilePos, Comment, _, _) :- % already processed
 	prolog_load_context(module, M),
 	locally_defined(M:'$pldoc'/4),
 	catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail), !.
-process_structured_comment(FilePos, Comment, Prefixes) :-
+process_structured_comment(FilePos, Comment, Prefixes, Style) :-
 	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
-	      comment_warning(Prefixes, E)),
+	      comment_warning(Style, E)),
 	maplist(store_comment(FilePos), Compiled).
-process_structured_comment(FilePos, Comment, Prefixes) :-
-	prefixes_level(Prefixes, Level),
+process_structured_comment(FilePos, Comment, _Prefixes, Style) :-
+	comment_style_warning_level(Style, Level),
 	print_message(Level,
 		      pldoc(invalid_comment(FilePos, Comment))).
 
-prefixes_level(["%"], silent) :- !.
-prefixes_level(_, warning).
+comment_style_warning_level(percent_percent, silent) :- !.
+comment_style_warning_level(_, warning).
 
-%%	comment_warning(+Prefixes, +Error) is failure.
+%%	comment_warning(+Style, +Error) is failure.
 %
 %	Print a warning  on  structured  comments   that  could  not  be
 %	processed. Since the recommended magic   sequence is now =|%!|=,
 %	we remain silent about comments that start with =|%%|=.
 
-comment_warning(Prefixes, E) :-
-	prefixes_level(Prefixes, Level),
+comment_warning(Style, E) :-
+	comment_style_warning_level(Style, Level),
 	print_message(Level, E),
 	fail.
 

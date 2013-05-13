@@ -86,10 +86,10 @@ process_modes(Lines, Module, FilePos, ModeDecls, Vars, RestLines) :-
 
 %%	mode_lines(+Lines, -ModeText:codes, ?ModeTail:codes, -Lines) is det.
 %
-%	Extract the formal header. For %%   comments these are all lines
-%	starting with %%. For /** comments,   first skip empty lines and
-%	then take all lines upto the   first  blank line. Skipping empty
-%	lines allows for comments using this style:
+%	Extract the formal header. For  %%/%!   comments  these  are all
+%	lines starting with %%/%!. For /**   comments,  first skip empty
+%	lines and then  take  all  lines   upto  the  first  blank line.
+%	Skipping empty lines allows for comments using this style:
 %
 %	  ==
 %	  /**
@@ -98,19 +98,23 @@ process_modes(Lines, Module, FilePos, ModeDecls, Vars, RestLines) :-
 %	  ==
 
 mode_lines(Lines0, ModeText, ModeTail, Lines) :-
-	percent_mode_line(Lines0, ModeText, ModeTail0, Lines1), !,
-	percent_mode_lines(Lines1, ModeTail0, ModeTail, Lines).
+	percent_mode_line(Lines0, C, ModeText, ModeTail0, Lines1), !,
+	percent_mode_lines(Lines1, C, ModeTail0, ModeTail, Lines).
 mode_lines(Lines0, ModeText, ModeTail, Lines) :-
 	empty_lines(Lines0, Lines1),
 	non_empty_lines(Lines1, ModeText, ModeTail, Lines).
 
-percent_mode_line([1-[0'%|L]|Lines], ModeText, ModeTail, Lines) :-	%'
+percent_mode_line([1-[C|L]|Lines], C, ModeText, ModeTail, Lines) :-
+	percent_mode_char(C),
 	append(L, [10|ModeTail], ModeText).
 
-percent_mode_lines(Lines0, ModeText, ModeTail, Lines) :-
-	percent_mode_line(Lines0, ModeText, ModeTail1, Lines1), !,
-	percent_mode_lines(Lines1, ModeTail1, ModeTail, Lines).
-percent_mode_lines(Lines, Mode, Mode, Lines).
+percent_mode_char(0'%).
+percent_mode_char(0'!).
+
+percent_mode_lines(Lines0, C, ModeText, ModeTail, Lines) :-
+	percent_mode_line(Lines0, C, ModeText, ModeTail1, Lines1), !,
+	percent_mode_lines(Lines1, C, ModeTail1, ModeTail, Lines).
+percent_mode_lines(Lines, _, Mode, Mode, Lines).
 
 empty_lines([_-[]|Lines0], Lines) :- !,
 	empty_lines(Lines0, Lines).
