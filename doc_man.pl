@@ -678,8 +678,12 @@ dom_element(img, Att0, [], Path) -->
 	{ selectchk(src=Src, Att0, Att1),
 	  current_prolog_flag(home, SWI),
 	  sub_atom(Path, 0, Len, _, SWI),
-	  sub_atom(Path, Len, _, _, '/doc/Manual/'), !,
-	  http_link_to_id(manual_file, [], ManRef),
+	  (   sub_atom(Path, Len, _, _, '/doc/Manual/')
+	  ->  Handler = manual_file
+	  ;   sub_atom(Path, Len, _, _, '/doc/packages/')
+	  ->  Handler = pldoc_package
+	  ), !,
+	  http_link_to_id(Handler, [], ManRef),
 	  atomic_list_concat([ManRef, /, Src], NewPath),
 	  Begin =.. [img, src(NewPath) | Att1]
 	},
@@ -945,8 +949,13 @@ current_package(pkg(Title, HREF, HavePackage)) :-
 %%	pldoc_package(+Request)
 %
 %	HTTP handler for PlDoc package documentation.  Accepts
-%	/pkg/<package>.html.
+%	/pldoc/package/<package>.{html,gif}.
 
+pldoc_package(Request) :-
+	memberchk(path_info(Img), Request),
+	file_name_extension(_, gif, Img), !,
+	atom_concat('doc/packages/', Img, Path),
+	http_reply_file(swi(Path), [], Request).
 pldoc_package(Request) :-
 	(   memberchk(path_info(PkgDoc), Request),
 	    \+ sub_atom(PkgDoc, _, _, _, /),
