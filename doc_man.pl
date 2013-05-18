@@ -674,6 +674,17 @@ dom_element(span, Att, [CDATA], _) -->
 	  http_link_to_id(pldoc_man, [predicate=CDATA], HREF)
 	},
 	html(a(href(HREF), CDATA)).
+dom_element(img, Att0, [], Path) -->
+	{ selectchk(src=Src, Att0, Att1),
+	  current_prolog_flag(home, SWI),
+	  sub_atom(Path, 0, Len, _, SWI),
+	  sub_atom(Path, Len, _, _, '/doc/Manual/'), !,
+	  http_link_to_id(manual_file, [], ManRef),
+	  atomic_list_concat([ManRef, /, Src], NewPath),
+	  Begin =.. [img, src(NewPath) | Att1]
+	},
+	html_begin(Begin),
+	html_end(img).
 dom_element(div, Att, _, _) -->
 	{ memberchk(class=navigate, Att) }, !.
 dom_element(html, _, Content, Path) --> !,	% do not emit a html for the second time
