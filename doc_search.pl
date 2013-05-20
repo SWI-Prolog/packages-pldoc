@@ -31,7 +31,8 @@
 
 :- module(pldoc_search,
 	  [ search_form/3,		% +Options, //
-	    search_reply/4		% +Search, +Options, //
+	    search_reply/4,		% +Search, +Options, //
+	    matching_object_table//2	% +Objects, +Options, //
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
@@ -42,7 +43,6 @@
 :- use_module(doc_process).
 :- use_module(doc_html).
 :- use_module(doc_index).
-:- use_module(library(doc_http)).
 :- include(hooks).
 
 /** <module> Search form and reply
@@ -180,23 +180,44 @@ search_reply(For, Options) -->
 search_reply(For, Options) -->
 	{ search_doc(For, PerCategory, Options),
 	  PerCategory \== [],
-	  option(resultFormat(Format), Options, summary),
-	  count_matches(PerCategory, Matches)
+	  option(resultFormat(Format), Options, summary)
 	}, !,
 	html([ \html_requires(pldoc),
 	       \doc_links('', [for(For)|Options]),
 	       h1(class(wiki),
 		  ['Search results for ', span(class(for), ['"', For, '"'])]),
-	       div(class('search-counts'),
-		   [ Matches, ' matches; ',
-		     \count_by_category(PerCategory)
-		   ])
-	     | \matches(Format, PerCategory, Options)
+	       \indexed_matches(Format, PerCategory, Options)
 	     ]).
 search_reply(For, Options) -->
 	html([ \html_requires(pldoc),
 	       \doc_links('', [for(For)|Options]),
 	       h1(class(wiki), 'No matches')
+	     ]).
+
+%%	matching_object_table(+Objects, +Options)// is det.
+%
+%	Show a list of matching objects,   similar  to a result-set from
+%	search.
+
+matching_object_table(Objects, Options) -->
+	{ maplist(obj_cat_sec, Objects, Pairs),
+	  group_hits(Pairs, Organized),
+	  option(format(Format), Options, summary)
+	},
+	indexed_matches(Format, Organized, Options).
+
+obj_cat_sec(Object, Cat-(Section-Object)) :-
+	prolog:doc_object_summary(Object, Cat, Section, _Summary).
+
+
+indexed_matches(Format, PerCategory, Options) -->
+	{ count_matches(PerCategory, Matches)
+	},
+	html([ div(class('search-counts'),
+		   [ Matches, ' matches; ',
+		     \count_by_category(PerCategory)
+		   ])
+	     | \matches(Format, PerCategory, Options)
 	     ]).
 
 count_by_category([]) -->
@@ -287,11 +308,14 @@ category_title(Category) -->
 %%	search_doc(+SearchString, -PerType:list, +Options) is det.
 %
 %	Return matches of SearchString  as   Type-PerFile  tuples, where
-%	PerFile is a list Fule-ListOfObjects.
+%	PerFile is a list File-ListOfObjects.
 
 search_doc(Search, PerType, Options) :-
 	findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
 	sort(Tuples0, Tuples),
+	group_hits(Tuples, PerType).
+
+group_hits(Tuples, PerType) :-
 	group_pairs_by_key(Tuples, PerCat0),
 	key_sort_order(PerCat0, PerCat1),
 	keysort(PerCat1, PerCat2),
