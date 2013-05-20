@@ -1698,6 +1698,8 @@ term_to_string(Term, String) :-
 
 object_link(Obj, Options) -->
 	prolog:doc_object_link(Obj, Options), !.
+object_link(f(Name/Arity), _Options) --> !,
+	html([Name, /, Arity]).
 object_link(PI, Options) -->
 	{ is_pi(PI) }, !,
 	pi(PI, Options).
