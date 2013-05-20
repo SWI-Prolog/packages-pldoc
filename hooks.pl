@@ -31,12 +31,13 @@
 
 :- multifile
 	prolog:doc_object_summary/4,	% Object, ?Category, ?Section, ?Summary
-	prolog:doc_object_page/4,	% +Object, +Options, //
-	prolog:doc_object_link/4,	% +Object, +Options, //
+	prolog:doc_object_page//2,	% +Object, +Options, //
+	prolog:doc_object_link//2,	% +Object, +Options, //
 	prolog:doc_category/3,		% Name, Order, Description
-	prolog:doc_file_index_header/4,	% +File, +Options, //
+	prolog:doc_file_index_header//2,% +File, +Options, //
 	prolog:doc_object_title/2,	% +Object, -Title
 	prolog:doc_canonical_object/2,	% +ObjectIn, -CanonicalObj
 	prolog:doc_search_field//1,	% +Options
 	prolog:doc_places_menu//1,	% +Dir
-	prolog:doc_directory/1.		% ?Dir
+	prolog:doc_directory/1,		% ?Dir
+	prolog:doc_object_page_footer//2. % +Object, +Options, //

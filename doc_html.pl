@@ -860,7 +860,8 @@ re_exported_doc([PI|T0], File, Module, REObj, [PI|UnDoc]) :-
 %	    Show the navigation and search header.
 
 object_page(Obj, Options) -->
-	prolog:doc_object_page(Obj, Options).
+	prolog:doc_object_page(Obj, Options), !,
+	object_page_footer(Obj, Options).
 object_page(Obj, Options) -->
 	{ doc_comment(Obj, File:_Line, _Summary, _Comment)
 	}, !,
@@ -876,7 +877,8 @@ object_page(Obj, Options) -->
 		   \object_page_header(-, Options),
 		   \objects([Obj], [synopsis(true)|Options])
 		 ])
-	).
+	),
+	object_page_footer(Obj, Options).
 
 object_page_header(File, Options) -->
 	{ option(header(true), Options, true) }, !,
@@ -895,6 +897,15 @@ file_link(File) -->
 	places_menu(Dir),
 	html([ div(a(href(location_by_id(pldoc_doc)+File), File))
 	     ]).
+
+%%	object_page_footer(+Obj, +Options)// is det.
+%
+%	Call the hook prolog:doc_object_page_footer//2. This hook will
+%	be used to deal with annotations.
+
+object_page_footer(Obj, Options) -->
+	prolog:doc_object_page_footer(Obj, Options).
+object_page_footer(_, _) --> [].
 
 
 %%	object_synopsis(Obj, Options) is det.
