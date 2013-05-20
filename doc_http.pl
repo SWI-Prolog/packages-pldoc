@@ -717,7 +717,7 @@ pldoc_search(Request) :-
 		 *******************************/
 
 :- public
-	param/2.				% used in pack documentation server
+	param/2.			% used in pack documentation server
 
 param(public_only,
       [ boolean,
