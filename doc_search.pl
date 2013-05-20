@@ -83,7 +83,7 @@ search_form(Options) -->
 	},
 	html(form(action(location_by_id(pldoc_search)),
 		  [ div([ \search_field([ name(for),
-					  size(36)
+					  id(for)
 					| Extra
 					]),
 			  input([ type(submit),
