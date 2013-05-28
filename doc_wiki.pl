@@ -1062,6 +1062,9 @@ nv_pair(Option) -->
 %	    $ '<' URL '>' :
 %	    Be more relaxed on the URL specification.
 
+:- multifile
+	user:url_path/2.
+
 wiki_link(\file(Name, FileOptions), Options) -->
 	file_name(Base, Ext),
 	{ file_name_extension(Base, Ext, Name),
