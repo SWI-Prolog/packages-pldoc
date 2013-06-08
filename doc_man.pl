@@ -39,7 +39,7 @@
 :- use_module(library(sgml)).
 :- use_module(library(occurs)).
 :- use_module(library(lists)).
-:- use_module(library(url)).
+:- use_module(library(uri)).
 :- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(doc_wiki).
@@ -63,6 +63,7 @@
 :- predicate_options(man_page//2, 2,
 		     [ for(atom),
 		       links(boolean),
+		       footer(boolean),
 		       no_manual(oneof([fail,error])),
 		       search_in(oneof([all, app, man])),
 		       search_match(oneof([name, summary])),
@@ -526,16 +527,17 @@ object_spec(Atom, PI) :-
 %		if =false=, just emit the manual material.
 
 man_page(Obj, Options) -->
-	{ findall((Parent+Path)-DOM,
+	{ ground(Obj),
+          findall((Parent+Path)-DOM,
 		  load_man_object(Obj, Parent, Path, DOM),
 		  Matches),
-	  Matches = [_|_],
+	  Matches = [_|_], !,
 	  pairs_keys(Matches, ParentPaths),
 	  Matches = [Parent+Path-_|_]
 	},
 	html_requires(pldoc),
 	man_links(ParentPaths, Options),
-	man_matches(Matches, Obj).
+	man_matches(Matches, Obj, Options).
 man_page(Obj, Options) -->
 	{ full_object(Obj, Full),
 	  findall(Full-File,
@@ -626,8 +628,15 @@ atom_pi(Text, Name/Arity) :-
 	Arity >= 0, !,
 	sub_atom(Text, 0, Pre, _, Name).
 
-man_matches([], _) --> [].
-man_matches([H|T], Obj) --> man_match(H, Obj), man_matches(T, Obj).
+man_matches([Match], Object, Options) -->
+	{ option(footer(true), Options, true) }, !,
+	man_match(Match, Object),
+	object_page_footer(Object, []).
+man_matches(Matches, Object, _) -->
+	man_matches_list(Matches, Object).
+
+man_matches_list([], _) --> [].
+man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
 
 %%	man_match(+Term, +Object)//
 %
@@ -750,7 +759,7 @@ rewrite_ref(pred, Ref0, _, Ref) :-		% Predicate reference
 	sub_atom(Ref0, _, A, 0, Fragment),
 	name_to_object(Fragment, PI),
 	man_index(PI, _, _, _, _),
-	www_form_encode(Fragment, Enc),
+	uri_encoded(query_value, Fragment, Enc),
 	http_location_by_id(pldoc_man, ManHandler),
 	format(string(Ref), '~w?predicate=~w', [ManHandler, Enc]).
 rewrite_ref(function, Ref0, _, Ref) :-		% Arithmetic function reference
@@ -760,7 +769,7 @@ rewrite_ref(function, Ref0, _, Ref) :-		% Arithmetic function reference
 	man_index(PI, _, _, _, _),
 	PI=f(Name/Arity),
 	format(atom(PIName), '~w/~w', [Name,Arity]),
-	www_form_encode(PIName, Enc),
+	uri_encoded(query_value, PIName, Enc),
 	http_location_by_id(pldoc_man, ManHandler),
 	format(string(Ref), '~w?function=~w', [ManHandler, Enc]).
 rewrite_ref(func, Ref0, _, Ref) :-		% C-API reference
@@ -769,7 +778,7 @@ rewrite_ref(func, Ref0, _, Ref) :-		% C-API reference
 	name_to_object(Fragment, Obj),
 	man_index(Obj, _, _, _, _),
 	Obj = c(Function),
-	www_form_encode(Function, Enc),
+	uri_encoded(query_value, Function, Enc),
 	http_location_by_id(pldoc_man, ManHandler),
 	format(string(Ref), '~w?CAPI=~w', [ManHandler, Enc]).
 rewrite_ref(sec, Ref0, Path, Ref) :-		% Section inside a file
@@ -1005,7 +1014,7 @@ prolog:doc_object_summary(Obj, Class, File, Summary) :-
 	man_index(Obj, Summary, File, Class, _Offset).
 
 prolog:doc_object_page(Obj, Options) -->
-	man_page(Obj, [no_manual(fail)|Options]).
+	man_page(Obj, [no_manual(fail),footer(false)|Options]).
 
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = section(_,_,_) }, !,

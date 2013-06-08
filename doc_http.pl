@@ -651,7 +651,7 @@ split_pi2(Atom, Name/Arity) :-
 	sub_atom(Atom, _, A, 0, ArityA),
 	atom_number(ArityA, Arity), !,
 	sub_atom(Atom, 0, B, _, Name).
-
+split_pi2(Name, Name/_).
 
 
 %%	pldoc_object(+Request)
