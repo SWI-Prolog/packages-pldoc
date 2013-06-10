@@ -527,7 +527,10 @@ object_spec(Atom, PI) :-
 %		if =false=, just emit the manual material.
 
 man_page(Obj, Options) -->
-	{ ground(Obj),
+	{ (   ground(Obj)
+	  ->  true
+	  ;   Obj = section(_,_,_)
+	  ),
           findall((Parent+Path)-DOM,
 		  load_man_object(Obj, Parent, Path, DOM),
 		  Matches),
