@@ -81,14 +81,13 @@ search_form(Options) -->
 	  option(search_in(In), Options, all),
 	  option(search_match(Match), Options, summary)
 	},
-	html(form(action(location_by_id(pldoc_search)),
+	html(form([ id('search-form'),
+		    action(location_by_id(pldoc_search))
+		  ],
 		  [ div([ \search_field([ name(for),
 					  id(for)
 					| Extra
-					]),
-			  input([ type(submit),
-				  value('Search')
-				])
+					])
 			]),
 		    \search_options(In, Match, Options)
 		  ])).
@@ -124,7 +123,12 @@ search_options(In, Match, _Options) -->
 search_field(Options) -->
 	prolog:doc_search_field(Options), !.
 search_field(Options) -->
-	html(input(Options, [])).
+	html([ input(Options, []),
+	       input([ id('submit-for'),
+		       type(submit),
+		       value('Search')
+		     ])
+	     ]).
 
 radio(Radio, Field, Label, In) -->
 	{   Field == In
