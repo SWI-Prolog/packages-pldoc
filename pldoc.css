@@ -249,6 +249,17 @@ div.search-counts
 
 div.search-options
 { font-size: 70%;
+  white-space: nowrap;
+}
+
+div.search-options input
+{ -ms-transform: scale(0.7);		/* IE */
+  -moz-transform: scale(0.7);		/* FF */
+  -webkit-transform: scale(0.7);	/* Safari and Chrome */
+  -o-transform: scale(0.7);		/* Opera */
+  position:relative;
+  top: 4px;
+  margin-right: 0px;
 }
 
 span.search-in, span.search-match
