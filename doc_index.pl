@@ -400,6 +400,10 @@ tag_pub_priv([H|T0], [Tag-H|T], Options) :-
 %
 %	@tbd	Hacky interface.  Do we demand Summary to be in Wiki?
 
+object_summary(doc(Obj, _Pos, _Summary), wiki, Options) --> !,
+	html(tr(class(wiki),
+		[ td(colspan(3), \object_ref(Obj, Options))
+		])).
 object_summary(doc(Obj, _Pos, Summary), _Section, Options) --> !,
 	(   { string_to_list(Summary, Codes),
 	      wiki_codes_to_dom(Codes, [], DOM0),
