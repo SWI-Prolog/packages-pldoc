@@ -484,6 +484,7 @@ prim_search_spec(Spec) -->
 %	@param Section  Reference to the context of Object.
 
 prolog:doc_object_summary(Obj, Category, File, Summary) :-
+	once(prolog_object(Obj)),
 	current_prolog_flag(home, SWI),
 	doc_comment(Obj0, File:_Line, Summary, _Comment),
 	(   is_list(Obj0)
@@ -495,6 +496,13 @@ prolog:doc_object_summary(Obj, Category, File, Summary) :-
 	->  Category = library
 	;   Category = application
 	).
+
+prolog_object(Var) :- var(Var), !.
+prolog_object(_/_).
+prolog_object(_//_).
+prolog_object(_:_/_).
+prolog_object(_:_//_).
+prolog_object(module(_)).
 
 
 %%	doc_category(Name, SortOrder, Description) is nondet.
