@@ -1046,6 +1046,7 @@ prolog:doc_object_title(Obj, Title) :-
 
 prolog:doc_canonical_object(section(Level, No, Path),
 			    section(Level, No, swi(Local))) :-
+	atom(Path),
 	is_absolute_file_name(Path),
 	absolute_file_name(swi(.), SWI,
 			   [ file_type(directory),
