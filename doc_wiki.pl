@@ -1096,7 +1096,7 @@ wiki_link(a(href(Ref), Label), Options) -->
 	  ->  Term =.. [Alias,'.']
 	  ;   Term =.. [Alias,Local]
 	  ),
-	  expand_url_path(Term, Ref),
+	  catch(expand_url_path(Term, Ref), _, fail),
 	  option(label(Label), Options, Ref)
 	}.
 wiki_link(a(href(Ref), Label), Options) -->
