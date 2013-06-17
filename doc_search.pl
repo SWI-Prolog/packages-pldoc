@@ -527,6 +527,6 @@ prolog:doc_category(library,     80, 'System Libraries').
 %	Haystick.
 
 apropos_match(Needle, Haystack) :-
-	sub_atom_icasechk(Needle, _, Haystack).
+	sub_atom_icasechk(Haystack, _, Needle).
 
 eos([], []).
