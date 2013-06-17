@@ -525,10 +525,8 @@ prolog:doc_category(library,     80, 'System Libraries').
 %
 %	True if Needle can be found   as a case-insensitive substring in
 %	Haystick.
-%
-%	@tbd	Use public predicates for that.
 
 apropos_match(Needle, Haystack) :-
-	'$apropos_match'(Needle, Haystack).
+	sub_atom_icasechk(Needle, _, Haystack).
 
 eos([], []).
