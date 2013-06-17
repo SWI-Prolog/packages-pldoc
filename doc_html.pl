@@ -790,7 +790,7 @@ undocumented_pred(Name/Arity, Options) -->
 select_undocumented([], _, _, []).
 select_undocumented([PI|T0], M, Objs, [PI|T]) :-
 	is_pi(PI),
-	\+ in_doc(M:PI, Objs),
+	\+ in_doc(M:PI, Objs), !,
 	select_undocumented(T0, M, Objs, T).
 select_undocumented([_|T0], M, Objs, T) :-
 	select_undocumented(T0, M, Objs, T).
