@@ -155,6 +155,7 @@ div.navhdr
 { border: 1px dotted;
   padding: 5px 5px 3px 5px;		/* top,right,bottom,left */
   background-color: #f0f0f0;
+  clear: both;
 }
 
 div.navhdr div.jump
