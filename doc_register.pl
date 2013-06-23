@@ -40,6 +40,8 @@ pldoc_module(pldoc_process).
 pldoc_module(pldoc_wiki).
 pldoc_module(pldoc).
 pldoc_module(lists).
+pldoc_module(apply).
+pldoc_module(pairs).
 
 		 /*******************************
 		 *	      REGISTER		*
