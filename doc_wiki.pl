@@ -443,10 +443,22 @@ md_section_line([#, #, #, #, ' '|Rest], h4(Attrs, Content)) :-
 	md_section_attributes(Rest, Attrs, Content).
 
 md_section_attributes(List, Attrs, Content) :-
-	append(Content, ['{', '#', w(Name), '}'], List), !,
-	Attrs = [class(wiki), id(Name)].
+	phrase((tokens(Content), [' '], section_label(Label)), List), !,
+	Attrs = [class(wiki), id(Label)].
 md_section_attributes(Content, Attrs, Content) :-
 	Attrs = [class(wiki)].
+
+section_label(Label) -->
+	[ '{', '#', w(Name) ],
+	label_conts(Cont), ['}'], !,
+	{ atomic_list_concat([Name|Cont], Label) }.
+
+label_conts([H|T]) --> label_cont(H), !, label_conts(T).
+label_conts([]) --> [].
+
+label_cont(-) --> [-].
+label_cont(Name) --> [w(Name)].
+
 
 md_section_line(Line1, Line2, Header) :-
 	Line1 \== [],
@@ -465,8 +477,8 @@ section_underline([-,-,-|T], h2) :-
 	maplist(=(-), T), !.
 
 labeled_section_line(Title, Attrs) -->
-	tokens(Title), [' ', '{', '#', w(Name), '}'], !,
-	{ Attrs = [id(Name)] }.
+	tokens(Title), [' '], section_label(Label), !,
+	{ Attrs = [id(Label)] }.
 
 
 %%	strip_ws_tokens(+Tokens, -Stripped)
