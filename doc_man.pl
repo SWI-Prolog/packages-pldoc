@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2011, University of Amsterdam
+    Copyright (C): 1985-2013, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -203,8 +203,9 @@ index_on_begin(div, Attributes, Parser) :- !,
 		   ]),
 	dom_to_text(DOM, Title),
 	nb_getval(pldoc_index_class, Class),
-	assert(man_index(section(0, '0', File), Title, File, Class, Offset)).
-index_on_begin(H, _, Parser) :-		% TBD: add class for document title.
+	assert(man_index(section(0, '0', File, File),
+			 Title, File, Class, Offset)).
+index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 	heading(H, Level),
 	get_sgml_parser(Parser, charpos(Offset)),
         get_sgml_parser(Parser, file(File)),
@@ -214,7 +215,15 @@ index_on_begin(H, _, Parser) :-		% TBD: add class for document title.
 		   ]),
 	dom_section(Doc, Nr, Title),
 	nb_getval(pldoc_index_class, Class),
-	assert(man_index(section(Level, Nr, File), Title, File, Class, Offset)).
+	section_id(Attributes, Title, ID),
+	assert(man_index(section(Level, Nr, ID, File),
+			 Title, File, Class, Offset)).
+
+section_id(Attributes, _Title, ID) :-
+	memberchk(id=ID, Attributes), !.
+section_id(_Attributes, Title, ID) :-
+	atomic_list_concat(Words, ' ', Title),
+	atomic_list_concat(Words, '_', ID).
 
 %%	dom_section(+HeaderDOM, -NR, -Title) is semidet.
 %
@@ -342,7 +351,7 @@ cdata(_) -->
 
 load_man_object(Obj, ParentSection, Path, DOM) :-
 	resolve_section(Obj, For),
-	For = section(_,SN,Path),
+	For = section(_,SN,_ID,Path),
 	parent_section(For, ParentSection),
 	findall(Nr-Pos, section_start(Path, Nr, Pos), Pairs),
 	(   (   Pairs = [SN-_|_]
@@ -415,7 +424,7 @@ load_man_object(For, Parent, Path, DOM) :-
 
 section_start(Path, Nr, Pos) :-
 	index_manual,
-	man_index(section(_,Nr,_), _, Path, _, Pos).
+	man_index(section(_,Nr,_,_), _, Path, _, Pos).
 
 %%	resolve_section(+SecIn, -SecOut) is det.
 %
@@ -423,17 +432,20 @@ section_start(Path, Nr, Pos) :-
 %	number if this information is missing.   The latter allows us to
 %	refer to files of the manual.
 
-resolve_section(section(Level, No, Spec),
-		section(Level, No, Path)) :-
+resolve_section(section(Level, No, Spec), Section) :- !,
+	resolve_section(section(Level, No, _, Spec), Section).
+resolve_section(section(Level, No, ID, Spec),
+		section(Level, No, ID, Path)) :-
 	absolute_file_name(Spec, Path,
 			   [ access(read)
 			   ]),
-	(   man_index(section(Level, No, Path), _, _, _, _)
+	(   man_index(section(Level, No, ID, Path), _, _, _, _)
 	->  true
 	;   path_allowed(Path)
 	->  true
 	;   permission_error(read, manual_file, Spec)
 	).
+
 
 path_allowed(Path) :-			% allow all files from swi/doc
 	absolute_file_name(swi(doc), Parent,
@@ -443,15 +455,15 @@ path_allowed(Path) :-			% allow all files from swi/doc
 	sub_atom(Path, 0, _, _, Parent).
 
 
-%%	parent_section(+Section, +Parent) is det.
+%%	parent_section(+Section, -Parent) is det.
 %
 %	Parent is the parent-section  of   Section.  First  computes the
 %	section number and than finds the   required  number in the same
 %	file or same directory.
 
-parent_section(section(Level, Nr, File), Parent) :-
+parent_section(section(Level, Nr, _ID, File), Parent) :-
 	integer(Level),
-	Parent = section(PL, PNr, _PFile),
+	Parent = section(PL, PNr, _PID, _PFile),
 	PL is Level - 1,
 	findall(B, sub_atom(Nr, B, _, _, '.'), BL),
 	last(BL, Before),
@@ -463,7 +475,7 @@ parent_section(section(Level, Nr, File), Parent) :-
 	->  true
 	;   man_index(Parent, _, _, _, _)
 	), !.
-parent_section(section(_, _, File), File).
+parent_section(section(_, _, _, File), File).
 
 %%	object_section(+Path, +Position, -Section) is semidet.
 %
@@ -471,7 +483,7 @@ parent_section(section(_, _, File), File).
 %	last section object before position.
 
 object_section(Path, Pos, Section) :-
-	Section	= section(_,_,_),
+	Section	= section(_,_,_,_),
 	findall(Section,
 	       (man_index(Section, _, Path, _, SecPos), SecPos =< Pos),
 		List),
@@ -513,7 +525,7 @@ object_spec(Atom, PI) :-
 %	    * c(Function)
 %	    display documentation of a C API function
 %
-%	    * section(Level, Number, File)
+%	    * section(Level, Number, Id, File)
 %	    Display a section of the manual
 %
 %	Options:
@@ -529,7 +541,7 @@ object_spec(Atom, PI) :-
 man_page(Obj, Options) -->
 	{ (   ground(Obj)
 	  ->  true
-	  ;   Obj = section(_,_,_)
+	  ;   Obj = section(_,_,_,_)
 	  ),
           findall((Parent+Path)-DOM,
 		  load_man_object(Obj, Parent, Path, DOM),
@@ -734,18 +746,18 @@ documented(PI) :-
 %	Rewrite Ref0 from the HTML reference manual format to the server
 %	format. Reformatted:
 %
-%		$ File#Name/Arity :
-%		Local reference using the manual presentation
-%		=|/man?predicate=PI|=.
+%	    $ File#Name/Arity :
+%	    Local reference using the manual presentation
+%	    =|/man?predicate=PI|=.
 %
-%		$ File#sec:NR :
-%		Rewrite to =|section(Level, NT, FilePath)|=
+%	    $ File#sec:NR :
+%	    Rewrite to =|section(Level, NT, ID, FilePath)|=
 %
-%		$ File#flag:Name :
-%		Rewrite to =|section(Level, NT, FilePath)#flag:Name|=
+%	    $ File#flag:Name :
+%	    Rewrite to =|section(Level, NT, ID, FilePath)#flag:Name|=
 %
-%		$ File#Name()
-%		Rewrite to /man/CAPI=Name
+%	    $ File#Name()
+%	    Rewrite to /man/CAPI=Name
 %
 %	@param Class	Class of the <A>.  Supported classes are
 %
@@ -793,7 +805,7 @@ rewrite_ref(sec, Ref0, Path, Ref) :-		% Section inside a file
 rewrite_ref(sec, File, Path, Ref) :-		% Section is a file
 	file_directory_name(Path, Dir),
 	atomic_list_concat([Dir, /, File], SecPath),
-	Obj = section(_, _, SecPath),
+	Obj = section(_, _, _, SecPath),
 	man_index(Obj, _, _, _, _), !,
 	object_href(Obj, Ref).
 rewrite_ref(flag, Ref0, Path, Ref) :-
@@ -802,7 +814,7 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
 	sub_atom(Ref0, _, A, 0, Fragment),
 	file_directory_name(Path, Dir),
 	atomic_list_concat([Dir, /, File], SecPath),
-	Obj = section(_, _, SecPath),
+	Obj = section(_, _, _, SecPath),
 	man_index(Obj, _, _, _, _), !,
 	object_href(Obj, Ref1),
 	format(string(Ref), '~w#~w', [Ref1, Fragment]).
@@ -826,14 +838,14 @@ name_to_object(Atom, c(Function)) :-
 
 %%	referenced_section(+Fragment, +File, +Path, -Section)
 
-referenced_section(Fragment, File, Path, section(Level, Nr, SecPath)) :-
+referenced_section(Fragment, File, Path, section(Level, Nr, ID, SecPath)) :-
 	atom_concat('sec:', Nr, Fragment),
 	(   File == ''
 	->  SecPath = Path
 	;   file_directory_name(Path, Dir),
 	    atomic_list_concat([Dir, /, File], SecPath)
 	),
-	man_index(section(Level, Nr, SecPath), _, _, _, _).
+	man_index(section(Level, Nr, ID, SecPath), _, _, _, _).
 
 
 %%	man_links(+ParentPaths, +Options)// is det.
@@ -860,7 +872,7 @@ man_parent(ParentPaths) -->
 man_parent(_) --> [].
 
 parent_to_section(X+_, X) :-
-	X = section(_,_,_), !.
+	X = section(_,_,_,_), !.
 parent_to_section(File+_, Section) :-
 	atom(File),
 	man_index(Section, _Title, File, _Class, _Offset), !.
@@ -877,7 +889,7 @@ section_link(Section, Options) -->
 	},
 	section_link(Style, Section, Options).
 
-section_link(number, section(_, Number, _), _Options) --> !,
+section_link(number, section(_, Number, _, _), _Options) --> !,
 	(   {Number == '0'}		% Title.  Package?
 	->  []
 	;   html(['Sec. ', Number])
@@ -887,7 +899,7 @@ section_link(title, Obj, _Options) --> !,
 	},
 	html(Title).
 section_link(_, Obj, _Options) --> !,
-	{ Obj = section(_, Number, _),
+	{ Obj = section(_, Number, _, _),
 	  man_index(Obj, Title, _File, _Class, _Offset)
 	},
 	(   { Number == '0' }
@@ -945,7 +957,7 @@ package_class(true,  pkg_link, _).
 package_class(false, no_pkg_link, _).
 
 current_package(pkg(Title, HREF, HavePackage)) :-
-	man_index(section(0, _, _), Title, File, packages, _),
+	man_index(section(0, _, _, _), Title, File, packages, _),
 	file_base_name(File, FileNoDir),
 	file_name_extension(Base, _, FileNoDir),
 	(   exists_source(library(Base))
@@ -971,7 +983,7 @@ pldoc_package(Request) :-
 pldoc_package(Request) :-
 	(   memberchk(path_info(PkgDoc), Request),
 	    \+ sub_atom(PkgDoc, _, _, _, /),
-	    Obj = section(0,_,_),
+	    Obj = section(0,_,_,_),
 	    index_manual,
 	    man_index(Obj, Title, File, packages, _),
 	    file_base_name(File, PkgDoc)
@@ -990,7 +1002,7 @@ pldoc_package(Request) :-
 pldoc_refman(Request) :-
 	memberchk(path_info(Section), Request),
 	\+ sub_atom(Section, _, _, _, /),
-	Obj = section(0,_,_),
+	Obj = section(0,_,_,_),
 	index_manual,
 	man_index(Obj, Title, File, manual, _),
 	file_base_name(File, Section), !,
@@ -999,7 +1011,7 @@ pldoc_refman(Request) :-
 			\object_page(Obj, [])).
 pldoc_refman(Request) :-		% server Contents.html
 	\+ memberchk(path_info(_), Request), !,
-	Section = section(_, _, swi('doc/Manual/Contents.html')),
+	Section = section(_, _, _, swi('doc/Manual/Contents.html')),
 	reply_html_page(pldoc(refman),
 			title('SWI-Prolog manual'),
 			\man_page(Section, [])).
@@ -1020,7 +1032,7 @@ prolog:doc_object_page(Obj, Options) -->
 	man_page(Obj, [no_manual(fail),footer(false)|Options]).
 
 prolog:doc_object_link(Obj, Options) -->
-	{ Obj = section(_,_,_) }, !,
+	{ Obj = section(_,_,_,_) }, !,
 	section_link(Obj, Options).
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = c(Function) }, !,
@@ -1030,7 +1042,7 @@ prolog:doc_category(manual,   30, 'SWI-Prolog Reference Manual').
 prolog:doc_category(packages, 40, 'Package documentation').
 
 prolog:doc_file_index_header(File, Options) -->
-	{ Section = section(_Level, _No, File),
+	{ Section = section(_Level, _No, _ID, File),
 	  man_index(Section, _Summary, File, _Cat, _Offset)
 	}, !,
 	html(tr(th([colspan(3), class(section)],
@@ -1041,11 +1053,11 @@ prolog:doc_file_index_header(File, Options) -->
 		   ]))).
 
 prolog:doc_object_title(Obj, Title) :-
-	Obj = section(_,_,_),
+	Obj = section(_,_,_,_),
 	man_index(Obj, Title, _, _, _), !.
 
-prolog:doc_canonical_object(section(Level, No, Path),
-			    section(Level, No, swi(Local))) :-
+prolog:doc_canonical_object(section(Level, No, ID, Path),
+			    section(Level, No, ID, swi(Local))) :-
 	atom(Path),
 	is_absolute_file_name(Path),
 	absolute_file_name(swi(.), SWI,
