@@ -53,6 +53,7 @@ too conservative.
 \newpage
 
 \section{Introduction}
+\label{sec:pldoc-intro}
 
 When developing Prolog source that has to be maintained for a longer
 period or is developed by a ---possibly distributed--- team some basic
@@ -79,6 +80,7 @@ In \secref{motivation} we motivate our main choices.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Overview}
+\label{sec:pldoc-overview}
 
 Like JavaDoc, the PlDoc infrastructure is based on \emph{structured
 comments}.  Using comments, no changes have to be made to Prolog to
@@ -102,6 +104,7 @@ a web-server that can be used to browse the documentation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Structured comments}
+\label{sec:pldoc-comments}
 
 Structured comments come in two flavours, the line-comment (\%) based
 one, seen mostly in the Prolog community and the block-comment
@@ -335,6 +338,7 @@ in Wiki notation, based on \url[TWiki]{http://www.twiki.org}, with some
 Prolog specific additions.
 
 \subsection{Structuring conventions}
+\label{sec:pldoc-comment-structure}
 
 \begin{description}
     \item [Paragraphs]
@@ -511,6 +515,7 @@ three examples, the last two of which are valid markdown.
 \end{description}
 
 \subsection{Text markup: fonts and links}
+\label{sec:pldoc-markup}
 
 \subsubsection{Empahizing text}
 \label{sec:emph}
@@ -595,6 +600,7 @@ absolute_file_name/3 and otherwise rendered as \jargon{code}.
 
 
 \subsubsection{Links}
+\label{sec:pldoc-links}
 
 \Tabref{links} shows the constructs for creating links.
 
@@ -632,6 +638,7 @@ absolute_file_name/3 and otherwise rendered as \jargon{code}.
 
 
 \subsection{Images}
+\label{sec:pldoc-images}
 
 Images can be included in the documentation by referencing an image file
 using one of the extensions \fileext{gif}, \fileext{png},
@@ -698,6 +705,7 @@ application will process this data using setup.pl. ...
 
 
 \subsection{During development}
+\label{sec:pldoc-development}
 
 To support the developer with an up-to-date version of the documentation
 of both the application under development and the system libraries the
@@ -814,6 +822,7 @@ starting the server using doc_server/1.  This section briefly explains
 the user-interface provided from the browser.
 
 \subsubsection{Searching}
+\label{sec:pldoc-search}
 
 The top-right of the screen provides a search-form. The search string
 typed is searched as a substring and case-insensitive. Multiple strings
@@ -839,6 +848,7 @@ search. \textsf{All} searches both the application and manuals.
 Searching for \textsf{Summary} also implies \textsf{Name}.
 
 \subsubsection{Views}
+\label{sec:pldoc-views}
 
 The web-browser supports several views, which we briefly summarise
 here:
@@ -874,6 +884,7 @@ enclosing section (\emph{Up}).
 
 
 \subsubsection{Editing}
+\label{sec:pldoc-editing}
 
 If the browser is accessed from \const{localhost}, each object that
 is related to a known source-location has an edit icon at the right
@@ -993,6 +1004,7 @@ producing high-quality PDF documents.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Compatibility and standards}
+\label{sec:pldoc-compatibility}
 
 Initially, the PlDoc wiki language was based on
 \url[Twiki]{http://www.twiki.org}. Currently,

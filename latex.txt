@@ -30,7 +30,7 @@ We generate latex.tex from latex.txt using this Makefile fragment:
 	    -t "halt(1)"
 ==
 
----+++ Predicate reference for the LaTeX backend
+### Predicate reference for the LaTeX backend {#pldoc-latex-predicates}
 
 High-level access is provided by doc_latex/3, while more low level
 access is provided by the remaining predicates. Generated LaTeX depends
