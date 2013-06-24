@@ -116,6 +116,26 @@ locked_index_manual :-
 	    fail ; true
 	).
 
+check_dubplicate_ids :-
+	findall(Id, man_index(section(_,_,Id,_),_,_,_,_), Ids),
+	msort(Ids, Sorted),
+	duplicate_ids(Sorted, Duplicates),
+	(   Duplicates == []
+	->  true
+	;   print_message(warning, pldoc(duplicate_ids(Duplicates)))
+	).
+
+duplicate_ids([], []).
+duplicate_ids([H,H|T0], [H|D]) :- !,
+	take_prefix(H,T0,T),
+	duplicate_ids(T, D).
+duplicate_ids([_|T], D) :-
+	duplicate_ids(T, D).
+
+take_prefix(H, [H|T0], T) :- !,
+	take_prefix(H, T0, T).
+take_prefix(_, L, L).
+
 
 %%	index_man_directory(Dir, +Options) is det
 %
@@ -1065,3 +1085,15 @@ prolog:doc_canonical_object(section(Level, No, ID, Path),
 			     solutions(all)
 			   ]),
 	atom_concat(SWI, Local, Path), !.
+
+
+		 /*******************************
+		 *	     MESSAGES		*
+		 *******************************/
+
+:- multifile prolog:message//1.
+
+prolog:message(pldoc(duplicate_ids(L))) -->
+	[ 'PlDoc: duplicate manual section IDs:'-[], nl,
+	  '~w'-[L]
+	].
