@@ -42,6 +42,7 @@
 :- use_module(library(uri)).
 :- use_module(library(apply)).
 :- use_module(library(option)).
+:- use_module(library(filesex)).
 :- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
@@ -223,7 +224,8 @@ index_on_begin(div, Attributes, Parser) :- !,
 		   ]),
 	dom_to_text(DOM, Title),
 	nb_getval(pldoc_index_class, Class),
-	assert(man_index(section(0, '0', File, File),
+	swi_local_path(File, Local),
+	assert(man_index(section(0, '0', Local, File),
 			 Title, File, Class, Offset)).
 index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 	heading(H, Level),
@@ -243,7 +245,8 @@ section_id(Attributes, _Title, ID) :-
 	memberchk(id=ID, Attributes), !.
 section_id(_Attributes, Title, ID) :-
 	atomic_list_concat(Words, ' ', Title),
-	atomic_list_concat(Words, '_', ID).
+	atomic_list_concat(Words, '_', ID0),
+	atom_concat('sec:', ID0, ID).
 
 %%	dom_section(+HeaderDOM, -NR, -Title) is semidet.
 %
@@ -454,16 +457,20 @@ section_start(Path, Nr, Pos) :-
 
 resolve_section(section(Level, No, Spec), Section) :- !,
 	resolve_section(section(Level, No, _, Spec), Section).
-resolve_section(section(Level, No, ID, Spec),
+resolve_section(section(Level, No, ID, swi(Local)),
 		section(Level, No, ID, Path)) :-
-	absolute_file_name(Spec, Path,
+	(   sub_atom(Local, 0, _, _, 'doc/')
+	->  File = swi(Local)
+	;   File = swi(doc/Local)
+	),
+	absolute_file_name(File, Path,
 			   [ access(read)
 			   ]),
 	(   man_index(section(Level, No, ID, Path), _, _, _, _)
 	->  true
 	;   path_allowed(Path)
 	->  true
-	;   permission_error(read, manual_file, Spec)
+	;   permission_error(read, manual_file, swi(Local))
 	).
 
 
@@ -548,6 +555,9 @@ object_spec(Atom, PI) :-
 %	    * section(Level, Number, Id, File)
 %	    Display a section of the manual
 %
+%	    * sec(DocFile#Id)
+%	    Display a section of the manual (from short form)
+%
 %	Options:
 %
 %		* no_manual(Action)
@@ -558,11 +568,8 @@ object_spec(Atom, PI) :-
 %		If =true= (default), include links to the parent object;
 %		if =false=, just emit the manual material.
 
-man_page(Obj, Options) -->
-	{ (   ground(Obj)
-	  ->  true
-	  ;   Obj = section(_,_,_,_)
-	  ),
+man_page(Obj0, Options) -->			% sections
+	{ full_page(Obj0, Obj),
           findall((Parent+Path)-DOM,
 		  load_man_object(Obj, Parent, Path, DOM),
 		  Matches),
@@ -573,7 +580,7 @@ man_page(Obj, Options) -->
 	html_requires(pldoc),
 	man_links(ParentPaths, Options),
 	man_matches(Matches, Obj, Options).
-man_page(Obj, Options) -->
+man_page(Obj, Options) -->			% predicates, etc.
 	{ full_object(Obj, Full),
 	  findall(Full-File,
 		  ( doc_comment(Full, File:_, _, _),
@@ -589,7 +596,7 @@ man_page(Obj, Options) -->
 	;   object_page_header(-, Options)
 	),
 	objects(Objs, [synopsis(true)|Options]).
-man_page(Obj, Options) -->
+man_page(Obj, Options) -->			% failure
 	{ \+ option(no_manual(fail), Options)
 	},
 	html_requires(pldoc),
@@ -598,6 +605,20 @@ man_page(Obj, Options) -->
 	       [ 'Sorry, No manual entry for ',
 		 b('~w'-[Obj])
 	       ])).
+
+full_page(Obj, _) :-
+	var(Obj), !, fail.
+full_page(Obj, Obj) :-
+	Obj = section(_,_,_,_), !.
+full_page(sec(Sec), section(_,_,SecId,swi(Local))) :-
+	sub_atom(Sec, B, _, A, @), !,
+	sub_atom(Sec, _, A, 0, Id),
+	atom_concat('sec:', Id, SecId),
+	sub_atom(Sec, 0, B, _, Local).
+full_page(sec(Local), section(_,_,_,swi(Local))).
+full_page(Obj, Obj) :-
+	ground(Obj).
+
 
 full_object(M:N/A, M:N/A) :- !.
 full_object(M:N//A, M:N/A2) :-
@@ -1078,13 +1099,29 @@ prolog:doc_object_title(Obj, Title) :-
 
 prolog:doc_canonical_object(section(Level, No, ID, Path),
 			    section(Level, No, ID, swi(Local))) :-
+	swi_local_path(Path, Local).
+
+swi_local_path(Path, Local) :-
 	atom(Path),
 	is_absolute_file_name(Path),
-	absolute_file_name(swi(.), SWI,
+	absolute_file_name(swi(doc), SWI,
 			   [ file_type(directory),
 			     solutions(all)
 			   ]),
-	atom_concat(SWI, Local, Path), !.
+	directory_file_path(SWI, Local, Path), !.
+
+%%	prolog:doc_object_href(+Object, -HREF) is semidet.
+%
+%	Produce a HREF for section objects.
+
+prolog:doc_object_href(section(_Level, No, ID, Path), HREF) :-
+	swi_local_path(Path, Local),
+	http_link_to_id(pldoc_man, [sec(Local)], HREF0),
+	(   fail, No == '0'		   % TBD: get rid of # for main entry
+	->  HREF = HREF0
+	;   atom_concat('sec:', Frag, ID),
+	    atomic_list_concat([HREF0, '@', Frag], HREF)
+	).
 
 
 		 /*******************************
