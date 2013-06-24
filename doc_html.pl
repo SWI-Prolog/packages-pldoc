@@ -1665,6 +1665,8 @@ object_href(M:PI0, HREF, Options) :-
 	uri_data(path, Components, LocalFile),
 	uri_data(fragment, Components, PIS),
 	uri_components(HREF, Components).
+object_href(Obj, HREF, _Options) :-
+	prolog:doc_object_href(Obj, HREF), !.
 object_href(Obj0, HREF, _Options) :-
 	localise_object(Obj0, Obj),
 	term_to_string(Obj, String),

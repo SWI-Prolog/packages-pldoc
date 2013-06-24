@@ -599,7 +599,7 @@ clean_path(Path, Path).
 
 %%	pldoc_man(+Request)
 %
-%	Handler for /man, offerring one of the parameters:
+%	Handler for /man, offering one of the parameters:
 %
 %	    * predicate=PI
 %	    providing documentation from the manual on the predicate PI.
@@ -612,7 +612,8 @@ pldoc_man(Request) :-
 	http_parameters(Request,
 			[ predicate(PI, [optional(true)]),
 			  function(Fun, [optional(true)]),
-			  'CAPI'(F,     [optional(true)])
+			  'CAPI'(F,     [optional(true)]),
+			  sec(Sec,      [optional(true)])
 			]),
 	(   ground(PI)
 	->  split_pi(PI, Obj)
@@ -622,16 +623,20 @@ pldoc_man(Request) :-
 	    Obj = f(Name/Arity)
 	;   ground(F)
 	->  Obj = c(F)
+	;   ground(Sec)
+	->  Obj = sec(Sec)
 	),
 	man_title(Obj, Title),
 	reply_html_page(pldoc(man),
 			title(Title),
 			\man_page(Obj, [])).
 
-man_title(f(Obj), Title) :-
+man_title(f(Obj), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- function ~w', [Obj]).
-man_title(c(Obj), Title) :-
+man_title(c(Obj), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- API-function ~w', [Obj]).
+man_title(sec(_Sec), Title) :- !,
+	format(atom(Title), 'SWI-Prolog -- Manual', []).
 man_title(Obj, Title) :-
 	format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
 
