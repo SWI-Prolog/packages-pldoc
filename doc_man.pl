@@ -1131,6 +1131,14 @@ prolog:doc_object_href(section(_Level, No, ID, Path), HREF) :-
 :- multifile prolog:message//1.
 
 prolog:message(pldoc(duplicate_ids(L))) -->
-	[ 'PlDoc: duplicate manual section IDs:'-[], nl,
-	  '~w'-[L]
-	].
+	[ 'PlDoc: duplicate manual section IDs:'-[], nl
+	],
+	duplicate_ids(L).
+
+duplicate_ids([]) --> [].
+duplicate_ids([H|T]) --> duplicate_id(H), duplicate_ids(T).
+
+duplicate_id(Id) -->
+	{ findall(File, man_index(section(_,_,Id,File),_,_,_,_), Files) },
+	[ '    ~w: ~p'-[Id, Files], nl ].
+
