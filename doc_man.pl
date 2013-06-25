@@ -461,6 +461,7 @@ resolve_section(section(Level, No, Spec), Section) :- !,
 resolve_section(section(Level, No, ID, Path),
 		section(Level, No, ID, Path)) :-
 	nonvar(ID),
+	index_manual,
 	man_index(section(Level,No,ID,Path), _, _, _, _), !.
 resolve_section(section(Level, No, ID, Spec),
 		section(Level, No, ID, Path)) :-
@@ -468,7 +469,8 @@ resolve_section(section(Level, No, ID, Spec),
 	absolute_file_name(Spec, Path,
 			   [ access(read)
 			   ]),
-	(   man_index(section(Level, No, ID, Path), _, _, _, _)
+	(   index_manual,
+	    man_index(section(Level, No, ID, Path), _, _, _, _)
 	->  true
 	;   path_allowed(Path)
 	->  true
