@@ -613,7 +613,7 @@ pldoc_man(Request) :-
 			[ predicate(PI, [optional(true)]),
 			  function(Fun, [optional(true)]),
 			  'CAPI'(F,     [optional(true)]),
-			  sec(Sec,      [optional(true)])
+			  section(Sec,  [optional(true)])
 			]),
 	(   ground(PI)
 	->  split_pi(PI, Obj)
@@ -624,7 +624,8 @@ pldoc_man(Request) :-
 	;   ground(F)
 	->  Obj = c(F)
 	;   ground(Sec)
-	->  Obj = sec(Sec)
+	->  atom_concat('sec:', Sec, SecID),
+	    Obj = section(SecID)
 	),
 	man_title(Obj, Title),
 	reply_html_page(pldoc(man),
@@ -635,7 +636,7 @@ man_title(f(Obj), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- function ~w', [Obj]).
 man_title(c(Obj), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- API-function ~w', [Obj]).
-man_title(sec(_Sec), Title) :- !,
+man_title(section(_Id), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- Manual', []).
 man_title(Obj, Title) :-
 	format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).

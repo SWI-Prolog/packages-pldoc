@@ -458,20 +458,21 @@ section_start(Path, Nr, Pos) :-
 
 resolve_section(section(Level, No, Spec), Section) :- !,
 	resolve_section(section(Level, No, _, Spec), Section).
-resolve_section(section(Level, No, ID, swi(Local)),
+resolve_section(section(Level, No, ID, Path),
 		section(Level, No, ID, Path)) :-
-	(   sub_atom(Local, 0, _, _, 'doc/')
-	->  File = swi(Local)
-	;   File = swi(doc/Local)
-	),
-	absolute_file_name(File, Path,
+	nonvar(ID),
+	man_index(section(Level,No,ID,Path), _, _, _, _), !.
+resolve_section(section(Level, No, ID, Spec),
+		section(Level, No, ID, Path)) :-
+	ground(Spec),
+	absolute_file_name(Spec, Path,
 			   [ access(read)
 			   ]),
 	(   man_index(section(Level, No, ID, Path), _, _, _, _)
 	->  true
 	;   path_allowed(Path)
 	->  true
-	;   permission_error(read, manual_file, swi(Local))
+	;   permission_error(read, manual_file, Spec)
 	).
 
 
@@ -571,7 +572,7 @@ object_spec(Atom, PI) :-
 
 man_page(Obj0, Options) -->			% sections
 	{ full_page(Obj0, Obj),
-          findall((Parent+Path)-DOM,
+          findall((Parent+Path)-(Obj+DOM),
 		  load_man_object(Obj, Parent, Path, DOM),
 		  Matches),
 	  Matches = [_|_], !,
@@ -611,12 +612,7 @@ full_page(Obj, _) :-
 	var(Obj), !, fail.
 full_page(Obj, Obj) :-
 	Obj = section(_,_,_,_), !.
-full_page(sec(Sec), section(_,_,SecId,swi(Local))) :-
-	sub_atom(Sec, B, _, A, @), !,
-	sub_atom(Sec, _, A, 0, Id),
-	atom_concat('sec:', Id, SecId),
-	sub_atom(Sec, 0, B, _, Local).
-full_page(sec(Local), section(_,_,_,swi(Local))).
+full_page(section(ID), section(_,_,ID,_)) :- !.
 full_page(Obj, Obj) :-
 	ground(Obj).
 
@@ -700,12 +696,12 @@ man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
 %	If  possible,  insert  the  synopsis  into   the  title  of  the
 %	description.
 
-man_match((Parent+Path)-[element(dt,A,C),DD], Obj) -->
+man_match((Parent+Path)-(Obj+[element(dt,A,C),DD]), Obj) -->
 	dom_list([ element(dt,[],[\man_synopsis(Obj, Parent)]),
 		   element(dt,A,C),
 		   DD
 		 ], Path).
-man_match((_Parent+Path)-DOM, _Obj) -->
+man_match((_Parent+Path)-(Obj+DOM), Obj) -->
 	dom_list(DOM, Path).
 
 :- html_meta
@@ -722,7 +718,7 @@ dom(element(E, Atts, Content), Path) --> !,
 dom(CDATA, _) -->
 	html(CDATA).
 
-dom_element(a, _, [], _) -->			% Useless back-references
+dom_element(a, _, [], _) --> !,			% Useless back-references
 	[].
 dom_element(a, Att, Content, Path) -->
 	{ memberchk(href=HREF, Att),
@@ -738,7 +734,7 @@ dom_element(span, Att, [CDATA], _) -->
 	  atom_pi(CDATA, PI),
 	  documented(PI),
 	  http_link_to_id(pldoc_man, [predicate=CDATA], HREF)
-	},
+	}, !,
 	html(a(href(HREF), CDATA)).
 dom_element(img, Att0, [], Path) -->
 	{ selectchk(src=Src, Att0, Att1),
@@ -752,7 +748,7 @@ dom_element(img, Att0, [], Path) -->
 	  http_link_to_id(Handler, [], ManRef),
 	  atomic_list_concat([ManRef, /, Src], NewPath),
 	  Begin =.. [img, src(NewPath) | Att1]
-	},
+	}, !,
 	html_begin(Begin),
 	html_end(img).
 dom_element(div, Att, _, _) -->
@@ -1098,9 +1094,8 @@ prolog:doc_object_title(Obj, Title) :-
 	Obj = section(_,_,_,_),
 	man_index(Obj, Title, _, _, _), !.
 
-prolog:doc_canonical_object(section(Level, No, ID, Path),
-			    section(Level, No, ID, swi(Local))) :-
-	swi_local_path(Path, Local).
+prolog:doc_canonical_object(section(_Level, _No, ID, _Path),
+			    section(ID)).
 
 swi_local_path(Path, Local) :-
 	atom(Path),
@@ -1115,14 +1110,9 @@ swi_local_path(Path, Local) :-
 %
 %	Produce a HREF for section objects.
 
-prolog:doc_object_href(section(_Level, No, ID, Path), HREF) :-
-	swi_local_path(Path, Local),
-	http_link_to_id(pldoc_man, [sec(Local)], HREF0),
-	(   fail, No == '0'		   % TBD: get rid of # for main entry
-	->  HREF = HREF0
-	;   atom_concat('sec:', Frag, ID),
-	    atomic_list_concat([HREF0, '@', Frag], HREF)
-	).
+prolog:doc_object_href(section(_Level, _No, ID, _Path), HREF) :-
+	atom_concat('sec:', Sec, ID),
+	http_link_to_id(pldoc_man, [section(Sec)], HREF).
 
 
 		 /*******************************
