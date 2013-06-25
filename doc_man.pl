@@ -237,16 +237,17 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 		   ]),
 	dom_section(Doc, Nr, Title),
 	nb_getval(pldoc_index_class, Class),
-	section_id(Attributes, Title, ID),
+	section_id(Attributes, Title, File, ID),
 	assert(man_index(section(Level, Nr, ID, File),
 			 Title, File, Class, Offset)).
 
-section_id(Attributes, _Title, ID) :-
+section_id(Attributes, _Title, _, ID) :-
 	memberchk(id=ID, Attributes), !.
-section_id(_Attributes, Title, ID) :-
+section_id(_Attributes, Title, File, ID) :-
 	atomic_list_concat(Words, ' ', Title),
 	atomic_list_concat(Words, '_', ID0),
-	atom_concat('sec:', ID0, ID).
+	atom_concat('sec:', ID0, ID),
+	print_message(warning, pldoc(no_section_id(File, Title))).
 
 %%	dom_section(+HeaderDOM, -NR, -Title) is semidet.
 %
@@ -1130,6 +1131,8 @@ prolog:doc_object_href(section(_Level, No, ID, Path), HREF) :-
 
 :- multifile prolog:message//1.
 
+prolog:message(pldoc(no_section_id(File, Title))) -->
+	[ 'PlDoc: ~w: no id for section "~w"'-[File, Title] ].
 prolog:message(pldoc(duplicate_ids(L))) -->
 	[ 'PlDoc: duplicate manual section IDs:'-[], nl
 	],
