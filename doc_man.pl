@@ -1074,6 +1074,12 @@ prolog:doc_object_page(Obj, Options) -->
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = section(_,_,_,_) }, !,
 	section_link(Obj, Options).
+prolog:doc_object_link(Obj0, Options) -->
+	{ Obj0 = section(ID),
+	  Obj = section(_Level, _No, ID, _Path),
+	  man_index(Obj, _, _, _, _)
+	}, !,
+	section_link(Obj, Options).
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = c(Function) }, !,
 	function_link(Function, Options).
