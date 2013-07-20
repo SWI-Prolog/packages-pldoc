@@ -418,6 +418,7 @@ index_sections(Rest, _, [], Rest).
 %	Tree is the content tree of all packages
 
 man_packages_tree(node(packages, Packages)) :-
+	index_manual,
 	Section = section(0, _, _, _),
 	findall(File,
 		man_index(Section, _Title, File, packages, _),
@@ -439,6 +440,7 @@ package_node(File, Tree) :-
 %	    node(Object, ListOfTree).
 
 html_content_tree(File, Tree) :-
+	index_manual,
 	findall(Offset-Obj,
 		man_index(Obj, _Summary, File, _Class, Offset),
 		Pairs),
