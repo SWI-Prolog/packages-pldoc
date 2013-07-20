@@ -34,7 +34,10 @@
 	    index_man_file/2,		% +Class, +FileSpec
 					% HTML generation
 	    man_page//2,		% +Obj, +Options
-	    man_overview//1		% +Options
+	    man_overview//1,		% +Options
+
+	    man_content_tree/2,		% +Dir, -Tree
+	    man_packages_tree/1		% -Tree
 	  ]).
 :- use_module(library(sgml)).
 :- use_module(library(occurs)).
@@ -43,6 +46,7 @@
 :- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(filesex)).
+:- use_module(library(xpath)).
 :- use_module(doc_wiki).
 :- use_module(doc_html).
 :- use_module(doc_search).
@@ -88,10 +92,8 @@ clean_man_index :-
 %	True if Dir is a directory holding manual files. Class is an
 %	identifier used by doc_object_summary/4.
 
-
 manual_directory(manual,   swi('doc/Manual')).
 manual_directory(packages, swi('doc/packages')).
-
 
 
 		 /*******************************
@@ -360,6 +362,111 @@ cdata(CDATA) -->
 	[CDATA].
 cdata(_) -->
 	[].
+
+
+		 /*******************************
+		 *	     HIERARCHY		*
+		 *******************************/
+
+%%	man_content_tree(+Dir, -Tree) is det.
+%
+%	Compute the content tree for a   multi-file HTML document. We do
+%	this by processing =Contents.html= for  making the toplevel tree
+%	that   links   to   the   individual    files.   Then   we   use
+%	html_content_tree/2 to materialize the trees for the files.
+
+man_content_tree(Spec, node(manual, Chapters)) :-
+	absolute_file_name(Spec, Dir,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	directory_file_path(Dir, 'Contents.html', ContentsFile),
+	load_html_file(ContentsFile, DOM),
+	findall(Level-Path,
+		( xpath(DOM, //div(@class=Class), DIV),
+		  class_level(Class, Level),
+		  xpath(DIV, a(@class=sec,@href=File), _),
+		  \+ sub_atom(File, _, _, _, #),
+		  directory_file_path(Dir, File, Path)
+		),
+		Pairs),
+	index_chapters(Pairs, Chapters).
+
+class_level('toc-h1', 1).
+class_level('toc-h2', 2).
+class_level('toc-h3', 3).
+class_level('toc-h4', 4).
+
+index_chapters([], []).
+index_chapters([Level-File|T0], [node(Chapter, Children)|T]) :-
+	html_content_tree(File, Node),
+	Node = node(Chapter, Children0),
+	append(Children0, Sections, Children),
+	index_sections(T0, Level, Sections, T1),
+	index_chapters(T1, T).
+
+index_sections([], _, [], []) :- !.
+index_sections([SLevel-File|T0], Level, [Node|T], Rest) :-
+	SLevel > Level, !,
+	html_content_tree(File, Node),
+	index_sections(T0, Level, T, Rest).
+index_sections(Rest, _, [], Rest).
+
+
+%%	man_packages_tree(-Tree) is det.
+%
+%	Tree is the content tree of all packages
+
+man_packages_tree(node(packages, Packages)) :-
+	Section = section(0, _, _, _),
+	findall(File,
+		man_index(Section, _Title, File, packages, _),
+		Files),
+	maplist(package_node, Files, Packages).
+
+package_node(File, Tree) :-
+	html_content_tree(File, Tree).
+
+%%	html_content_tree(+ManualFile, -Tree) is det.
+%
+%	True when Tree represents the  hierarchical structure of objects
+%	documented in the HTML file ManualFile. Tree  is a term where of
+%	the form below. Object is a   documentation  object (typically a
+%	section  or  predicate  indicator)  that    may   be  handed  to
+%	object_link//1  and  similar  predicates  to  make  a  table  of
+%	contents.
+%
+%	    node(Object, ListOfTree).
+
+html_content_tree(File, Tree) :-
+	findall(Offset-Obj,
+		man_index(Obj, _Summary, File, _Class, Offset),
+		Pairs),
+	keysort(Pairs, Sorted),
+	pairs_values(Sorted, Objects),
+	make_tree(Objects, Trees),
+	assertion(Trees = [_]),
+	Trees = [Tree].
+
+make_tree([], []).
+make_tree([Obj|T0], [node(Obj, Children)|T]) :-
+	children(T0, Obj, Children, T1),
+	make_tree(T1, T).
+
+children([], _, [], []) :- !.
+children([Obj|T0], Root, [Node|T], Rest) :-
+	section_level(Obj, ObjLevel),
+	section_level(Root, Level),
+	ObjLevel > Level, !,
+	Node = node(Obj, Children),
+	children(T0, Obj, Children, T1),
+	children(T1, Root, T, Rest).
+children([Obj|T0], Root, [Obj|T], Rest) :-
+	\+ section_level(Obj, _), !,
+	children(T0, Root, T, Rest).
+children(Rest, _, [], Rest).
+
+section_level(section(Level, _Nr, _Id, _File), Level).
 
 
 		 /*******************************
