@@ -243,8 +243,10 @@ wiki_file(Dir, Type, Options) -->
 %	for a directory. Files are matched case-insensitively.
 
 wiki_file_type(readme, 'readme').
+wiki_file_type(readme, 'readme.md').
 wiki_file_type(readme, 'readme.txt').
 wiki_file_type(todo,   'todo').
+wiki_file_type(todo,   'todo.md').
 wiki_file_type(todo,   'todo.txt').
 
 %%	file_indices(+Files, +Options)// is det.
