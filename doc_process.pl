@@ -366,7 +366,7 @@ comment_warning(Style, E) :-
 compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	string_to_list(Comment, CommentCodes),
 	indented_lines(CommentCodes, Prefixes, Lines),
-	(   section_comment_header(Lines, Header, RestLines)
+	(   section_comment_header(Lines, Header, _RestLines)
 	->  Header = \section(Type, Title),
 	    Id =.. [Type,Title],
 	    Compiled = [section(Id, Title, Comment)]
