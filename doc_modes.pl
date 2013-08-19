@@ -421,6 +421,8 @@ is_head_arg_nva(Arg:Type) :-
 	is_type(Type).
 
 is_type(Type) :-
+	var(Type), !.			% allow polypmorphic types.
+is_type(Type) :-
 	callable(Type).
 
 %%	mode_indicator(?Ind:atom) is nondet.
