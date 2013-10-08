@@ -116,8 +116,7 @@ http:location(pldoc_resource, Path, []) :-
 
 doc_server(Port) :-
 	doc_server(Port,
-		   [ workers(1),
-		     allow(localhost),
+		   [ allow(localhost),
 		     allow(ip(127,0,0,1)) % Windows ip-->host often fails
 		   ]).
 
@@ -127,9 +126,7 @@ doc_server(Port, Options) :-
 	prepare_editor,
 	host_access_options(Options, ServerOptions),
 	merge_options(ServerOptions,
-		      [ port(Port),
-			timeout(60),
-			keep_alive_timeout(1)
+		      [ port(Port)
 		      ], HTTPOptions),
 	http_server(http_dispatch, HTTPOptions),
 	assertz(doc_server_port(Port)),
