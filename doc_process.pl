@@ -364,7 +364,7 @@ comment_warning(Style, E) :-
 %	@see parse_comment/3 for the terms in Compiled.
 
 compile_comment(Comment, FilePos, Prefixes, Compiled) :-
-	string_to_list(Comment, CommentCodes),
+	string_codes(Comment, CommentCodes),
 	indented_lines(CommentCodes, Prefixes, Lines),
 	(   section_comment_header(Lines, Header, _RestLines)
 	->  Header = \section(Type, Title),
@@ -377,7 +377,7 @@ compile_comment(Comment, FilePos, Prefixes, Compiled) :-
 	    decl_module(AllPIs, M, [PI0|PIs]),
 	    maplist(link_term(M:PI0), PIs, Links),
 	    summary_from_lines(RestLines, Codes),
-	    string_to_list(Summary, Codes),
+	    string_codes(Summary, Codes),
 	    append([ ModeDecls,
 		     [ predicate(M:PI0, Summary, Comment) ],
 		     Links

@@ -296,7 +296,7 @@ heading(h4, 4).
 summary(DOM, Summary) :-
 	phrase(summary(DOM, _), SummaryCodes0),
 	phrase(normalise_white_space(SummaryCodes), SummaryCodes0),
-	string_to_list(Summary, SummaryCodes).
+	string_codes(Summary, SummaryCodes).
 
 summary([], _) --> !,
 	[].
@@ -347,7 +347,7 @@ dom_to_text(Dom, Text) :-
 		       forall(member(T, CDATA),
 			      write(T))),
 	phrase(normalise_white_space(Codes), Codes0),
-	string_to_list(Text, Codes).
+	string_codes(Text, Codes).
 
 cdata_list([]) -->
 	[].

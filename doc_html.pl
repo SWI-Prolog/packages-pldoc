@@ -512,7 +512,7 @@ file_header(File, Options) -->
 	},
 	file_title([Base, ' -- ', Title], File, Options),
 	{ is_structured_comment(Comment, Prefixes),
-	  string_to_list(Comment, Codes),
+	  string_codes(Comment, Codes),
 	  indented_lines(Codes, Prefixes, Lines),
 	  section_comment_header(Lines, _Header, Lines1),
 	  wiki_lines_to_dom(Lines1, [], DOM)
@@ -681,7 +681,7 @@ object(Obj, _Pairs, Mode, Mode, _Options) -->
 
 pred_dom(Obj, Options, Pos-Comment, DOM) :-
 	is_structured_comment(Comment, Prefixes),
-	string_to_list(Comment, Codes),
+	string_codes(Comment, Codes),
 	indented_lines(Codes, Prefixes, Lines),
 	strip_module(user:Obj, Module, _),
 	process_modes(Lines, Module, Pos, Modes, Args, Lines1),
@@ -1099,7 +1099,7 @@ argument(arg(Name,Descr)) -->
 		 *******************************/
 
 section(Type, Title) -->
-	{ string_to_list(Title, Codes),
+	{ string_codes(Title, Codes),
 	  wiki_codes_to_dom(Codes, [], Content0),
 	  strip_leading_par(Content0, Content),
 	  make_section(Type, Content, HTML)

@@ -407,7 +407,7 @@ object_summary(doc(Obj, _Pos, _Summary), wiki, Options) --> !,
 		[ td(colspan(3), \object_ref(Obj, Options))
 		])).
 object_summary(doc(Obj, _Pos, Summary), _Section, Options) --> !,
-	(   { string_to_list(Summary, Codes),
+	(   { string_codes(Summary, Codes),
 	      wiki_codes_to_dom(Codes, [], DOM0),
 	      strip_leading_par(DOM0, DOM),
 	      (	  private(Obj, Options)
