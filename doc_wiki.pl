@@ -1628,9 +1628,11 @@ stars --> "*", !, stars.
 %	line-position at the end of the leading characters.
 
 take_prefix(Prefixes, I0, I) -->
-	{ member(Prefix, Prefixes) },
-	prefix(Prefix), !,
-	{ string_update_linepos(Prefix, I0, I) }.
+	{ member(Prefix, Prefixes),
+	  string_codes(Prefix, PrefixCodes)
+	},
+	prefix(PrefixCodes), !,
+	{ string_update_linepos(PrefixCodes, I0, I) }.
 take_prefix(_, I, I) -->
 	[].
 
