@@ -468,7 +468,7 @@ prim_search_spec(Spec) -->
 	{   Codes = [0'-|Rest]		% '
 	->  atom_codes(Word, Rest),
 	    Spec = not(Word)
-	;   Codes \== "",
+	;   Codes \== [],
 	    atom_codes(Spec, Codes)
 	}.
 

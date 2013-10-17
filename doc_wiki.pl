@@ -1326,8 +1326,8 @@ normalise_white_space2(Text) -->
 	non_ws(Text, Tail),
 	ws,
 	(   eos
-	->  { Tail = "" }
-	;   { Tail = [32|T2] },
+	->  { Tail = [] }
+	;   { Tail = [0'\s|T2] },
 	    normalise_white_space2(T2)
 	).
 
@@ -1445,7 +1445,7 @@ verbatim_body([I-L|Lines], Indent, [10|Pre], PreT, RestLines) :-
 	verbatim_body(Lines, Indent, PreT1, PreT, RestLines).
 
 verbatim_fence(Line, Fence, '') :-
-	Line == "==", !,
+	Line == [0'=,0'=], !,
 	Fence = Line.
 verbatim_fence(Line, Fence, Ext) :-
 	tilde_fence(Line, Fence, 0, Ext).
@@ -1577,8 +1577,8 @@ skip_empty_lines([_-[]|Lines0], Lines) :- !,
 	skip_empty_lines(Lines0, Lines).
 skip_empty_lines(Lines, Lines).
 
-end_sentence("", "").
-end_sentence(" ", ".") :- !.
+end_sentence([], []).
+end_sentence([0'\s], [0'.]) :- !.
 end_sentence([H|T0], [H|T]) :-
 	end_sentence(T0, T).
 

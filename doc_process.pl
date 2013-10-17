@@ -158,8 +158,9 @@ blank_or_percent(C) :-
 	code_type(C, space).
 
 contains(Haystack, Needle) :-
+	string_codes(Needle, NeedleCodes),
 	append(_, Start, Haystack),
-	append(Needle, _, Start), !.
+	append(NeedleCodes, _, Start), !.
 
 
 %%	doc_file_name(+Source:atom, -Doc:atom, +Options:list) is det.
