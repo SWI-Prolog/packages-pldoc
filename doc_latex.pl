@@ -309,13 +309,13 @@ latex([]) --> !,
 	[].
 latex(Atomic) -->
 	{ string(Atomic),
-	  string_to_atom(Atomic, Atom),
+	  atom_string(Atom, Atomic),
 	  sub_atom(Atom, 0, _, 0, 'LaTeX')
 	}, !,
 	[ latex('\\LaTeX{}') ].
 latex(Atomic) -->			% can this actually happen?
 	{ atomic(Atomic), !,
-	  string_to_atom(Atomic, Atom),
+	  atom_string(Atom, Atomic),
 	  findall(x, sub_atom(Atom, _, _, _, '\n'), Xs),
 	  length(Xs, Lines)
 	},
@@ -531,7 +531,7 @@ fragile_list([H|T]) -->
 
 latex_arg(H) -->
 	{ atomic(H),
-	  string_to_atom(H, Atom),
+	  atom_string(Atom, H),
 	  urldef_name(Atom, Name)
 	}, !,
 	latex(cmd(Name)).
@@ -1331,7 +1331,7 @@ replace([H|T0], F, N, [H|T]) :-
 %	Print Text, such that it comes out as normal LaTeX text.
 
 print_latex(Out, String) :-
-	string_to_atom(String, Atom),
+	atom_string(Atom, String),
 	atom_chars(Atom, Chars),
 	print_chars(Chars, Out).
 

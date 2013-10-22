@@ -92,7 +92,7 @@ is_structured_comment(Comment, Prefixes, Style) :-
 	is_list(Comment), !,
 	phrase(structured_comment(Prefixes, Style), Comment, _).
 is_structured_comment(Comment, Prefixes, Style) :-
-	string_to_atom(Comment, CommentA),
+	atom_string(CommentA, Comment),
 	structured_command_start(Start, Prefixes, Style),
 	sub_atom(CommentA, 0, Len, _, Start), !,
 	sub_atom(CommentA, Len, 1, _, Space),
