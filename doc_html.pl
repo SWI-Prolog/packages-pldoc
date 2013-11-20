@@ -1215,7 +1215,7 @@ anchored_pred_head(Head, Done0, Done, Options) -->
 pred_edit_button(_, Options) -->
 	{ \+ option(edit(true), Options) }, !.
 pred_edit_button(PI0, Options0) -->
-	{ canonise_predref(PI0, PI, Options0, Options) },
+	{ canonicalise_predref(PI0, PI, Options0, Options) },
 	pred_edit_button2(PI, Options).
 
 pred_edit_button2(Name/Arity, Options) -->
@@ -1266,7 +1266,7 @@ object_edit_button(_, _) -->
 %	Create a button for viewing the source of a predicate.
 
 pred_source_button(PI0, Options0) -->
-	{ canonise_predref(PI0, PI, Options0, Options),
+	{ canonicalise_predref(PI0, PI, Options0, Options),
 	  option(module(M), Options, _),
 	  pred_source_href(PI, M, HREF), !
 	},
@@ -1294,25 +1294,25 @@ object_source_button(_, _) -->
 	[].
 
 
-%%	canonise_predref(+PredRef, -PI:Name/Arity, +Options0, -Options) is det.
+%%	canonicalise_predref(+PredRef, -PI:Name/Arity, +Options0, -Options) is det.
 %
-%	Canonise a predicate reference. A   possible module qualifier is
+%	Canonicalise a predicate reference. A   possible module qualifier is
 %	added as module(M) to Options.
 
-canonise_predref(M:PI0, PI, Options0, [module(M)|Options]) :- !,
-	canonise_predref(PI0, PI, Options0, Options).
-canonise_predref(//(Head), PI, Options0, Options) :-	!,
+canonicalise_predref(M:PI0, PI, Options0, [module(M)|Options]) :- !,
+	canonicalise_predref(PI0, PI, Options0, Options).
+canonicalise_predref(//(Head), PI, Options0, Options) :-	!,
 	functor(Head, Name, Arity),
 	PredArity is Arity + 2,
-	canonise_predref(Name/PredArity, PI, Options0, Options).
-canonise_predref(Name//Arity, PI, Options0, Options) :- !,
+	canonicalise_predref(Name/PredArity, PI, Options0, Options).
+canonicalise_predref(Name//Arity, PI, Options0, Options) :- !,
 	PredArity is Arity + 2,
-	canonise_predref(Name/PredArity, PI, Options0, Options).
-canonise_predref(PI, PI, Options, Options) :-
+	canonicalise_predref(Name/PredArity, PI, Options0, Options).
+canonicalise_predref(PI, PI, Options, Options) :-
 	PI = _/_, !.
-canonise_predref(Head, PI, Options0, Options) :-
+canonicalise_predref(Head, PI, Options0, Options) :-
 	functor(Head, Name, Arity),
-	canonise_predref(Name/Arity, PI, Options0, Options).
+	canonicalise_predref(Name/Arity, PI, Options0, Options).
 
 
 %%	pred_head(+Term) is det.
