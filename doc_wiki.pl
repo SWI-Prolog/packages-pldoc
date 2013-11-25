@@ -999,7 +999,7 @@ arg_list_close([H|T], Depth) -->
 term_face(_Text, Term, _Vars, \file(Name, FileOptions)) :-
 	ground(Term),
 	compound(Term),
-	Term =.. [Alias,_],
+	compound_name_arguments(Term, Alias, [_]),
 	user:file_search_path(Alias, _),
 	existing_file(Term, FileOptions, []), !,
 	format(atom(Name), '~q', [Term]).
