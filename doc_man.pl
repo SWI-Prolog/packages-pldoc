@@ -957,6 +957,13 @@ rewrite_ref(sec, File, Path, Ref) :-		% Section is a file
 	Obj = section(_, _, _, SecPath),
 	man_index(Obj, _, _, _, _), !,
 	object_href(Obj, Ref).
+rewrite_ref(cite, Ref0, Path, Ref) :-		% Citation (bit hard-wired)
+	debug(pldoc(cite), 'Cite ref ~q ~q', [Ref0, Path]),
+	sub_atom(Ref0, _, _, A, '#'), !,
+	sub_atom(Ref0, _, A, 0, Fragment),
+	uri_encoded(query_value, Fragment, Enc),
+	http_location_by_id(pldoc_man, ManHandler),
+	format(string(Ref), '~w?section=Bibliography#~w', [ManHandler, Enc]).
 rewrite_ref(flag, Ref0, Path, Ref) :-
 	sub_atom(Ref0, B, _, A, '#'), !,
 	sub_atom(Ref0, 0, B, _, File),
