@@ -439,7 +439,7 @@ read_n_codes(N, C, In, [C|T]) :-
 %	actual  clauses  are  created   from    the   1st   argument  of
 %	prolog_src_style/2.
 
-term_expansion(element/3, Clauses) :-
+term_expansion(element(_,_,_), Clauses) :-
 	findall(C, element_clause(C), Clauses).
 
 %element_tag(directive, div) :- !.
@@ -463,6 +463,6 @@ css_class(Term, Class) :-
 	    atomic_list_concat([P1, -, P2], Class)
 	).
 
-element/3.
+element(_,_,_).				% term expanded
 
 
