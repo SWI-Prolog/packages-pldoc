@@ -202,9 +202,12 @@ index_on_begin(dt, Attributes, Parser) :- !,
 		   [ document(DT),
 		     parse(content)
 		   ]),
-	sub_term(element(a, AA, _), DT),
-        memberchk(name=Id, AA),
-	name_to_object(Id, PI),
+	(   sub_term(element(a, AA, _), DT),
+	    member(Attr, ['data-obj', id, name]),
+	    memberchk(Attr=Id, AA),
+	    name_to_object(Id, PI)
+	->  true
+	),
 	nb_setval(pldoc_man_index, dd(PI, File, Offset)).
 index_on_begin(dd, _, Parser) :- !,
 	nb_getval(pldoc_man_index, dd(Object, File, Offset)),
