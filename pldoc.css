@@ -375,3 +375,28 @@ a.nofile:hover				/* non-existing file-link */
   text-decoration: underline;
 }
 
+/* Tables from latex2html (incomplete) */
+
+table.center
+{ margin: auto;
+}
+
+table.latex
+{ border-collapse:collapse;
+}
+
+table.latex tr
+{ vertical-align: text-top;
+}
+
+table.latex td,th
+{ padding: 2px 1em;
+}
+
+table.latex tr.hline td,th
+{ border-top: 1px solid black;
+}
+
+table.frame-box
+{ border: 2px solid black;
+}
