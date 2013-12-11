@@ -194,7 +194,8 @@ index_man_file(Class, File) :-
 %	name of the element, Attributes the  list of Name=Value pairs of
 %	the open attributes. Parser is the parser objects.
 
-index_on_begin(dt, Attributes, Parser) :- !,
+index_on_begin(dt, Attributes, Parser) :-
+	\+ nb_getval(pldoc_man_index, dd(_,_,_)), !,
 	memberchk(class=pubdef, Attributes),
         get_sgml_parser(Parser, charpos(Offset)),
         get_sgml_parser(Parser, file(File)),
@@ -542,21 +543,21 @@ load_man_object(For, Parent, Path, DOM) :-
         set_sgml_parser(Parser, dialect(sgml)),
 	set_sgml_parser(Parser, shorttag(false)),
 	set_sgml_parser(Parser, defaults(false)),
-	call_cleanup((sgml_parse(Parser,
-				 [ document(DT),
-				   source(In),
-				   parse(element)
-				 ]),
-		      sgml_parse(Parser,
-				 [ document(DD),
-				   source(In),
-				   parse(element)
-				 ])
-		     ),
+	call_cleanup(parse_dts_upto_dd(Parser, In, DOM),
 		     ( free_sgml_parser(Parser),
 		       close(In)
-		     )),
-	append(DT, DD, DOM).
+		     )).
+
+parse_dts_upto_dd(Parser, In, [DOM|More]) :-
+	sgml_parse(Parser,
+		   [ document(DOM),
+		     source(In),
+		     parse(element)
+		   ]),
+	(   DOM = [element(dt, _, _)]
+	->  parse_dts_upto_dd(Parser, In, More)
+	;   More = []
+	).
 
 section_start(Path, Nr, Pos) :-
 	index_manual,
