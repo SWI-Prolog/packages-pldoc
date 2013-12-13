@@ -1006,6 +1006,12 @@ term_face(_Text, Term, _Vars, \file(Name, FileOptions)) :-
 term_face(Text, Term, Vars, Face) :-
 	code_face(Text, Term, Vars, Face).
 
+:- if(\+current_predicate(compound_name_arguments/3)).
+compound_name_arguments(Term, Name, Args) :-
+	Term =.. [Name|Args].
+:- endif.
+
+
 %%	make_label(+Parts, -Label) is det.
 %
 %	Translate the [[Parts][...] into a label
