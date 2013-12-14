@@ -548,15 +548,17 @@ load_man_object(For, Parent, Path, DOM) :-
 		       close(In)
 		     )).
 
-parse_dts_upto_dd(Parser, In, [DOM|More]) :-
+parse_dts_upto_dd(Parser, In, Description) :-
 	sgml_parse(Parser,
-		   [ document(DOM),
+		   [ document(DOM0),
 		     source(In),
 		     parse(element)
 		   ]),
-	(   DOM = [element(dt, _, _)]
-	->  parse_dts_upto_dd(Parser, In, More)
-	;   More = []
+	(   DOM0 = [Element],
+	    Element = element(dt, _, _)
+	->  Description = [Element|More],
+	    parse_dts_upto_dd(Parser, In, More)
+	;   Description = DOM0
 	).
 
 section_start(Path, Nr, Pos) :-
@@ -811,10 +813,10 @@ man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
 %	If  possible,  insert  the  synopsis  into   the  title  of  the
 %	description.
 
-man_match((Parent+Path)-(Obj+[element(dt,A,C),DD]), Obj) -->
+man_match((Parent+Path)-(Obj+[element(dt,A,C)|DD]), Obj) -->
 	dom_list([ element(dt,[],[\man_synopsis(Obj, Parent)]),
-		   element(dt,A,C),
-		   DD
+		   element(dt,A,C)
+		 | DD
 		 ], Path).
 man_match((_Parent+Path)-(Obj+DOM), Obj) -->
 	dom_list(DOM, Path).
