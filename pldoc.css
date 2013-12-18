@@ -389,11 +389,19 @@ table.latex tr
 { vertical-align: text-top;
 }
 
-table.latex td,th
+table.latex td
 { padding: 2px 1em;
 }
 
-table.latex tr.hline td,th
+table.latex th
+{ padding: 2px 1em;
+}
+
+table.latex tr.hline td
+{ border-top: 1px solid black;
+}
+
+table.latex tr.hline th
 { border-top: 1px solid black;
 }
 
