@@ -410,6 +410,7 @@ pldoc_resource(Request) :-
 file('pldoc.css',     'pldoc.css').
 file('pllisting.css', 'pllisting.css').
 file('pldoc.js',      'pldoc.js').
+file('jquery.js',     'jquery.js').
 file('edit.gif',      'edit.gif').
 file('up.gif',        'up.gif').
 file('source.png',    'source.png').

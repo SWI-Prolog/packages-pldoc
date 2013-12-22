@@ -56,3 +56,32 @@ function HTTPrequest(url)
   { alert("Could not initialize HTTP request")
   }
 }
+
+/* Improve footnote interaction.  Contributed by Anne Ogborn.
+*/
+
+$(window).load(function(){
+	var footnoteactivator = $('.fn');
+	footnoteactivator.mouseenter(function() {
+		window.clearTimeout(this.footnoteid);
+		var fn = $(this).find('span.fn-text');
+		if ( fn ) {
+		  fn.removeClass('fn-text');
+		  fn.addClass('fnp');
+		}
+		$(this).find('span.fnp').show(100);
+	});
+	footnoteactivator.mouseleave(function() {
+		var t = $(this).find('span.fnp');
+		if(this.footnoteid !== null)
+		{
+		    window.clearTimeout(this.footnoteid);
+		}
+
+		this.footnoteid = window.setTimeout(
+
+			function() {
+				  t.hide(100);
+			}, 2000);
+	});
+});

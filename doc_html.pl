@@ -189,6 +189,23 @@ extracting module doc_wiki.pl into HTML+CSS.
 		   requires([ pldoc_resource('pldoc.css')
 			    ])
 		 ]).
+:- if(html_current_resource(jquery)).
+:- html_resource(pldoc_jquery,
+		 [ virtual(true),
+		   requires([ jquery
+			    ])
+		 ]).
+:- else.
+:- html_resource(pldoc_jquery,
+		 [ virtual(true),
+		   requires([ pldoc_resource('jquery.js')
+			    ])
+		 ]).
+:- endif.
+:- html_resource(pldoc_resource('pldoc.js'),
+		 [ requires([ pldoc_jquery
+			    ])
+		 ]).
 :- html_resource(pldoc_js,
 		 [ virtual(true),
 		   requires([ pldoc_resource('pldoc.js')
