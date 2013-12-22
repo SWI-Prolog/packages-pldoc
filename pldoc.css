@@ -309,17 +309,30 @@ span.file_anot
 }
 
 /* Footnotes from latex2html */
-sup.fn { color: blue; text-decoration: underline; }
-span.fn-text { display: none; }
-sup.fn span {display: none;}
-sup:hover span
-{ display: block !important;
-  position: absolute; top: auto; left: auto; width: 80%;
-  color: #000; background: white;
-  border: 2px solid;
-  padding: 5px; margin: 10px; z-index: 100;
-  font-size: 80%;
+.fn {
+    color: red;
+    font-size: 70%;
 }
+
+.fn-text, .fnp {
+    position: absolute;
+    top: auto;
+    left: 10%;
+    border: 1px solid #000;
+    border-radius: 10px;
+    box-shadow: 10px 10px 5px #888;
+    display: none;
+    background: #fff;
+    color: #000;
+    margin-top: 25px;
+    padding: 8px 12px;
+    font-size: larger;
+}
+
+sup:hover span.fn-text
+{ display: block;
+}
+
 
 span.sec-nr
 {
