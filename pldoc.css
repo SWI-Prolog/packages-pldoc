@@ -213,6 +213,53 @@ tr.private
   background-color: #fbffa6;
 }
 
+/* Navigation tree */
+
+table.naved-content td
+{ vertical-align: top;
+}
+
+table.naved-content td.content
+{ width: 100%
+}
+
+div.navtree:hover
+{ overflow-x: visible;
+}
+
+div.navtree
+{ width: 12em;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 1em;
+  position: relative;
+  z-index: +1;
+}
+
+ul.nav
+{ padding: 0px 0px 0px 0.5em;
+  margin: 0px;
+  list-style-type: none;
+}
+
+li.current > a
+{ color: #000;
+  font-weight: bold;
+  border: 1px solid;
+}
+
+li.nav a
+{ color: #888;
+  font-size: 80%;
+  text-decoration: none;
+  background-color: #fff;
+}
+
+li.nav a:hover
+{ text-decoration: underline;
+}
+
 /* Packs */
 
 table.packs
@@ -274,7 +321,6 @@ span.search-help
 
 div.synopsis
 { text-align: right;
-  margin-top: 15pt;
 }
 
 span.synopsis-hdr

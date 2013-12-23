@@ -673,9 +673,10 @@ pldoc_object(Request) :-
 	;   Title = Atom
 	),
 	edit_options(Request, EditOptions),
-	reply_html_page(pldoc(object),
-			title(Title),
-			\object_page(Obj, EditOptions)).
+	reply_html_page(
+	    pldoc(object),
+	    title(Title),
+	    \object_page(Obj, EditOptions)).
 
 
 %%	pldoc_search(+Request)

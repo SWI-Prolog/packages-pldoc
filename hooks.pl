@@ -32,6 +32,7 @@
 :- multifile
 	prolog:doc_object_summary/4,	% Object, ?Category, ?Section, ?Summary
 	prolog:doc_object_page//2,	% +Object, +Options, //
+	prolog:doc_nav_tree//2,		% +Object, +Options, //
 	prolog:doc_object_link//2,	% +Object, +Options, //
 	prolog:doc_category/3,		% Name, Order, Description
 	prolog:doc_file_index_header//2,% +File, +Options, //

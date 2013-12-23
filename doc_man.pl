@@ -372,6 +372,122 @@ cdata(_) -->
 		 *	     HIERARCHY		*
 		 *******************************/
 
+%%	man_nav_tree(+Obj, +Options) is semidet.
+%
+%	Create a navigation tree consisting of   a nested =ul= list that
+%	reflects the location of Obj in the manual.
+
+man_nav_tree(Obj, Options) -->
+	{ ensure_man_tree,
+	  man_nav_tree(Obj, Tree, Options),
+	  TreeOptions = [ secref_style(title)
+			| Options
+			]
+	},
+	html(ul(class(nav),
+		\obj_tree(Tree, Obj, TreeOptions))).
+
+obj_tree(node(Id, []), Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class(Class),
+		\node(Id, Options))).
+obj_tree(node(Id, Children), Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class(Class),
+		[ \node(Id, Options),
+		  ul(class(nav),
+		     \obj_trees(Children, Target, Options))
+		])).
+obj_tree(Id, Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class([obj|Class]), \node(Id, Options))).
+
+obj_trees([], _, _) --> [].
+obj_trees([H|T], Target, Options) -->
+	obj_tree(H, Target, Options),
+	obj_trees(T, Target, Options).
+
+node_class(Id, Id, [nav,current]).
+node_class(_,  _,  [nav]).
+
+node(Id, Options) -->
+	object_ref(Id, Options).
+
+
+%%	man_nav_tree(+Obj, -Tree, +Options) is semidet.
+%
+%	True when Tree is the navigation tree  for Obj. By default, this
+%	is the tree going from  the  leaf   to  the  root, unfolding the
+%	neighbors of Obj.
+
+man_nav_tree(Obj, Tree, _Options) :-
+	man_child_of(Obj, Parent),
+	findall(Neighbour, man_child_of(Neighbour, Parent), Neighbours0),
+	(   findall(Child, man_child_of(Child, Obj), Children),
+	    Children \== []
+	->  select(Obj, Neighbours0, node(Obj, Children), Neighbours)
+	;   Neighbours = Neighbours0
+	),
+	path_up(node(Parent, Neighbours), Tree).
+
+path_up(Node, Tree) :-
+	node_id(Node, Id),
+	man_child_of(Id, Parent), !,
+	(   Parent == root
+	->  findall(Neighbour, man_child_of(Neighbour, Parent), Neighbours0),
+	    select(Id, Neighbours0, Node, Neighbours),
+	    Tree = node(root, Neighbours)
+	;   path_up(node(Parent, [Node]), Tree)
+	).
+path_up(Tree, Tree).
+
+
+%%	man_child_of(?Child, ?Parent) is nondet.
+%
+%	Query the manual hierarchy.
+
+man_child_of(Child, Parent) :-
+	term_hash(Child, ChildHash),
+	term_hash(Parent, ParentHash),
+	man_child_of(ChildHash, Child, ParentHash, Parent).
+
+:- dynamic
+	man_child_of/4,
+	man_tree_done/0.
+
+%%	ensure_man_tree
+%
+%	Materialize the manual tree as a binary relation.
+
+ensure_man_tree :-
+	man_tree_done, !.
+ensure_man_tree :-
+	with_mutex(man_tree,
+		   make_man_tree).
+
+make_man_tree :-
+	man_tree_done, !.
+make_man_tree :-
+	man_content_tree(swi('doc/Manual'), ManTree),
+	man_packages_tree(PkgTree),
+	assert_tree(node(root, [ManTree, PkgTree])),
+	assertz(man_tree_done).
+
+assert_tree(node(Id, Children)) :- !,
+	maplist(assert_parent(Id), Children),
+	maplist(assert_tree, Children).
+assert_tree(_).
+
+assert_parent(Id, Child) :-
+	node_id(Child, ChildId),
+	term_hash(Id, ParentHash),
+	term_hash(ChildId, ChildHash),
+	assertz(man_child_of(ChildHash, ChildId, ParentHash, Id)).
+
+node_id(node(Id, _), Id) :- !.
+node_id(Id, Id).
+
+
 %%	man_content_tree(+Dir, -Tree) is det.
 %
 %	Compute the content tree for a   multi-file HTML document. We do
@@ -798,11 +914,24 @@ atom_pi(Text, Name/Arity) :-
 	Arity >= 0, !,
 	sub_atom(Text, 0, Pre, _, Name).
 
-man_matches([Match], Object, Options) -->
+man_matches(Matches, Object, Options) -->
+	{ option(navtree(false), Options) }, !,
+	man_matches_nt(Matches, Object, Options).
+man_matches(Matches, Object, Options) -->
+	html([ table(class('naved-content'),
+		     tr([ td(div(class(navtree),
+				 \man_nav_tree(Object, Options))),
+			  td(class(content),
+			     \man_matches_nt(Matches, Object, Options))
+			]))
+	     ]).
+
+
+man_matches_nt([Match], Object, Options) -->
 	{ option(footer(true), Options, true) }, !,
 	man_match(Match, Object),
 	object_page_footer(Object, []).
-man_matches(Matches, Object, _) -->
+man_matches_nt(Matches, Object, _) -->
 	man_matches_list(Matches, Object).
 
 man_matches_list([], _) --> [].
@@ -1092,7 +1221,11 @@ man_overview(Options) -->
 	html([ blockquote(class(refman_link),
 			  a(href(RefMan),
 			    'SWI-Prolog reference manual')),
-	       h2(class(package_doc_title),
+	       \package_overview(Options)
+	     ]).
+
+package_overview(Options) -->
+	html([ h2(class(package_doc_title),
 		  'SWI-Prolog package documentation'),
 	       blockquote(class(package_overview),
 			  \packages(Options))
@@ -1129,8 +1262,9 @@ current_package(pkg(Title, HREF, HavePackage)) :-
 	http_absolute_location(pldoc_pkg(FileNoDir), HREF, []).
 
 
-:- http_handler(pldoc_pkg(.), pldoc_package, [prefix]).
-:- http_handler(pldoc_man(.), pldoc_refman, [prefix]).
+:- http_handler(pldoc_pkg(.),    pldoc_package,          [prefix]).
+:- http_handler(pldoc_man(.),    pldoc_refman,           [prefix]).
+:- http_handler(pldoc(packages), pldoc_package_overview, []).
 
 %%	pldoc_package(+Request)
 %
@@ -1155,6 +1289,18 @@ pldoc_package(Request) :-
 	;   memberchk(path(Path), Request),
 	    existence_error(http_location, Path)
 	).
+
+
+%%	pldoc_package_overview(+Request)
+%
+%	Provide an overview of the package documentation
+
+pldoc_package_overview(_Request) :-
+	reply_html_page(
+	    pldoc(packages),
+	    title('SWI-Prolog package documentation'),
+	    \package_overview([])).
+
 
 %%	pldoc_refman(+Request)
 %
@@ -1205,6 +1351,15 @@ prolog:doc_object_link(Obj0, Options) -->
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = c(Function) }, !,
 	function_link(Function, Options).
+prolog:doc_object_link(root, _) --> !,
+	{ http_link_to_id(pldoc_index, [], HREF) },
+	html(a(href(HREF), 'Documentation')).
+prolog:doc_object_link(manual, _) -->
+	{ http_absolute_location(pldoc_man(.), HREF, []) },
+	html(a(href(HREF), 'Core system')).
+prolog:doc_object_link(packages, _) -->
+	{ http_link_to_id(pldoc_package_overview, [], HREF) },
+	html(a(href(HREF), 'Extensions')).
 
 prolog:doc_category(manual,   30, 'SWI-Prolog Reference Manual').
 prolog:doc_category(packages, 40, 'Package documentation').
