@@ -217,6 +217,7 @@ tr.private
 
 div.navcontent
 { margin-left: 13em;
+  position: relative;
 }
 
 div.navtree:hover
