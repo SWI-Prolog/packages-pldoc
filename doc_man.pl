@@ -1165,6 +1165,8 @@ referenced_section(Fragment, File, Path, section(Level, Nr, ID, SecPath)) :-
 %	Create top link structure for manual pages.
 
 man_links(ParentPaths, Options) -->
+	prolog:doc_page_header(parents(ParentPaths), Options), !.
+man_links(ParentPaths, Options) -->
 	{ option(links(true), Options, true) }, !,
 	html([ div(class(navhdr),
 		   [ div(class(jump), \man_parent(ParentPaths)),

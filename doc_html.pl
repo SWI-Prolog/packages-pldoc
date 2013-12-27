@@ -900,6 +900,8 @@ object_page(Obj, Options) -->
 	object_page_footer(Obj, Options).
 
 object_page_header(File, Options) -->
+	prolog:doc_page_header(file(File), Options), !.
+object_page_header(File, Options) -->
 	{ option(header(true), Options, true) }, !,
 	html(div(class(navhdr),
 		 [ div(class(jump), \file_link(File)),
