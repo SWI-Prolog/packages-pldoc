@@ -400,12 +400,12 @@ file('pldoc.css',     'pldoc.css').
 file('pllisting.css', 'pllisting.css').
 file('pldoc.js',      'pldoc.js').
 file('jquery.js',     'jquery.js').
-file('edit.gif',      'edit.gif').
+file('edit.png',      'edit.png').
 file('up.gif',        'up.gif').
 file('source.png',    'source.png').
 file('public.png',    'public.png').
 file('private.png',   'private.png').
-file('reload.gif',    'reload.gif').
+file('reload.png',    'reload.png').
 file('favicon.ico',   'favicon.ico').
 file('h1-bg.png',     'h1-bg.png').
 file('h2-bg.png',     'h2-bg.png').

@@ -3,7 +3,7 @@ LIBPL=		doc_html.pl doc_wiki.pl doc_modes.pl doc_register.pl \
 		doc_library.pl hooks.pl doc_htmlsrc.pl doc_colour.pl \
 		doc_util.pl doc_access.pl doc_pack.pl
 SUPPORT=	pldoc.css pldoc.js jquery.js pllisting.css pldoc.sty \
-		edit.gif private.png public.png reload.gif favicon.ico \
+		edit.png private.png public.png reload.png favicon.ico \
 		up.gif source.png h1-bg.png pub-bg.png multi-bg.png \
 		priv-bg.png h2-bg.png
 

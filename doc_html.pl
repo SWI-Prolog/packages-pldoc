@@ -580,7 +580,7 @@ reload_button(_File, Base, Options) -->
 	       img([ class(action),
 		     alt('Reload'),
 		     title('Make & Reload'),
-		     src(location_by_id(pldoc_resource)+'reload.gif')
+		     src(location_by_id(pldoc_resource)+'reload.png')
 		   ]))).
 reload_button(_, _, _) --> [].
 
@@ -600,7 +600,7 @@ edit_button(File, Options) -->
 	       img([ class(action),
 		     alt(edit),
 		     title('Edit file'),
-		     src(location_by_id(pldoc_resource)+'edit.gif')
+		     src(location_by_id(pldoc_resource)+'edit.png')
 		 ]))).
 edit_button(_, _) -->
 	[].
@@ -1258,7 +1258,7 @@ pred_edit_button2(Name/Arity, Options) -->
 	       img([ class(action),
 		     alt('Edit predicate'),
 		     title('Edit predicate'),
-		     src(location_by_id(pldoc_resource)+'edit.gif')
+		     src(location_by_id(pldoc_resource)+'edit.png')
 		   ]))).
 pred_edit_button2(_, _) --> !,
 	[].
