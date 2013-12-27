@@ -919,12 +919,10 @@ man_matches(Matches, Object, Options) -->
 	{ option(navtree(false), Options) }, !,
 	man_matches_nt(Matches, Object, Options).
 man_matches(Matches, Object, Options) -->
-	html([ table(class('naved-content'),
-		     tr([ td(div(class(navtree),
-				 \man_nav_tree(Object, Options))),
-			  td(class(content),
-			     \man_matches_nt(Matches, Object, Options))
-			]))
+	html([ div(class(navtree),
+		   \man_nav_tree(Object, Options)),
+	       div(class(navcontent),
+		   \man_matches_nt(Matches, Object, Options))
 	     ]).
 
 

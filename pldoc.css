@@ -215,16 +215,16 @@ tr.private
 
 /* Navigation tree */
 
-table.naved-content td
-{ vertical-align: top;
-}
-
-table.naved-content td.content
-{ width: 100%
+div.navcontent
+{ margin-left: 13em;
 }
 
 div.navtree:hover
 { overflow-x: visible;
+  background-color: #fff;
+  box-shadow: 5px 5px 5px #bbb;
+  padding-right: 5px;
+  width: auto;
 }
 
 div.navtree
@@ -233,7 +233,7 @@ div.navtree
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-right: 1em;
-  position: relative;
+  float: left;
   z-index: +1;
 }
 
