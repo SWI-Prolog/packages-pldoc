@@ -421,7 +421,7 @@ node(Id, Options) -->
 %	neighbors of Obj.
 
 man_nav_tree(Obj, Tree, _Options) :-
-	man_child_of(Obj, Parent),
+	man_child_of(Obj, Parent), !,
 	findall(Neighbour, man_child_of(Neighbour, Parent), Neighbours0),
 	(   findall(Child, man_child_of(Child, Obj), Children),
 	    Children \== []
@@ -429,6 +429,9 @@ man_nav_tree(Obj, Tree, _Options) :-
 	;   Neighbours = Neighbours0
 	),
 	path_up(node(Parent, Neighbours), Tree).
+man_nav_tree(Obj, node(Obj, Children), _Options) :-
+	findall(Child, man_child_of(Child, Obj), Children).
+
 
 path_up(Node, Tree) :-
 	node_id(Node, Id),
@@ -803,7 +806,14 @@ object_spec(Atom, PI) :-
 %		If =true= (default), include links to the parent object;
 %		if =false=, just emit the manual material.
 
-man_page(Obj0, Options) -->			% sections
+man_page(Obj, Options) -->
+	{ ground(Obj),
+	  special_node(Obj)
+	}, !,
+	html_requires(pldoc),
+	man_links([], Options),
+	man_matches([Obj], Obj, Options).
+man_page(Obj0, Options) -->			% Manual stuff
 	{ full_page(Obj0, Obj),
           findall((Parent+Path)-(Obj+DOM),
 		  load_man_object(Obj, Parent, Path, DOM),
@@ -815,7 +825,7 @@ man_page(Obj0, Options) -->			% sections
 	html_requires(pldoc),
 	man_links(ParentPaths, Options),
 	man_matches(Matches, Obj, Options).
-man_page(Obj, Options) -->			% predicates, etc.
+man_page(Obj, Options) -->			% PlDoc predicates, etc.
 	{ full_object(Obj, Full),
 	  findall(Full-File,
 		  ( doc_comment(Full, File:_, _, _),
@@ -840,6 +850,10 @@ man_page(Obj, Options) -->			% failure
 	       [ 'Sorry, No manual entry for ',
 		 b('~w'-[Obj])
 	       ])).
+
+%special_node(manual).		% redirected to the Introduction section
+special_node(root).
+special_node(packages).
 
 full_page(Obj, _) :-
 	var(Obj), !, fail.
@@ -941,6 +955,14 @@ man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
 %	If  possible,  insert  the  synopsis  into   the  title  of  the
 %	description.
 
+man_match(packages, packages) --> !,
+	html({|html||
+	      <p>
+	      Packages are relatively independent add-on libraries that
+	      may not be available in all installations.
+	     |}).
+man_match(root, root) --> !,
+	man_overview([]).
 man_match((Parent+Path)-(Obj+[element(dt,A,C)|DD]), Obj) -->
 	dom_list([ element(dt,[],[\man_synopsis(Obj, Parent)]),
 		   element(dt,A,C)
@@ -1217,10 +1239,12 @@ function_link(Function, _) -->
 man_overview(Options) -->
 	{ http_absolute_location(pldoc_man(.), RefMan, [])
 	},
-	html([ blockquote(class(refman_link),
+	html([ h1('SWI-Prolog documentation'),
+	       blockquote(class(refman_link),
 			  a(href(RefMan),
 			    'SWI-Prolog reference manual')),
-	       \package_overview(Options)
+	       \package_overview(Options),
+	       \paperback(Options)
 	     ]).
 
 package_overview(Options) -->
@@ -1300,6 +1324,18 @@ pldoc_package_overview(_Request) :-
 	    title('SWI-Prolog package documentation'),
 	    \package_overview([])).
 
+%%	paperback(+Options)//
+%
+%	Link to the paperback version of the manual.
+
+paperback(_Options) -->
+	{ expand_url_path(swipl_book(.), HREF)
+	},
+	html([ h2('The manual as a book'),
+	       p([ 'A paperback version of the manual is ',
+		   a(href(HREF), 'available'), '.'
+		 ])
+	     ]).
 
 %%	pldoc_refman(+Request)
 %
@@ -1355,13 +1391,11 @@ prolog:doc_object_link(Obj, Options) -->
 	{ Obj = c(Function) }, !,
 	function_link(Function, Options).
 prolog:doc_object_link(root, _) --> !,
-	{ http_link_to_id(pldoc_index, [], HREF) },
-	html(a(href(HREF), 'Documentation')).
+	html('Documentation').
 prolog:doc_object_link(manual, _Options) --> !,
 	html('Reference manual').
 prolog:doc_object_link(packages, _) -->
-	{ http_link_to_id(pldoc_package_overview, [], HREF) },
-	html(a(href(HREF), 'Extensions')).
+	html('Packages').
 
 prolog:doc_category(manual,   30, 'SWI-Prolog Reference Manual').
 prolog:doc_category(packages, 40, 'Package documentation').
