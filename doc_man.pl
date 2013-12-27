@@ -846,6 +846,7 @@ full_page(Obj, _) :-
 full_page(Obj, Obj) :-
 	Obj = section(_,_,_,_), !.
 full_page(section(ID), section(_,_,ID,_)) :- !.
+full_page(manual, section(_,_,'sec:intro',_)) :- !.
 full_page(Obj, Obj) :-
 	ground(Obj).
 
@@ -1339,6 +1340,10 @@ prolog:doc_object_summary(Obj, Class, File, Summary) :-
 prolog:doc_object_page(Obj, Options) -->
 	man_page(Obj, [no_manual(fail),footer(false)|Options]).
 
+%%	prolog:doc_object_link(+Obj, +Options)//
+%
+%	Provide the HTML to describe Obj for linking purposes.
+
 prolog:doc_object_link(Obj, Options) -->
 	{ Obj = section(_,_,_,_) }, !,
 	section_link(Obj, Options).
@@ -1354,9 +1359,8 @@ prolog:doc_object_link(Obj, Options) -->
 prolog:doc_object_link(root, _) --> !,
 	{ http_link_to_id(pldoc_index, [], HREF) },
 	html(a(href(HREF), 'Documentation')).
-prolog:doc_object_link(manual, _) -->
-	{ http_absolute_location(pldoc_man(.), HREF, []) },
-	html(a(href(HREF), 'Core system')).
+prolog:doc_object_link(manual, _Options) --> !,
+	html('Reference manual').
 prolog:doc_object_link(packages, _) -->
 	{ http_link_to_id(pldoc_package_overview, [], HREF) },
 	html(a(href(HREF), 'Extensions')).
