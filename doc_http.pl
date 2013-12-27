@@ -663,7 +663,7 @@ pldoc_object(Request) :-
 	),
 	edit_options(Request, EditOptions),
 	reply_html_page(
-	    pldoc(object),
+	    pldoc(object(Obj)),
 	    title(Title),
 	    \object_page(Obj, EditOptions)).
 

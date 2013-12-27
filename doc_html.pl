@@ -65,6 +65,7 @@
 	    file_header//2,		% +File, +Options, //
 	    objects//2,			% +Objects, +Options, //
 	    object_ref//2,		% +Object, +Options, //
+	    object_name//2,		% +Object, +Object
 	    object_href/2,		% +Object, -URL
 	    object_page//2,		% +Object, +Options, //
 	    object_page_header//2,	% +File, +Options, //
@@ -1494,7 +1495,7 @@ predref(Obj, Options) -->
 	  ;   manref(Obj, HREF, Options)
 	  )
 	}, !,
-	html(a(href(HREF), \object_link(Obj, [qualify(true)|Options]))).
+	html(a(href(HREF), \object_name(Obj, [qualify(true)|Options]))).
 predref(M:Term, Options) --> !,
 	predref(Term, M, Options).
 predref(Term, Options) -->
@@ -1659,7 +1660,7 @@ object_ref([H|T], Options) --> !,
 object_ref(Obj, Options) -->
 	{ object_href(Obj, HREF, Options)
 	},
-	html(a(href(HREF), \object_link(Obj, Options))).
+	html(a(href(HREF), \object_name(Obj, Options))).
 
 %%	object_href(+Object, -HREF) is det.
 %%	object_href(+Object, -HREF, +Options) is det.
@@ -1722,23 +1723,52 @@ term_to_string(Term, String) :-
 	;   arg(1, State, String)
 	).
 
-%%	object_link(+Obj, +Options)// is det.
+%%	object_name(+Obj, +Options)// is det.
 %
 %	HTML description of documented Obj. Obj is as the first argument
-%	of doc_comment/4.
+%	of doc_comment/4.  Options:
+%
+%	  - style(+Style)
+%	  One of =inline= or =title=
+%	  - qualify(+Boolean)
+%	  Qualify predicates by their module
+%	  - secref_style(Style)
+%	  One of =number=, =title= or =number_title=
 
-object_link(Obj, Options) -->
-	prolog:doc_object_link(Obj, Options), !.
-object_link(f(Name/Arity), _Options) --> !,
+object_name(Obj, Options) -->
+	{ option(style(Style), Options, inline)
+	},
+	object_name(Style, Obj, Options).
+
+object_name(title, Obj, Options) -->
+	{ merge_options(Options, [secref_style(title)], Options1) },
+	prolog:doc_object_link(Obj, Options1), !.
+object_name(inline, Obj, Options) -->
+	{ merge_options(Options, [secref_style(title)], Options1) },
+	prolog:doc_object_link(Obj, Options1), !.
+object_name(title, f(Name/Arity), _Options) --> !,
+	html(['Function ', Name, /, Arity]).
+object_name(inline, f(Name/Arity), _Options) --> !,
 	html([Name, /, Arity]).
-object_link(PI, Options) -->
+object_name(Style, PI, Options) -->
 	{ is_pi(PI) }, !,
-	pi(PI, Options).
-object_link(Module:module(_Title), _) -->
+	pi(Style, PI, Options).
+object_name(inline, Module:module(_Title), _) --> !,
 	{ module_property(Module, file(File)),
 	  file_base_name(File, Base)
 	}, !,
 	html(Base).
+object_name(title, Module:module(Title), _) -->
+	{ module_property(Module, file(File)),
+	  file_base_name(File, Base)
+	}, !,
+	html([Base, --, Title]).
+
+pi(title, PI, Options) -->
+	pi_type(PI),
+	pi(PI, Options).
+pi(inline, PI, Options) -->
+	pi(PI, Options).
 
 pi(M:PI, Options) --> !,
 	(   { option(qualify(true), Options) }
@@ -1750,6 +1780,15 @@ pi(Name/Arity, _) --> !,
 	html([Name, /, Arity]).
 pi(Name//Arity, _) -->
 	html([Name, //, Arity]).
+
+pi_type(_:PI) --> !,
+	pi_type(PI).
+pi_type(_/_) -->
+	html(['Predicate ']).
+pi_type(_//_) -->
+	html(['Grammer rule ']).
+
+
 
 %%	in_file(+Head, ?File) is nondet.
 %
