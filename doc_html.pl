@@ -1746,8 +1746,7 @@ object_name(title, Obj, Options) -->
 	{ merge_options(Options, [secref_style(title)], Options1) },
 	prolog:doc_object_link(Obj, Options1), !.
 object_name(inline, Obj, Options) -->
-	{ merge_options(Options, [secref_style(title)], Options1) },
-	prolog:doc_object_link(Obj, Options1), !.
+	prolog:doc_object_link(Obj, Options), !.
 object_name(title, f(Name/Arity), _Options) --> !,
 	html(['Function ', Name, /, Arity]).
 object_name(inline, f(Name/Arity), _Options) --> !,

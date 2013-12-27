@@ -615,9 +615,10 @@ pldoc_man(Request) :-
 	    Obj = section(SecID)
 	),
 	man_title(Obj, Title),
-	reply_html_page(pldoc(man),
-			title(Title),
-			\man_page(Obj, [])).
+	reply_html_page(
+	    pldoc(object(Obj)),
+	    title(Title),
+	    \man_page(Obj, [])).
 
 man_title(f(Obj), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- function ~w', [Obj]).
