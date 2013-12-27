@@ -401,6 +401,7 @@ file('pllisting.css', 'pllisting.css').
 file('pldoc.js',      'pldoc.js').
 file('jquery.js',     'jquery.js').
 file('edit.png',      'edit.png').
+file('editpred.png',  'editpred.png').
 file('up.gif',        'up.gif').
 file('source.png',    'source.png').
 file('public.png',    'public.png').

@@ -1258,7 +1258,7 @@ pred_edit_button2(Name/Arity, Options) -->
 	       img([ class(action),
 		     alt('Edit predicate'),
 		     title('Edit predicate'),
-		     src(location_by_id(pldoc_resource)+'edit.png')
+		     src(location_by_id(pldoc_resource)+'editpred.png')
 		   ]))).
 pred_edit_button2(_, _) --> !,
 	[].
