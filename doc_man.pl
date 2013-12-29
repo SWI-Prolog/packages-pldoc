@@ -68,6 +68,7 @@
 :- predicate_options(man_page//2, 2,
 		     [ for(atom),
 		       links(boolean),
+		       navtree(boolean),
 		       footer(boolean),
 		       no_manual(oneof([fail,error])),
 		       search_in(oneof([all, app, man])),

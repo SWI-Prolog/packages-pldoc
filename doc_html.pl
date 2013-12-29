@@ -2050,7 +2050,7 @@ html_tokens_for_predicates(Spec, Options) -->
 	},
 	html_tokens_for_predicates(List, Options).
 html_tokens_for_predicates(Spec, Options) -->
-	man_page(Spec, [links(false)|Options]).
+	man_page(Spec, [links(false), navtree(false)|Options]).
 
 
 documented_pi(Spec, PI) :-
