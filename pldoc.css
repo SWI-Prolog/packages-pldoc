@@ -241,7 +241,7 @@ tr.private
 
 div.navcontent
 { margin-left: 14em;
-  margin-right: 5%;
+  margin-right: 58px;				/* Sync with website */
   background-color: #f6f5ee;
 }
 
