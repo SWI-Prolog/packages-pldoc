@@ -659,7 +659,7 @@ objects([Obj|T], Mode, Options) -->
 	object(Obj, Mode, Mode1, Options),
 	objects(T, Mode1, Options).
 
-%%	object(+Spec, +ModeIn, -ModeOut, +Options) is det.
+%%	object(+Spec, +ModeIn, -ModeOut, +Options)// is det.
 %
 %	Emit the documentation of a single object.
 %
