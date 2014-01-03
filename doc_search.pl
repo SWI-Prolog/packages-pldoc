@@ -161,13 +161,18 @@ hidden(Name, Value) -->
 %		* search_match(Match)
 %		What part of the object to match. One of =name=,
 %		=summary=
+%
+%		* header(+Boolean)
+%		If =false=, suppress the header.
+
+:- html_meta
+	search_header(+, html, +, ?, ?).
 
 search_reply(For, Options) -->
 	{ var(For) }, !,
-	html([ \html_requires(pldoc),
-	       \doc_links('', [for('')|Options]),
-	       h1(class(wiki), 'Using PlDoc search'),
-	       ul([ li([ 'If you pause typing, the search box will display ',
+	search_header('', 'Using PlDoc search', Options),
+	html([ ul( class('search-help'),
+		   [ li([ 'If you pause typing, the search box will display ',
 			 'an auto completion list.  Selecting an object jumps ',
 			 'immediately to the corresponding documentation.'
 		       ]),
@@ -186,17 +191,22 @@ search_reply(For, Options) -->
 	  PerCategory \== [],
 	  option(resultFormat(Format), Options, summary)
 	}, !,
-	html([ \html_requires(pldoc),
-	       \doc_links('', [for(For)|Options]),
-	       h1(class(wiki),
-		  ['Search results for ', span(class(for), ['"', For, '"'])]),
-	       \indexed_matches(Format, PerCategory, Options)
-	     ]).
+	search_header(For, [ 'Search results for ',
+			     span(class(for), ['"', For, '"'])
+			   ],
+		      Options),
+	indexed_matches(Format, PerCategory, Options).
 search_reply(For, Options) -->
-	html([ \html_requires(pldoc),
-	       \doc_links('', [for(For)|Options]),
-	       h1(class(wiki), 'No matches')
-	     ]).
+	search_header(For, 'No matches', Options).
+
+
+search_header(_For, _Title, Options) -->
+	{ option(header(false), Options) }, !,
+	html_requires(pldoc).
+search_header(For, Title, Options) -->
+	html_requires(pldoc),
+	doc_links('', [for(For)|Options]),
+	html(h1(class('search-results'), Title)).
 
 %%	matching_object_table(+Objects, +Options)// is det.
 %
