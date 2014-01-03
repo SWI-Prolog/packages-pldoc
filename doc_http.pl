@@ -698,7 +698,7 @@ pldoc_search(Request) :-
 			]),
 	edit_options(Request, EditOptions),
 	format(string(Title), 'Prolog search -- ~w', [For]),
-	reply_html_page(pldoc(search),
+	reply_html_page(pldoc(search(For)),
 			title(Title),
 			\search_reply(For,
 				      [ resultFormat(Format),
