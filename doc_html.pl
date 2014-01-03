@@ -1805,7 +1805,11 @@ in_file(_, Head, File) :-
 	How \= imported(_From).
 in_file(Module, Head, File) :-
 	predicate_property(Module:Head, exported),
-	current_module(Module, File).
+	(   predicate_property(Module:Head, imported_from(Primary))
+	->  true
+	;   Primary = Module
+	),
+	module_property(Primary, file(File)).
 in_file(_, Head, File) :-
 	source_file(Head, File).
 in_file(Module, Head, File) :-
