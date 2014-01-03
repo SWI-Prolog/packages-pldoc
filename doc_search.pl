@@ -30,8 +30,8 @@
 */
 
 :- module(pldoc_search,
-	  [ search_form/3,		% +Options, //
-	    search_reply/4,		% +Search, +Options, //
+	  [ search_form//1,		% +Options, //
+	    search_reply//2,		% +Search, +Options, //
 	    matching_object_table//2	% +Objects, +Options, //
 	  ]).
 :- use_module(library(http/html_write)).
@@ -171,22 +171,23 @@ hidden(Name, Value) -->
 	search_header(+, html, +, ?, ?).
 
 search_reply(For, Options) -->
-	{ var(For) }, !,
+	{ var(For) ; For == '' }, !,
 	search_header('', 'Using PlDoc search', Options),
 	html([ ul( class('search-help'),
 		   [ li([ 'If you pause typing, the search box will display ',
-			 'an auto completion list.  Selecting an object jumps ',
-			 'immediately to the corresponding documentation.'
-		       ]),
-		    li([ 'Searching for ', i('Name/Arity'), i('Name//Arity'),
-			 i('Name'), ' or ', i('C-function'), ' ensures that ',
-			 'matching definitions appear first in the search ',
-			 'results'
-		       ]),
-		    li([ 'Other searches search through the name and summary ',
-			 'descriptions in the manual.'
-		       ])
-		  ])
+			  'an auto completion list.  Selecting an object jumps ',
+			  'immediately to the corresponding documentation.'
+			]),
+		     li([ 'Searching for ', i('Name/Arity'), ', ',
+			  i('Name//Arity'), ', ', i('Name'), ' or ',
+			  i('C-function()'), ' ensures that ',
+			  'matching definitions appear first in the search ',
+			  'results'
+			]),
+		     li([ 'Other searches search through the name and summary ',
+			  'descriptions in the manual.'
+			])
+		   ])
 	     ]).
 search_reply(For, Options) -->
 	{ search_doc(For, PerCategory, Options),
