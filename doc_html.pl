@@ -1624,7 +1624,7 @@ relative_file(Head, RelFile) :-
 pred_source_href(Name/Arity, Module, HREF) :-
 	format(string(FragmentId), '~w/~d', [Name, Arity]),
 	uri_data(fragment, Components, FragmentId),
-	uri_query_components(Query, [source=true]),
+	uri_query_components(Query, [show=src]),
 	uri_data(search, Components, Query),
 	functor(Head, Name, Arity),
 	(   catch(relative_file(Module:Head, File), _, fail)
