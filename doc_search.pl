@@ -55,14 +55,16 @@
 
 :- predicate_options(search_form//1, 1,
 		     [ for(atom),
-		       search_in(oneof([all,app,man])),
+		       search_in(oneof([all,noapp,app,man])),
 		       search_match(oneof([name,summary])),
 		       search_options(boolean)
 		     ]).
 :- predicate_options(search_reply//2, 2,
 		     [ resultFormat(oneof([summary,long])),
-		       search_in(oneof([all,app,man])),
+		       search_in(oneof([all,noapp,app,man])),
 		       search_match(oneof([name,summary])),
+		       header(boolean),
+		       edit(boolean),
 		       pass_to(pldoc_index:doc_links//2, 2)
 		     ]).
 
@@ -452,6 +454,8 @@ exec_search(Search, Type-(Section-Obj), Options) :-
 
 
 matching_category(all, _).
+matching_category(noapp, Category) :- !,
+	Category \== application.
 matching_category(app, application).
 matching_category(man, manual).
 
