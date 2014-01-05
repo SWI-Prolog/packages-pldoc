@@ -427,6 +427,8 @@ dl.comment, div.comment
 pre.listing
 { margin-top: 0;
   margin-bottom: 0;
+  -moz-tab-size: 8;
+  tab-size: 8;
 }
 
 span.line-no
