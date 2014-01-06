@@ -1380,11 +1380,14 @@ prolog:doc_object_page(Obj, Options) -->
 %	Provide the HTML to describe Obj for linking purposes.
 
 prolog:doc_object_link(Obj, Options) -->
-	{ Obj = section(_,_,_,_) }, !,
+	{ Obj = section(_,_,_,_),
+	  index_manual
+	}, !,
 	section_link(Obj, Options).
 prolog:doc_object_link(Obj0, Options) -->
 	{ Obj0 = section(ID),
 	  Obj = section(_Level, _No, ID, _Path),
+	  index_manual,
 	  man_index(Obj, _, _, _, _)
 	}, !,
 	section_link(Obj, Options).
