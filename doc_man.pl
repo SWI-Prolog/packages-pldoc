@@ -1357,10 +1357,8 @@ pldoc_refman(Request) :-
 			\object_page(Obj, [])).
 pldoc_refman(Request) :-		% server Contents.html
 	\+ memberchk(path_info(_), Request), !,
-	Section = section(_, _, _, swi('doc/Manual/Contents.html')),
-	reply_html_page(pldoc(refman),
-			title('SWI-Prolog manual'),
-			\man_page(Section, [])).
+	http_link_to_id(pldoc_object, [object(manual)], HREF),
+	http_redirect(see_other, HREF, Request).
 pldoc_refman(Request) :-
 	memberchk(path(Path), Request),
 	existence_error(http_location, Path).
@@ -1435,6 +1433,7 @@ swi_local_path(Path, Local) :-
 %	Produce a HREF for section objects.
 
 prolog:doc_object_href(section(_Level, _No, ID, _Path), HREF) :-
+	nonvar(ID),
 	atom_concat('sec:', Sec, ID),
 	http_link_to_id(pldoc_man, [section(Sec)], HREF).
 
