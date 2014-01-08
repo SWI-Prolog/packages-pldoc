@@ -56,9 +56,8 @@ table.arglist,table.paramlist td
 
 span.pred-tag
 { float: right;
-  font-size: 80%;
   font-style: italic;
-  color: #202020;
+  color: #fff;
 }
 
 dl.tags dt
