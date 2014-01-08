@@ -9,13 +9,25 @@
 */
 
 h1.file, h1.module, h1.dir, h1.wiki
-{ background: url("h1-bg.png") top left;
+{
+  background-color: #0c3d6e;
+  color: #FFF;
   clear: both;
+  padding: 4px 24px 4px 24px;
+  font-size: 32px;
+  font-family: Source Sans Pro, sans;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 h2.wiki,h3.wiki,h4.wiki
-{ background: url("h2-bg.png") top left;
+{
+  background-color: #0c3d6e;
+  color: #FFF;
   clear: both;
+  padding: 2px 10px 2px 10px;
+  font-size: 18px;
+  font-family: Source Sans Pro, sans;
 }
 
 .undef
