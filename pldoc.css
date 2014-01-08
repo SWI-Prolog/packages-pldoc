@@ -217,13 +217,17 @@ table.summary
 { width: 100%;
   margin-left: 0;
   margin-right: 0;
+  -webkit-border-horizontal-spacing: 0px;
+  -webkit-border-vertical-spacing: 0px;
+  border-spacing: 0px;
 }
 
 table.summary th.category
 { text-align: center;
   font-size: 150%;
   font-weight: bold;
-  border: 1px dotted;
+  border: none;
+  color: #0c3d6c;
   padding-top: 0.5em;
   padding-bottom: 0.4em;
   background-color:  #f0f0f0;
@@ -231,12 +235,26 @@ table.summary th.category
 
 table.summary th.section
 { text-align: left;
-  background-color: #bbffba;
+  background-color: #0c3d6c;
+  color: #FFF;
+  padding: 6px 10px;
+}
+
+table.summary th.section a
+{
+   color: #FFF;
 }
 
 table.summary th
 { text-align: left;
-  background-color: #b9daff;
+  background-color: #0c3d6e;
+  color: #FFF;
+  padding: 6px 10px;
+}
+
+table.summary th a
+{
+   color: #FFF;
 }
 
 table.summary td
@@ -244,9 +262,30 @@ table.summary td
   vertical-align: top;
 }
 
+table.summary td a
+{
+    color: #FFF;
+}
+
+table.summary tr.public td a
+{
+    color: #0c3d6e;
+}
+
 tr.private
-{ color: #707070;
-  background-color: #fbffa6;
+{ color: #FFF;
+  background-color: #a3bcd5;
+  padding: 6px 10px;
+}
+
+tr.private td
+{
+  padding: 6px 10px;
+}
+
+tr.public td
+{
+  padding: 3px 10px;
 }
 
 /* Navigation tree */
