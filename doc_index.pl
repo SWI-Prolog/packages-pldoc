@@ -446,6 +446,10 @@ doc_links(_Directory, Options) -->
 	{ option(files(_), Options), !
 	}.
 doc_links(Directory, Options) -->
+	prolog:doc_links(Directory, Options), !,
+	{ option(html_resources(Resoures), Options, pldoc) },
+	html_requires(Resoures).
+doc_links(Directory, Options) -->
 	{   (   Directory == ''
 	    ->  working_directory(Dir, Dir)
 	    ;   Dir = Directory

@@ -41,6 +41,7 @@
 	    doc_hide_private/3,		% +Doc0, -Doc, +Options
 	    edit_button//2,		% +File, +Options, //
 	    source_button//2,		% +File, +Options, //
+	    zoom_button//2,		% +File, +Options, //
 	    pred_edit_button//2,	% +PredInd, +Options, //
 	    object_edit_button//2,	% +Obj, +Options, //
 	    object_source_button//2,	% +Obj, +Options, //
@@ -81,7 +82,6 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
-:- use_module(library(doc_http)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(pairs)).
@@ -241,7 +241,7 @@ doc_for_file(FileSpec, Options) :-
 	doc_file_objects(FileSpec, File, Objects, FileOptions, Options),
 	doc_file_title(File, Title, FileOptions, Options),
 	doc_write_page(
-	    pldoc(file(FileSpec, Title)),
+	    pldoc(file(File, Title)),
 	    title(Title),
 	    \prolog_file(File, Objects, FileOptions, Options),
 	    Options).
@@ -537,9 +537,11 @@ file_header(File, Options) -->
 %	Emit the file-header and manipulation buttons.
 
 file_title(Title, File, Options) -->
+	prolog:doc_file_title(Title, File, Options), !.
+file_title(Title, File, Options) -->
 	{ file_base_name(File, Base)
 	},
-	html(h1(class=file,
+	html(h1(class(file),
 		[ span(style('float:right'),
 		       [ \reload_button(File, Base, Options),
 			 \zoom_button(Base, Options),
