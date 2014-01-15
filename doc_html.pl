@@ -238,25 +238,22 @@ extracting module doc_wiki.pl into HTML+CSS.
 %	@param File	Prolog file specification or xref source id.
 
 doc_for_file(FileSpec, Options) :-
-	(   xref_current_source(FileSpec)
-	->  true
-	;   absolute_file_name(FileSpec,
-			       [ file_type(prolog),
-				 access(read)
-			       ],
-			       File)
-	),
-	(   option(title(Title), Options)
-	->  true
-	;   atom(File)
-	->  file_base_name(File, Title)
-	;   format(atom(Title), '~w', [FileSpec]) % emergency
-	),
+	doc_file_objects(FileSpec, File, Objects, FileOptions, Options),
+	doc_file_title(File, Title, FileOptions, Options),
 	doc_write_page(
-	    pldoc(result),
+	    pldoc(file(FileSpec, Title)),
 	    title(Title),
-	    \prolog_file(FileSpec, Options),
+	    \prolog_file(File, Objects, FileOptions, Options),
 	    Options).
+
+doc_file_title(_, Title, _, Options) :-
+	option(title(Title), Options), !.
+doc_file_title(File, Title, FileOptions, _) :-
+	memberchk(file(Title0, _Comment), FileOptions), !,
+	file_base_name(File, Base),
+	atomic_list_concat([Base, ' -- ', Title0], Title).
+doc_file_title(File, Title, _, _) :-
+	file_base_name(File, Title).
 
 :- html_meta doc_write_page(+, html, html, +).
 
@@ -268,9 +265,8 @@ doc_write_page(Style, Head, Body, _) :-
 	reply_html_page(Style, Head, Body).
 
 
-prolog_file(FileSpec, Options) -->
-	{ doc_file_objects(FileSpec, File, Objects, FileOptions, Options),
-	  b_setval(pldoc_file, File),	% TBD: delete?
+prolog_file(File, Objects, FileOptions, Options) -->
+	{ b_setval(pldoc_file, File),	% TBD: delete?
 	  file_directory_name(File, Dir)
 	},
 	html([ \doc_resources(Options),
