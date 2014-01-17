@@ -935,7 +935,8 @@ man_matches(Matches, Object, Options) -->
 	man_matches_nt(Matches, Object, Options).
 man_matches(Matches, Object, Options) -->
 	html([ div(class(navtree),
-		   \man_nav_tree(Object, Options)),
+		   div(class(navwindow),
+		       \man_nav_tree(Object, Options))),
 	       div(class(navcontent),
 		   \man_matches_nt(Matches, Object, Options))
 	     ]).

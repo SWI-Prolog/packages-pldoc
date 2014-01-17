@@ -266,19 +266,29 @@ div.navcontent
   margin-right: 58px;				/* Sync with website */
   background-color: #f6f5ee;
   padding: 0px 5px;
+  position: relative;
+}
+
+div.navwindow:hover
+{ box-shadow: 10px 10px 10px #bbb;
+}
+
+div.navwindow
+{ display: inline-block;
+  background-color: #f6f5ee;
+  padding-right: 5px;
 }
 
 div.navtree:hover
 { overflow-x: visible;
-  box-shadow: 5px 5px 5px #bbb;
   padding-right: 5px;
-  width: auto;
+  z-index: 2;
+  position: relative;
 }
 
 div.navtree
 { width: 12em;
   overflow-x: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: 8px;
   margin-right: 1em;
