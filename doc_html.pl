@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2013, University of Amsterdam
+    Copyright (C): 2009-2014, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -68,6 +68,7 @@
 	    object_ref//2,		% +Object, +Options, //
 	    object_name//2,		% +Object, +Object
 	    object_href/2,		% +Object, -URL
+	    object_tree//3,		% +Tree, +Current, +Options
 	    object_page//2,		% +Object, +Options, //
 	    object_page_header//2,	% +File, +Options, //
 	    object_synopsis//2,		% +Object, +Options, //
@@ -156,6 +157,7 @@ extracting module doc_wiki.pl into HTML+CSS.
 :- predicate_options(object_ref//2, 2,
 		     [ files(list),
 		       qualify(boolean),
+		       style(oneof([number,title,number_title])),
 		       secref_style(oneof([number,title,number_title]))
 		     ]).
 :- predicate_options(object_synopsis//2, 2,
@@ -429,8 +431,6 @@ xref_exported_pi(Src, Name/Arity) :-
 %	Remove the private objects from Objs according to Options.
 
 doc_hide_private(Objs, Objs, Options) :-
-	\+ option(public(_), Options), !.
-doc_hide_private(Objs, Objs, Options) :-
 	option(public_only(false), Options, true), !.
 doc_hide_private(Objs0, Objs, Options) :-
 	hide_private(Objs0, Objs, Options).
@@ -449,12 +449,17 @@ hide_private([H|T0], [H|T], Options) :-
 %	assumed to be the first term. Note  that if multiple objects are
 %	described by the same comment Term is a list.
 
-obj(Term, Obj) :-
-	arg(1, Term, Obj0),
+obj(doc(Obj0, _Pos, _Summary), Obj) :- !,
 	(   Obj0 = [Obj|_]
 	->  true
 	;   Obj = Obj0
 	).
+obj(Obj0, Obj) :-
+	(   Obj0 = [Obj|_]
+	->  true
+	;   Obj = Obj0
+	).
+
 
 %%	private(+Obj, +Options) is semidet.
 %
@@ -646,9 +651,25 @@ source_button(File, _Options) -->
 
 %%	objects(+Objects:list, +Options)// is det.
 %
-%	Emit the documentation body.
+%	Emit the documentation body.  Options includes:
+%
+%	  * navtree(+Boolean)
+%	  If =true=, provide a navitation tree.
 
 objects(Objects, Options) -->
+	{ option(navtree(true), Options), !,
+	  objects_nav_tree(Objects, Tree)
+	},
+	html([ div(class(navtree),
+		   div(class(navwindow),
+		       \nav_tree(Tree, Objects, Options))),
+	       div(class(navcontent),
+		   \objects_nt(Objects, Options))
+	     ]).
+objects(Objects, Options) -->
+	objects_nt(Objects, Options).
+
+objects_nt(Objects, Options) -->
 	objects(Objects, [body], Options).
 
 objects([], Mode, _) -->
@@ -1104,6 +1125,129 @@ arg_list([H|T]) -->
 
 argument(arg(Name,Descr)) -->
 	html(tr([td(var(Name)), td(class=argdescr, ['- '|Descr])])).
+
+
+		 /*******************************
+		 *	   NAVIGATION TREE	*
+		 *******************************/
+
+%%	objects_nav_tree(+Objects, -Tree) is det.
+%
+%	Provide a navigation tree showing the context of Object.  Tree
+%	is of the form node(Object, Children).
+
+objects_nav_tree(Objects, Tree) :-
+	maplist(object_nav_tree, Objects, Trees),
+	union_trees(Trees, Tree0),
+	remove_unique_root(Tree0, Tree).
+
+object_nav_tree(Obj, Tree) :-
+	Node = node(directory(Dir), FileNodes),
+	FileNode = node(file(File), Siblings),
+	doc_comment(Obj, File:_Line, _Summary, _Comment), !,
+	file_directory_name(File, Dir),
+	sibling_file_nodes(Dir, FileNodes0),
+	selectchk(node(file(File),[]), FileNodes0, FileNode, FileNodes),
+	findall(Sibling, doc_comment(Sibling, File:_, _, _), Siblings0),
+	delete(Siblings0, _:module(_), Siblings1),
+	doc_hide_private(Siblings1, Siblings2, []),
+	flatten(Siblings2, Siblings),	% a comment may describe objects
+	embed_directories(Node, Tree).
+
+sibling_file_nodes(Dir, Nodes) :-
+	findall(node(file(File), []),
+		(   source_file(File),
+		    file_directory_name(File, Dir)
+		),
+		Nodes).
+
+embed_directories(Node, Tree) :-
+	Node = node(file(File), _), !,
+	file_directory_name(File, Dir),
+	Super = node(directory(Dir), [Node]),
+	embed_directories(Super, Tree).
+embed_directories(Node, Tree) :-
+	Node = node(directory(Dir), _),
+	file_directory_name(Dir, SuperDir),
+	SuperDir \== Dir, !,
+	Super = node(directory(SuperDir), [Node]),
+	embed_directories(Super, Tree).
+embed_directories(Tree, Tree).
+
+
+union_trees([Tree], Tree) :- !.
+union_trees([T1,T2|Trees], Tree) :-
+	merge_trees(T1, T2, M1),
+	union_trees([M1|Trees], Tree).
+
+merge_trees(node(R, Ch1), node(R, Ch2), node(R, Ch)) :-
+	merge_nodes(Ch1, Ch2, Ch).
+
+merge_nodes([], Ch, Ch) :- !.
+merge_nodes(Ch, [], Ch) :- !.
+merge_nodes([node(Root, Ch1)|T1], N1, [T1|Nodes]) :-
+	selectchk(node(Root, Ch2), N1, N2), !,
+	merge_trees(node(Root, Ch1), node(Root, Ch2), T1),
+	merge_nodes(T1, N2, Nodes).
+merge_nodes([Node|T1], N1, [Node|Nodes]) :-
+	merge_nodes(T1, N1, Nodes).
+
+%%	remove_unique_root(+TreeIn, -Tree)
+%
+%	Remove the root part that does not branch
+
+remove_unique_root(node(_, [node(R1, [R2])]), Tree) :- !,
+	remove_unique_root(node(R1, [R2]), Tree).
+remove_unique_root(Tree, Tree).
+
+%%	nav_tree(+Tree, +Current, +Options)// is det.
+%
+%	Render the navigation tree
+
+nav_tree(Tree, Current, Options) -->
+	html(ul(class(nav),
+		\object_tree(Tree, Current, Options))).
+
+%%	object_tree(+Tree, +Current, +Options)// is det.
+%
+%	Render a tree of objects used for navigation.
+
+object_tree(node(Id, []), Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class(Class),
+		\node(Id, Options))).
+object_tree(node(Id, Children), Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class(Class),
+		[ \node(Id, Options),
+		  ul(class(nav),
+		     \object_trees(Children, Target, Options))
+		])).
+object_tree(Id, Target, Options) --> !,
+	{ node_class(Id, Target, Class) },
+	html(li(class([obj|Class]), \node(Id, Options))).
+
+object_trees([], _, _) --> [].
+object_trees([H|T], Target, Options) -->
+	object_tree(H, Target, Options),
+	object_trees(T, Target, Options).
+
+node_class(Ids, Current, Class) :-
+	is_list(Ids), !,
+	(   member(Id, Ids), memberchk(Id, Current)
+	->  Class = [nav,current]
+	;   Class = [nav]
+	).
+node_class(Id, Current, Class) :-
+	(   memberchk(Id, Current)
+	->  Class = [nav,current]
+	;   Class = [nav]
+	).
+
+node(file(File), Options) --> !,
+	object_ref(file(File), [style(title)|Options]).
+node(Id, Options) -->
+	object_ref(Id, Options).
 
 
 		 /*******************************
@@ -1677,6 +1821,11 @@ object_href(M:PI0, HREF, Options) :-
 	uri_data(path, Components, LocalFile),
 	uri_data(fragment, Components, PIS),
 	uri_components(HREF, Components).
+object_href(file(File), HREF, _Options) :-
+	doc_file_href(File, HREF), !.
+object_href(directory(Dir), HREF, _Options) :-
+	directory_file_path(Dir, 'index.html', Index),
+	doc_file_href(Index, HREF), !.
 object_href(Obj, HREF, _Options) :-
 	prolog:doc_object_href(Obj, HREF), !.
 object_href(Obj0, HREF, _Options) :-
@@ -1755,7 +1904,19 @@ object_name(title, Module:module(Title), _) -->
 	{ module_property(Module, file(File)),
 	  file_base_name(File, Base)
 	}, !,
-	html([Base, --, Title]).
+	html([Base, ' -- ', Title]).
+object_name(title, file(File), _) -->
+	{ module_property(Module, file(File)),
+	  doc_comment(Module:module(Title), _, _, _), !,
+	  file_base_name(File, Base)
+	},
+	html([Base, ' -- ', Title]).
+object_name(_, file(File), _) -->
+	{ file_base_name(File, Base) },
+	html(Base).
+object_name(_, directory(Dir), _) -->
+	{ file_base_name(Dir, Base) },
+	html(Base).
 
 pi(title, PI, Options) -->
 	pi_type(PI),

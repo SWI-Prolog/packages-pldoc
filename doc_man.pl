@@ -386,33 +386,7 @@ man_nav_tree(Obj, Options) -->
 			]
 	},
 	html(ul(class(nav),
-		\obj_tree(Tree, Obj, TreeOptions))).
-
-obj_tree(node(Id, []), Target, Options) --> !,
-	{ node_class(Id, Target, Class) },
-	html(li(class(Class),
-		\node(Id, Options))).
-obj_tree(node(Id, Children), Target, Options) --> !,
-	{ node_class(Id, Target, Class) },
-	html(li(class(Class),
-		[ \node(Id, Options),
-		  ul(class(nav),
-		     \obj_trees(Children, Target, Options))
-		])).
-obj_tree(Id, Target, Options) --> !,
-	{ node_class(Id, Target, Class) },
-	html(li(class([obj|Class]), \node(Id, Options))).
-
-obj_trees([], _, _) --> [].
-obj_trees([H|T], Target, Options) -->
-	obj_tree(H, Target, Options),
-	obj_trees(T, Target, Options).
-
-node_class(Id, Id, [nav,current]).
-node_class(_,  _,  [nav]).
-
-node(Id, Options) -->
-	object_ref(Id, Options).
+		\object_tree(Tree, [Obj], TreeOptions))).
 
 
 %%	man_nav_tree(+Obj, -Tree, +Options) is semidet.
@@ -841,7 +815,10 @@ man_page(Obj, Options) -->			% PlDoc predicates, etc.
 	->  object_page_header(File, Options)
 	;   object_page_header(-, Options)
 	),
-	objects(Objs, [synopsis(true)|Options]).
+	objects(Objs, [ synopsis(true),
+			navtree(true)
+		      | Options
+		      ]).
 man_page(Obj, Options) -->			% failure
 	{ \+ option(no_manual(fail), Options)
 	},
