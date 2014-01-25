@@ -55,6 +55,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/mimetype)).
 :- include(hooks).
 
 /** <module> Process SWI-Prolog HTML manuals
@@ -992,7 +993,7 @@ dom_element(img, Att0, [], Path) -->
 	  ->  Handler = pldoc_package
 	  ), !,
 	  http_link_to_id(Handler, [], ManRef),
-	  atomic_list_concat([ManRef, /, Src], NewPath),
+	  directory_file_path(ManRef, Src, NewPath),
 	  Begin =.. [img, src(NewPath) | Att1]
 	}, !,
 	html_begin(Begin),
@@ -1277,7 +1278,7 @@ current_package(pkg(Title, HREF, HavePackage)) :-
 
 pldoc_package(Request) :-
 	memberchk(path_info(Img), Request),
-	file_name_extension(_, gif, Img), !,
+	file_mime_type(Img, image/_), !,
 	atom_concat('doc/packages/', Img, Path),
 	http_reply_file(swi(Path), [], Request).
 pldoc_package(Request) :-
@@ -1293,7 +1294,6 @@ pldoc_package(Request) :-
 	;   memberchk(path(Path), Request),
 	    existence_error(http_location, Path)
 	).
-
 
 %%	pldoc_package_overview(+Request)
 %
