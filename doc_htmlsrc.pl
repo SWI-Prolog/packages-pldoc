@@ -76,7 +76,13 @@ cross-reference based technology as used by PceEmacs.
 %
 %	Colourise Prolog source as HTML. The idea   is to first create a
 %	sequence of fragments and  then  to   apply  these  to the code.
-%	Options are passed to the following predicates:
+%	Options are:
+%
+%	  * format_comments(+Boolean)
+%	  If =true= (default), use PlDoc formatting for structured
+%	  comments.
+%
+%	Other options are passed to the following predicates:
 %
 %	  * print_html_head/2
 %	  * print_html_footer/2.
