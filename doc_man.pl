@@ -1346,6 +1346,9 @@ pldoc_refman(Request) :-
 		 *	    HOOK SEARCH		*
 		 *******************************/
 
+prolog:doc_object_summary(section(ID), Class, File, Summary) :- !,
+	index_manual,
+	man_index(section(_Level, _No, ID, _Path), Summary, File, Class, _Offset).
 prolog:doc_object_summary(Obj, Class, File, Summary) :-
 	index_manual,
 	man_index(Obj, Summary, File, Class, _Offset).
