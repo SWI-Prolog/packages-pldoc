@@ -489,7 +489,8 @@ doc_reply_file(File, Request) :-
 	http_parameters(Request,
 			[ public_only(Public),
 			  reload(Reload),
-			  show(Show)
+			  show(Show),
+			  format_comments(FormatComments)
 			],
 			[ attribute_declarations(param)
 			]),
@@ -506,7 +507,8 @@ doc_reply_file(File, Request) :-
 	(   Show == src
 	->  format('Content-type: text/html~n~n', []),
 	    source_to_html(File, stream(current_output),
-			   [ skin(src_skin(Request, Show))
+			   [ skin(src_skin(Request, Show, FormatComments)),
+			     format_comments(FormatComments)
 			   ])
 	;   Show == raw
 	->  http_reply_file(File,
@@ -520,15 +522,28 @@ doc_reply_file(File, Request) :-
 	).
 
 
-:- public src_skin/4.			% called through source_to_html/3.
+:- public src_skin/5.			% called through source_to_html/3.
 
-src_skin(Request, _Show, header, Out) :- !,
-	memberchk(request_uri(ReqURI), Request), !,
+src_skin(Request, _Show, FormatComments, header, Out) :-
+	memberchk(request_uri(ReqURI), Request),
+	negate(FormatComments, AltFormatComments),
 	replace_parameters(ReqURI, [show(raw)], RawLink),
+	replace_parameters(ReqURI, [format_comments(AltFormatComments)], CmtLink),
 	phrase(html(div(class(src_formats),
-			[ 'View source as ', a(href(RawLink), raw)
+			[ 'View source with ',
+			  a(href(CmtLink), \alt_view(AltFormatComments)),
+			  ' or as ',
+			  a(href(RawLink), raw)
 			])), Tokens),
 	print_html(Out, Tokens).
+
+alt_view(true) -->
+	html('formatted comments').
+alt_view(false) -->
+	html('raw comments').
+
+negate(true, false).
+negate(false, true).
 
 replace_parameters(ReqURI, Extra, URI) :-
 	uri_components(ReqURI, C0),
@@ -727,7 +742,7 @@ pldoc_search(Request) :-
 param(public_only,
       [ boolean,
 	default(true),
-	description('If true (default), hide private predicates')
+	description('If true, hide private predicates')
       ]).
 param(reload,
       [ boolean,
@@ -738,6 +753,11 @@ param(show,
       [ oneof([doc,src,raw]),
 	default(doc),
 	description('How to show the file')
+      ]).
+param(format_comments,
+      [ boolean,
+	default(true),
+	description('If true, use PlDoc for rendering structured comments')
       ]).
 
 
