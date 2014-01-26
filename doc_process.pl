@@ -90,7 +90,9 @@ is_structured_comment(_Pos-Comment, Prefixes, Style) :- !,
 	is_structured_comment(Comment, Prefixes, Style).
 is_structured_comment(Comment, Prefixes, Style) :-
 	is_list(Comment), !,
-	phrase(structured_comment(Prefixes, Style), Comment, _).
+	(   phrase(structured_comment(Prefixes, Style), Comment, _)
+	->  true
+	).
 is_structured_comment(Comment, Prefixes, Style) :-
 	atom_string(CommentA, Comment),
 	structured_command_start(Start, Prefixes, Style),
