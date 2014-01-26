@@ -859,39 +859,48 @@ full_object(Name//Arity, _:Name/Arity2) :-
 	integer(Arity),
 	Arity2 is Arity+1.
 
-
-%%	man_synopsis(+Text, Parent)
+%%	man_qualified_object(+Text, +Parent, -Object, -Section) is semidet.
 %
-%	Give synopsis details for a fully specified predicate indicator.
+%	Get a qualified predicate description from  Text that appears in
+%	the section Parent.
+%
 %	The tricky part is that there   are cases where multiple modules
 %	export the same predicate. We must find   from  the title of the
 %	manual section which library is documented.
 
+
+man_qualified_object(Text, Parent, Object, Section) :-
+	atom_pi(Text, PI),
+	man_qualified_object_2(PI, Parent, Object, Section).
+man_qualified_object(Object0, Parent, Object, Section) :-
+	man_qualified_object_2(Object0, Parent, Object, Section).
+
+man_qualified_object_2(Name/Arity, Parent, Module:Name/Arity, Section) :-
+	object_module(Parent, Module, Section), !.
+man_qualified_object_2(Object, Parent, Object, Parent).
+
+
+%%	man_synopsis(+Object, +Section)//
+%
+%	Give synopsis details for a  fully specified predicate indicator
+%	and link this to the section.
+
 :- public
 	man_synopsis//2.		% called from man_match//2
 
-man_synopsis(Text, Parent) -->
-	{ atom_pi(Text, PI) },
-	man_synopsis_2(PI, Parent).
-man_synopsis(Object, Parent) -->
-	man_synopsis_2(Object, Parent).
-
-man_synopsis_2(Name/Arity, Parent) -->
-	{ object_module(Parent, Module),
-	  object_href(Parent, HREF)
+man_synopsis(PI, Section) -->
+	{ object_href(Section, HREF)
 	},
-	object_synopsis(Module:Name/Arity, [href(HREF)]).
-man_synopsis_2(Object, _) -->
-	object_synopsis(Object, []).
+	object_synopsis(PI, [href(HREF)]).
 
-%%	object_module(+Section, -Module) is semidet.
+%%	object_module(+Section0, -Module, -Section) is semidet.
 %
 %	Find the module documented by Section.
 %
 %	@tbd This requires that the documented file is loaded. If
 %	not, should we use the title of the section?
 
-object_module(Section0, Module) :-
+object_module(Section0, Module, Section) :-
 	parent_section_ndet(Section0, Section),
 	man_index(Section, Title, _File, _Class, _Offset),
 	(   once(sub_atom(Title, B, _, _, :)),
@@ -958,7 +967,8 @@ man_match(packages, packages) --> !,
 man_match(root, root) --> !,
 	man_overview([]).
 man_match((Parent+Path)-(Obj+[element(dt,A,C)|DD]), Obj) -->
-	dom_list([ element(dt,[],[\man_synopsis(Obj, Parent)]),
+	{ man_qualified_object(Obj, Parent, QObj, Section) },
+	dom_list([ element(dt,[],[\man_synopsis(QObj, Section)]),
 		   element(dt,A,C)
 		 | DD
 		 ], Path).
