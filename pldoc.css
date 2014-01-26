@@ -201,7 +201,16 @@ table.summary th.category
   color: #0c3d6c;
   padding-top: 0.5em;
   padding-bottom: 0.4em;
-  background-color:  #f0f0f0;
+  background-color:  #0c3d6c;
+}
+
+table.summary th.category-bottom-sep
+{ background-color: inherit;
+  font-size: 50%;
+}
+
+table.summary th.category-top-sep
+{ background-color: inherit;
 }
 
 table.summary th.section
@@ -224,8 +233,7 @@ table.summary th
 }
 
 table.summary th a
-{
-   color: #FFF;
+{ color: #FFF;
 }
 
 table.summary td
@@ -234,13 +242,7 @@ table.summary td
 }
 
 table.summary td a
-{
-    color: #FFF;
-}
-
-table.summary tr.public td a
-{
-    color: #0c3d6e;
+{ color: #0c3d6e;
 }
 
 tr.private
@@ -249,14 +251,16 @@ tr.private
   padding: 6px 10px;
 }
 
+table.summary tr.private td a
+{ color: #FFF;
+}
+
 tr.private td
-{
-  padding: 6px 10px;
+{ padding: 6px 10px;
 }
 
 tr.public td
-{
-  padding: 3px 10px;
+{ padding: 3px 10px;
 }
 
 /* Navigation tree */

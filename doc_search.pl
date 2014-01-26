@@ -275,7 +275,7 @@ matches(long, PerCategory, Options) -->
 	long_matches_by_type(PerCategory, Options).
 matches(summary, PerCategory, Options) -->
 	html(table(class(summary),
-		   \short_matches_by_type(PerCategory, Options))).
+		   \short_matches_by_type(PerCategory, 1, Options))).
 
 
 long_matches_by_type([], _) -->
@@ -296,12 +296,13 @@ long_matches([File-Objs|T], Options) -->
 category_header(Category, _Options) -->
 	html(h1(class(category), \category_title(Category))).
 
-short_matches_by_type([], _) -->
+short_matches_by_type([], _, _) -->
 	[].
-short_matches_by_type([Category-PerFile|T], Options) -->
-	category_index_header(Category, Options),
+short_matches_by_type([Category-PerFile|T], Nth, Options) -->
+	category_index_header(Category, Nth, Options),
 	short_matches(PerFile, Options),
-	short_matches_by_type(T, Options).
+	{ succ(Nth, Nth1) },
+	short_matches_by_type(T, Nth1, Options).
 
 short_matches([], _) -->
 	[].
@@ -311,9 +312,19 @@ short_matches([File-Objs|T], Options) -->
 	short_matches(T, Options).
 
 
-category_index_header(Category, _Options) -->
+category_index_header(Category, Nth, _Options) -->
+	(   { Nth > 1 }
+	->  category_sep('category-top-sep')
+	;   []
+	),
 	html(tr(th([class(category), colspan(3)],
-		   a(name(Category), \category_title(Category))))).
+		   a(name(Category), \category_title(Category))))),
+	category_sep('category-bottom-sep').
+
+category_sep(Which) -->
+	html(tr(th([class(Which), colspan(3)],
+		   &(nbsp)))).
+
 
 category_title(Category) -->
 	{   prolog:doc_category(Category, _Order, Title)
