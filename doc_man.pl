@@ -700,7 +700,8 @@ path_allowed(Path) :-			% allow all files from swi/doc
 %
 %	Parent is the parent-section  of   Section.  First  computes the
 %	section number and than finds the   required  number in the same
-%	file or same directory.
+%	file or same directory. If this doesn't exist, get the file as a
+%	whole.
 
 parent_section(section(Level, Nr, _ID, File), Parent) :-
 	integer(Level),
@@ -716,7 +717,12 @@ parent_section(section(Level, Nr, _ID, File), Parent) :-
 	->  true
 	;   man_index(Parent, _, _, _, _)
 	), !.
+parent_section(section(Level, _, _, File), Parent) :-
+	Parent = section(ParentLevel, _, _, File),
+	man_index(Parent, _, _, _, _),
+	ParentLevel < Level, !.
 parent_section(section(_, _, _, File), File).
+
 
 %%	object_section(+Path, +Position, -Section) is semidet.
 %
@@ -885,19 +891,27 @@ man_synopsis_2(Object, _) -->
 %	@tbd This requires that the documented file is loaded. If
 %	not, should we use the title of the section?
 
-object_module(Section, Module) :-
+object_module(Section0, Module) :-
+	parent_section_ndet(Section0, Section),
 	man_index(Section, Title, _File, _Class, _Offset),
 	(   once(sub_atom(Title, B, _, _, :)),
 	    sub_atom(Title, 0, B, _, Atom),
 	    catch(term_to_atom(Term, Atom), _, fail),
 	    Term = library(_)
-	->  absolute_file_name(Term, PlFile,
+	->  !,
+	    absolute_file_name(Term, PlFile,
 			       [ file_type(prolog),
 				 access(read),
 				 file_errors(fail)
 			       ]),
 	    module_property(Module, file(PlFile))
 	).
+
+parent_section_ndet(Section, Section).
+parent_section_ndet(Section, Parent) :-
+	parent_section(Section, Parent0),
+	parent_section_ndet(Parent0, Parent).
+
 
 atom_pi(Text, Name/Arity) :-
 	atom(Text),
