@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 1985-2014, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -32,6 +31,7 @@
 :- module(pldoc_htmlsrc,
 	  [ source_to_html/3		% +Source, +OutStream, +Options
 	  ]).
+:- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
@@ -220,6 +220,7 @@ html_fragment(fragment(Start, End, structured_comment, []),
 	    ;	Module = user
 	    ),
 	    process_modes(Lines0, Module, File:Line, Modes, Args, Lines1),
+	    maplist(assert_seen_mode, Modes),
 	    DOM = [\pred_dt(Modes, pubdef, []), dd(class=defbody, DOM1)],
 	    wiki_lines_to_dom(Lines1, Args, DOM0),
 	    strip_leading_par(DOM0, DOM1),
@@ -228,6 +229,28 @@ html_fragment(fragment(Start, End, structured_comment, []),
 	    print_html(Out, Tokens),
 	    format(Out, '</dl>~n', [Out])
 	).
+html_fragment(fragment(Start, End, structured_comment, []),
+	      In, Out, State0, State, _Options) :- !,
+	copy_to(In, Start, Out, State0, State1),
+	line_count(In, StartLine),
+	Len is End - Start,
+	read_n_codes(In, Len, Comment),
+	is_structured_comment(Comment, Prefix),
+	indented_lines(Comment, Prefix, Lines),
+	(   section_comment_header(Lines, _Header, _RestSectionLines)
+	->  true
+	;   stream_property(In, file_name(File)),
+	    line_count(In, Line),
+	    (	xref_module(File, Module)
+	    ->	true
+	    ;	Module = user
+	    ),
+	    process_modes(Lines, Module, File:Line, Modes, _Args, _Lines1),
+	    maplist(mode_anchor(Out), Modes)
+	),
+	start_fragment(structured_comment, In, Out, State1, State2),
+	copy_codes(Comment, StartLine, Out, State2, State3),
+	end_fragment(Out, In, State3, State).
 html_fragment(fragment(Start, End, Class, Sub),
 	      In, Out, State0, State, Options) :-
 	copy_to(In, Start, Out, State0, State1),
@@ -288,6 +311,20 @@ anchor(head(_, Head), Id) :-
 	;   assertz(id(Id))
 	).
 
+mode_anchor(Out, Mode) :-
+	mode_anchor_name(Mode, Id),
+	(   id(Id)
+	->  true
+	;   format(Out, '<span id="~w"><span>', [Id]),
+	    assertz(id(Id))
+	).
+
+assert_seen_mode(Mode) :-
+	mode_anchor_name(Mode, Id),
+	(   id(Id)
+	->  true
+	;   assertz(id(Id))
+	).
 
 %%	copy_to(+In:stream, +End:int, +Out:stream, +State) is det.
 %
@@ -306,6 +343,16 @@ copy_to(In, End, Out, State, [pre(class(listing))|State]) :-
 	delete_leading_white_lines(Codes0, Codes, Line0, Line),
 	assert(lineno),
 	write_codes(Codes, Line, Out).
+
+copy_codes(Codes, Line, Out, State, State) :-
+	member(pre(_), State), !,
+	write_codes(Codes, Line, Out).
+copy_codes(Codes0, Line0, Out, State, State) :-
+	format(Out, '<pre class="listing">~n', [Out]),
+	delete_leading_white_lines(Codes0, Codes, Line0, Line),
+	assert(lineno),
+	write_codes(Codes, Line, Out).
+
 
 %%	copy_full_stop(+In, +Out) is det.
 %
@@ -405,9 +452,12 @@ write_codes([H|T], L0, Out) :-
 %		  closed environment.
 
 content_escape(_, Out, L, _) :-
-	retract(lineno),
-	write_line_no(L, Out),
-	fail.
+	(   lineno
+	->  retractall(lineno),
+	    write_line_no(L, Out),
+	    fail
+	;   fail
+	).
 content_escape(0'\n, Out, L0, L) :- !,
 	L is L0 + 1,
 	(   retract(nonl)

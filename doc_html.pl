@@ -52,6 +52,7 @@
 	    existing_linked_file/2,	% +FileSpec, -Path
 	    unquote_filespec/2,		% +FileSpec, -Unquoted
 	    doc_tag_title/2,		% +Tag, -Title
+	    mode_anchor_name/2,		% +Mode, -Anchor
 	    pred_anchor_name/3,		% +Head, -PI, -Anchor
 	    private/2,			% +Obj, +Options
 	    (multifile)/2,		% +Obj, +Options
@@ -2276,7 +2277,22 @@ insert_edit_button(DOM, File,
 		 *	      ANCHORS		*
 		 *******************************/
 
-%%	pred_anchor_name(+Head, -PI:atom/integer, -Anchor:string) is det.
+%%	mode_anchor_name(+Mode, -Anchor:atom) is det.
+%
+%	Get the anchor name for a mode.
+
+mode_anchor_name(Var, _) :-
+	var(Var), !,
+	instantiation_error(Var).
+mode_anchor_name(mode(Head, _), Anchor) :- !,
+	mode_anchor_name(Head, Anchor).
+mode_anchor_name(Head is _Det, Anchor) :- !,
+	mode_anchor_name(Head, Anchor).
+mode_anchor_name(Head, Anchor) :-
+	pred_anchor_name(Head, _, Anchor).
+
+
+%%	pred_anchor_name(+Head, -PI:atom/integer, -Anchor:atom) is det.
 %
 %	Create an HTML anchor name from Head.
 
