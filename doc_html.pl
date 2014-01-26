@@ -943,7 +943,7 @@ object_page_footer(Obj, Options) -->
 object_page_footer(_, _) --> [].
 
 
-%%	object_synopsis(Obj, Options) is det.
+%%	object_synopsis(Obj, Options)// is det.
 %
 %	Provide additional information  about  Obj.   Note  that  due to
 %	reexport facilities, predicates may be   available from multiple
