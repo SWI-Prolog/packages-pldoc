@@ -69,7 +69,8 @@ cross-reference based technology as used by PceEmacs.
 
 :- thread_local
 	lineno/0,			% print line-no on next output
-	nonl/0.				% previous tag implies nl (block level)
+	nonl/0,				% previous tag implies nl (block level)
+	id/1.				% Emitted ids
 
 %%	source_to_html(+In:filename, +Out, :Options) is det.
 %
@@ -99,6 +100,7 @@ source_to_html(Src, stream(Out), MOptions) :- !,
 	),
 	retractall(lineno),		% play safe
 	retractall(nonl),		% play safe
+	retractall(id(_)),
 	colour_fragments(Src, Fragments),
 	setup_call_cleanup(
 	    ( open_source(Src, In),
@@ -243,7 +245,10 @@ start_fragment(atom, In, Out, State0, State) :- !,
 start_fragment(Class, _, Out, State, [Push|State]) :-
 	element(Class, Tag, CSSClass), !,
 	Push =.. [Tag,class(CSSClass)],
-	format(Out, '<~w class="~w">', [Tag, CSSClass]).
+	(   anchor(Class, ID)
+	->  format(Out, '<~w id="~w" class="~w">', [Tag, ID, CSSClass])
+	;   format(Out, '<~w class="~w">', [Tag, CSSClass])
+	).
 start_fragment(Class, _, Out, State, [span(class(SpanClass))|State]) :-
 	functor(Class, SpanClass, _),
 	format(Out, '<span class="~w">', [SpanClass]).
@@ -266,6 +271,22 @@ pop_state([], _, _) :- !.
 pop_state(State, Out, In) :-
 	end_fragment(Out, In, State, State1),
 	pop_state(State1, Out, In).
+
+
+%%	anchor(+Class, -Label) is semidet.
+%
+%	True when Label is the =id= we   must  assign to the fragment of
+%	class Class. This that  the  first   definition  of  a head with
+%	the id _name/arity_.
+
+anchor(head(_, Head), Id) :-
+	callable(Head),
+	functor(Head, Name, Arity),
+	format(atom(Id), '~w/~w', [Name, Arity]),
+	(   id(Id)
+	->  fail
+	;   assertz(id(Id))
+	).
 
 
 %%	copy_to(+In:stream, +End:int, +Out:stream, +State) is det.
