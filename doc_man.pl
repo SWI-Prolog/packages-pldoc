@@ -906,6 +906,7 @@ object_module(Section0, Module, Section) :-
 	(   once(sub_atom(Title, B, _, _, :)),
 	    sub_atom(Title, 0, B, _, Atom),
 	    catch(term_to_atom(Term, Atom), _, fail),
+	    ground(Term),
 	    Term = library(_)
 	->  !,
 	    absolute_file_name(Term, PlFile,
