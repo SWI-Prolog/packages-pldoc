@@ -910,10 +910,7 @@ emphasis_term('**',  Term, strong(Term)).
 emph_markdown(_, [w(_)]) :- !.
 emph_markdown(Last, Tokens) :-
 	\+ emphasis_after_sep(Last),
-	(   catch(b_getval(pldoc_object, Obj), _, fail)
-	->  true
-	;   Obj = '??'
-	),
+	catch(b_getval(pldoc_object, Obj), _, Obj = '??'),
 	debug(markdown(emphasis), '~q: additionally emphasis: ~p',
 	      [Obj, Tokens]).
 
