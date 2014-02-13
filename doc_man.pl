@@ -1441,6 +1441,10 @@ swi_local_path(Path, Local) :-
 %
 %	Produce a HREF for section objects.
 
+prolog:doc_object_href(section(ID), HREF) :-
+	nonvar(ID),
+	atom_concat('sec:', Sec, ID),
+	http_link_to_id(pldoc_man, [section(Sec)], HREF).
 prolog:doc_object_href(section(_Level, _No, ID, _Path), HREF) :-
 	nonvar(ID),
 	atom_concat('sec:', Sec, ID),
