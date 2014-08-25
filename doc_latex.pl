@@ -1373,6 +1373,7 @@ print_char('$', Out) :- !, write(Out, '\\$').
 print_char('&', Out) :- !, write(Out, '\\&').
 print_char('#', Out) :- !, write(Out, '\\#').
 print_char('%', Out) :- !, write(Out, '\\%').
+print_char('~', Out) :- !, write(Out, '\\Stilde{}').
 print_char('\\',Out) :- !, write(Out, '\\bsl{}').
 print_char('^', Out) :- !, write(Out, '\\Shat{}').
 print_char('|', Out) :- !, write(Out, '\\Sbar{}').
