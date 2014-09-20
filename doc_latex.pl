@@ -1035,6 +1035,22 @@ insert_comma([H1,H2|T0], [H1, ','|T]) :- !,
 insert_comma(L, L).
 
 
+:- if(current_predicate(is_dict/1)).
+dict_kv_pairs([]) --> [].
+dict_kv_pairs([H|T]) -->
+	dict_kv(H),
+	(   { T == [] }
+	->  []
+	;   latex(', '),
+	    dict_kv_pairs(T)
+	).
+
+dict_kv(Key-Value) -->
+	latex(cmd(key(Key))),
+	latex(':'),
+	term(Value).
+:- endif.
+
 pred_args([], _) -->
 	[].
 pred_args([H|T], I) -->
@@ -1122,6 +1138,13 @@ termitem(_Text, Term, Bindings) -->
 
 termitem('$VAR'(Name)) --> !,
 	latex(cmd(termitem(var(Name), ''))).
+:- if(current_predicate(is_dict/1)).
+termitem(Dict) -->
+	{ is_dict(Dict), !,
+	  dict_pairs(Dict, Tag, Pairs)
+	},
+	latex(cmd(dictitem(Tag, \dict_kv_pairs(Pairs)))).
+:- endif.
 termitem(Compound) -->
 	{ callable(Compound), !,
 	  Compound =.. [Functor|Args]
