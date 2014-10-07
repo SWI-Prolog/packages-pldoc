@@ -162,9 +162,7 @@ print_html_head(Out, Options) :-
 	http_absolute_location(pldoc_resource('pldoc.css'), PlDocCSS, []),
 	http_absolute_location(pldoc_resource('pllisting.css'), PlListingCSS, []),
 	option(stylesheets(Sheets), Options, [PlListingCSS, PlDocCSS]),
-	format(Out,
-	       '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" \c
-	       "http://www.w3.org/TR/html4/strict.dtd">~n~n', []),
+	format(Out, '<!DOCTYPE html', []),
 	format(Out, '<html>~n', []),
 	format(Out, '  <head>~n', []),
 	format(Out, '    <title>~w</title>~n', [Title]),
