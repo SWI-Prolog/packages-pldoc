@@ -363,11 +363,27 @@ face_token(=) --> [=].
 face_token(*) --> [*].
 face_token('_') --> ['_'].
 
-
+rest_table([N-Line|LT], N, RL, Rest) :-
+	md_table_structure_line(Line), !,
+	rest_table(LT, N, RL, Rest).
 rest_table([N-['|'|RL1]|LT], N, [tr(R0)|RL], Rest) :- !,
 	phrase(row(R0), RL1),
 	rest_table(LT, N, RL, Rest).
 rest_table(Rest, _, [], Rest).
+
+%%	md_table_structure_line(+Chars)
+%
+%	True if Chars represents Markdown  table structure. We currently
+%	ignore the structure information.
+
+md_table_structure_line(Line) :-
+	forall(member(Char, Line),
+	       md_table_structure_char(Char)).
+
+md_table_structure_char(' ').
+md_table_structure_char('-').
+md_table_structure_char('|').
+md_table_structure_char(':').
 
 %%	rest_par(+Lines, -Par,
 %%		 +BaseIndent, +MaxI0, -MaxI, -RestLines) is det.
