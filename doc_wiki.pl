@@ -1452,6 +1452,8 @@ verbatim_fence(Line, Fence, '') :-
 	Fence = Line.
 verbatim_fence(Line, Fence, Ext) :-
 	tilde_fence(Line, Fence, 0, Ext).
+verbatim_fence(Line, Fence, Ext) :-
+	md_fence(Line, Fence, 0, Ext).
 
 tilde_fence([0'~|T0], [0'~|F0], C0, Ext) :- !,
 	C1 is C0+1,
@@ -1460,12 +1462,30 @@ tilde_fence(List, [], C, Ext) :-
 	C >= 3,
 	(   List == []
 	->  Ext = ''
-	;   phrase(fence_ext(ExtCodes), List),
+	;   phrase(tilde_fence_ext(ExtCodes), List),
 	    atom_codes(Ext, ExtCodes)
 	).
 
-fence_ext(Ext) -->
+tilde_fence_ext(Ext) -->
 	"{.", alphas(Ext), "}".
+
+md_fence([0'`|T0], [0'`|F0], C0, Ext) :- !,
+	C1 is C0+1,
+	md_fence(T0, F0, C1, Ext).
+md_fence(List, [], C, Ext) :-
+	C >= 3,
+	(   List == []
+	->  Ext = ''
+	;   phrase(md_fence_ext(ExtCodes), List),
+	    atom_codes(Ext, ExtCodes)
+	).
+
+% Also support Doxygen's curly bracket notation.
+md_fence_ext(Ext) -->
+	tilde_fence_ext(Ext), !.
+% In Markdown language names appear without brackets.
+md_fence_ext(Ext) -->
+	alphas(Ext).
 
 %%	indented_verbatim_body(+Lines, +Indent, -CodeLines, -RestLines)
 %
