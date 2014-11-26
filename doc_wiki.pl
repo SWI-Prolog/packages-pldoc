@@ -814,17 +814,18 @@ wiki_face(\include(Name, Type, [caption(Caption)|Options]), _) -->
 	      resolve_file(Name, Options, [])
 	    }
 	), !.
-wiki_face(Link, _ArgNames) -->		% [[Label][Link]]
+wiki_face(Link, _ArgNames) -->		% TWiki: [[Label][Link]]
 	(   ['[','['], tokens(LabelParts), [']','[']
 	->  wiki_link(Link, [label(Label), relative(true), end(']')]),
 	    [']',']'], !,
 	    { make_label(LabelParts, Label) }
 	).
-wiki_face(Link, _ArgNames) -->		% Markdown: [Label](Link)
-	(   ['['], tokens(LabelParts), [']','(']
+wiki_face(Link, ArgNames) -->		% Markdown: [Label](Link)
+	(   ['['],
+	    wiki_faces_int(Label, ArgNames),
+	    [']','(']
 	->  wiki_link(Link, [label(Label), relative(true), end(')')]),
-	    [')'], !,
-	    { make_label(LabelParts, Label) }
+	    [')'], !
 	).
 wiki_face(Link, _ArgNames) -->
 	wiki_link(Link, []), !.
