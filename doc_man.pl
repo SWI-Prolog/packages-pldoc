@@ -182,6 +182,7 @@ index_man_file(Class, File) :-
 	nb_setval(pldoc_index_class, Class),
 	call_cleanup(sgml_parse(Parser,
 				[ source(In),
+				  syntax_errors(quiet),
 				  call(begin, index_on_begin)
 				]),
 		     (	 free_sgml_parser(Parser),
@@ -647,7 +648,8 @@ parse_dts_upto_dd(Parser, In, Description) :-
 	sgml_parse(Parser,
 		   [ document(DOM0),
 		     source(In),
-		     parse(element)
+		     parse(element),
+		     syntax_errors(quiet)
 		   ]),
 	(   DOM0 = [Element],
 	    Element = element(dt, _, _)
