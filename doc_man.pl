@@ -32,6 +32,7 @@
 	  [ clean_man_index/0,		%
 	    index_man_directory/2,	% +DirSpec, +Options
 	    index_man_file/2,		% +Class, +FileSpec
+	    current_man_object/1,	% ?Object
 					% HTML generation
 	    man_page//2,		% +Obj, +Options
 	    man_overview//1,		% +Options
@@ -369,6 +370,12 @@ cdata(CDATA) -->
 	[CDATA].
 cdata(_) -->
 	[].
+
+%%	current_man_object(?Object) is nondet.
+
+current_man_object(Object) :-
+	index_manual,
+	man_index(Object, _, _, _, _).
 
 
 		 /*******************************
