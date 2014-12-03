@@ -968,7 +968,7 @@ man_match(packages, packages) --> !,
 man_match(root, root) --> !,
 	man_overview([]).
 man_match((Parent+Path)-(Obj+[element(dt,A,C)|DD]), Obj) -->
-	{ man_qualified_object(Obj, Parent, QObj, Section) },
+	{ man_qualified_object(Obj, Parent, QObj, Section) }, !,
 	dom_list([ element(dt,[],[\man_synopsis(QObj, Section)]),
 		   element(dt,A,C)
 		 | DD
