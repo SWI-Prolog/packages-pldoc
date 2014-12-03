@@ -222,7 +222,7 @@ index_on_begin(dd, _, Parser) :- !,
 		   ]),
 	summary(DD, Summary),
 	nb_getval(pldoc_index_class, Class),
-        assert(man_index(Object, Summary, File, Class, Offset)).
+        assertz(man_index(Object, Summary, File, Class, Offset)).
 index_on_begin(div, Attributes, Parser) :- !,
 	memberchk(class=title, Attributes),
 	get_sgml_parser(Parser, charpos(Offset)),
@@ -234,8 +234,8 @@ index_on_begin(div, Attributes, Parser) :- !,
 	dom_to_text(DOM, Title),
 	nb_getval(pldoc_index_class, Class),
 	swi_local_path(File, Local),
-	assert(man_index(section(0, '0', Local, File),
-			 Title, File, Class, Offset)).
+	assertz(man_index(section(0, '0', Local, File),
+			  Title, File, Class, Offset)).
 index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 	heading(H, Level),
 	get_sgml_parser(Parser, charpos(Offset)),
@@ -247,8 +247,8 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 	dom_section(Doc, Nr, Title),
 	nb_getval(pldoc_index_class, Class),
 	section_id(Attributes, Title, File, ID),
-	assert(man_index(section(Level, Nr, ID, File),
-			 Title, File, Class, Offset)).
+	assertz(man_index(section(Level, Nr, ID, File),
+			  Title, File, Class, Offset)).
 
 section_id(Attributes, _Title, _, ID) :-
 	memberchk(id=ID, Attributes), !.
