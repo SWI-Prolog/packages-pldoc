@@ -205,6 +205,7 @@ index_on_begin(dt, Attributes, Parser) :-
         get_sgml_parser(Parser, file(File)),
 	sgml_parse(Parser,
 		   [ document(DT),
+		     syntax_errors(quiet),
 		     parse(content)
 		   ]),
 	(   sub_term(element(a, AA, _), DT),
@@ -219,6 +220,7 @@ index_on_begin(dd, _, Parser) :- !,
 	nb_setval(pldoc_man_index, []),
 	sgml_parse(Parser,
 		   [ document(DD),
+		     syntax_errors(quiet),
 		     parse(content)
 		   ]),
 	summary(DD, Summary),
@@ -230,6 +232,7 @@ index_on_begin(div, Attributes, Parser) :- !,
         get_sgml_parser(Parser, file(File)),
 	sgml_parse(Parser,
 		   [ document(DOM),
+		     syntax_errors(quiet),
 		     parse(content)
 		   ]),
 	dom_to_text(DOM, Title),
@@ -243,6 +246,7 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
         get_sgml_parser(Parser, file(File)),
 	sgml_parse(Parser,
 		   [ document(Doc),
+		     syntax_errors(quiet),
 		     parse(content)
 		   ]),
 	dom_section(Doc, Nr, Title),
@@ -253,6 +257,7 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
 
 section_id(Attributes, _Title, _, ID) :-
 	memberchk(id=ID, Attributes), !.
+section_id(_, "Bibliography", _, 'sec:bibliography') :- !.
 section_id(_Attributes, Title, File, ID) :-
 	atomic_list_concat(Words, ' ', Title),
 	atomic_list_concat(Words, '_', ID0),
