@@ -468,6 +468,11 @@ obj(Obj0, Obj) :-
 %	defined a module and Obj is  not   member  of the exports of the
 %	module.
 
+:- multifile
+	prolog:doc_is_public_object/1.
+
+private(Object, _Options):-
+        prolog:doc_is_public_object(Object), !, fail.
 private(Module:PI, Options) :-
 	multifile(Module:PI, Options), !, fail.
 private(Module:PI, Options) :-
@@ -486,6 +491,11 @@ private(Module:PI, _Options) :-
 	\+ (pi_to_head(PI, Head),
 	    xref_exported(Source, Head),
 	    xref_module(Source, Module)).
+
+%%	prolog:doc_is_public_object(+Object) is semidet.
+%
+%	Hook that allows objects  to  be   displayed  with  the  default
+%	public-only view.
 
 %%	multifile(+Obj, +Options) is semidet.
 %
