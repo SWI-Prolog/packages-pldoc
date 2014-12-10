@@ -60,6 +60,10 @@ refinement thereof.
 @see http://www.stack.nl/~dimitri/doxygen/manual/markdown.html
 */
 
+:- multifile
+	prolog:doc_wiki_face//2,	% -Out, +VarNames
+	prolog:doc_url_expansion/3.	% +Alias(Rest), -HREF, -Label
+
 
 		 /*******************************
 		 *	    WIKI PARSING	*
@@ -770,6 +774,24 @@ wiki_faces_int([H|T], ArgNames) -->
 	wiki_face(H, ArgNames),
 	wiki_faces(T, ArgNames).
 
+%%	prolog:doc_wiki_face(-Out, +VarNames)// is semidet.
+%
+%	Hook that can be  used  to   provide  additional  processing for
+%	additional _inline_ wiki constructs.  The DCG list is a list of
+%	tokens.  Defined tokens are:
+%
+%	  - w(Atom)
+%	  Recognised word (alphanumerical)
+%	  - Atom
+%	  Single character atom representing punctuation marks or the
+%	  atom =|' '|= (space), representing white-space.
+%
+%	The  `Out`  variable  is  input  for  the  backends  defined  in
+%	doc_latex.pl and doc_html.pl. Roughly, these   are terms similar
+%	to what html//1 from library(http/html_write) accepts.
+
+wiki_face(Out, Args) -->
+	prolog:doc_wiki_face(Out, Args), !.
 wiki_face(var(Arg), ArgNames) -->
 	[w(Arg)],
 	{ memberchk(Arg, ArgNames)
@@ -1118,6 +1140,12 @@ wiki_link(a(href(Ref), Label), Options) -->
 	{ atomic_list_concat([Prot, :,/,/ | Rest], Ref),
 	  option(label(Label), Options, Ref)
 	}.
+wiki_link(a(href(Ref), Label), _Options) -->
+	[<, w(Alias), :],
+	tokens_no_whitespace(Rest), [>],
+	{ Term =.. (Alias:Rest),
+          prolog:url_expansion_hook(Term, Ref, Label), !
+	}.
 wiki_link(a(href(Ref), Label), Options) -->
 	[<, w(Alias), :],
 	{ user:url_path(Alias, _)
@@ -1146,6 +1174,12 @@ wiki_link(a(href(Ref), Label), Options) -->
 	  option(label(Label), Options, Ref)
 	}.
 
+%%	prolog:url_expansion_hook(+Term, -HREF, -Label) is semidet.
+%
+%	This hook is called after   recognising  =|<Alias:Rest>|=, where
+%	Term is of the form Alias(Rest). If   it  succeeds, it must bind
+%	HREF to an atom or string representing the link target and Label
+%	to an html//1 expression for the label.
 
 %%	file_name(-Name:atom, -Ext:atom)// is semidet.
 %
