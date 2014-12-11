@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006-2013, University of Amsterdam
+    Copyright (C): 2006-2014, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -1143,7 +1143,7 @@ wiki_link(a(href(Ref), Label), Options) -->
 wiki_link(a(href(Ref), Label), _Options) -->
 	[<, w(Alias), :],
 	tokens_no_whitespace(Rest), [>],
-	{ Term =.. (Alias:Rest),
+	{ Term = (Alias:Rest),
           prolog:url_expansion_hook(Term, Ref, Label), !
 	}.
 wiki_link(a(href(Ref), Label), Options) -->
