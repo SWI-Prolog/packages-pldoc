@@ -62,7 +62,8 @@ refinement thereof.
 
 :- multifile
 	prolog:doc_wiki_face//2,	% -Out, +VarNames
-	prolog:doc_url_expansion/3.	% +Alias(Rest), -HREF, -Label
+	prolog:doc_url_expansion/3,	% +Alias(Rest), -HREF, -Label
+	prolog:url_expansion_hook/3.	% +Term, -Ref, -Label
 
 
 		 /*******************************
