@@ -217,7 +217,7 @@ prepare_editor.
 		[authentication(pldoc(edit))]).
 :- http_handler(pldoc(doc),	   pldoc_doc,	   [prefix]).
 :- http_handler(pldoc(man),	   pldoc_man,	   []).
-:- http_handler(pldoc(doc_for),	   pldoc_object,   []).
+:- http_handler(pldoc(doc_for),	   pldoc_object,   [id(pldoc_doc_for)]).
 :- http_handler(pldoc(search),	   pldoc_search,   []).
 :- http_handler(pldoc('res/'),	   pldoc_resource, [prefix]).
 
@@ -680,7 +680,8 @@ split_pi2(Name, Name/_).
 
 pldoc_object(Request) :-
 	http_parameters(Request,
-			[ object(Atom, [])
+			[ object(Atom, []),
+			  header(Header, [default(true)])
 			]),
 	atom_to_term(Atom, Obj, _),
 	(   prolog:doc_object_title(Obj, Title)
@@ -691,7 +692,7 @@ pldoc_object(Request) :-
 	reply_html_page(
 	    pldoc(object(Obj)),
 	    title(Title),
-	    \object_page(Obj, EditOptions)).
+	    \object_page(Obj, [header(Header)|EditOptions])).
 
 
 %%	pldoc_search(+Request)
