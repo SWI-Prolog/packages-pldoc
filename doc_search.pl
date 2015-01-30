@@ -491,8 +491,9 @@ prim_search_spec(Quoted) -->
 	}.
 prim_search_spec(Spec) -->
 	nonblanks(Codes),
-	{   Codes = [0'-|Rest]		% '
-	->  atom_codes(Word, Rest),
+	{   Codes = [0'-,C0|Rest],
+	    code_type(C0, csym)
+	->  atom_codes(Word, [C0|Rest]),
 	    Spec = not(Word)
 	;   Codes \== [],
 	    atom_codes(Spec, Codes)
