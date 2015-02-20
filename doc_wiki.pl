@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006-2014, University of Amsterdam
+    Copyright (C): 2006-2015, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -787,7 +787,7 @@ wiki_faces_int([H|T], ArgNames) -->
 %	  Single character atom representing punctuation marks or the
 %	  atom =|' '|= (space), representing white-space.
 %
-%	The  `Out`  variable  is  input  for  the  backends  defined  in
+%	The  Out  variable  is  input  for    the  backends  defined  in
 %	doc_latex.pl and doc_html.pl. Roughly, these   are terms similar
 %	to what html//1 from library(http/html_write) accepts.
 
