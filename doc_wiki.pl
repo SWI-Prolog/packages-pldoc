@@ -1514,12 +1514,18 @@ tilde_fence(List, [], C, Ext) :-
 	C >= 3,
 	(   List == []
 	->  Ext = ''
-	;   phrase(tilde_fence_ext(ExtCodes), List),
-	    atom_codes(Ext, ExtCodes)
+	;   phrase(tilde_fence_ext(ExtCodes), List)
+	->  atom_codes(Ext, ExtCodes)
 	).
 
+%%	tilde_fence_ext(-Ext)// is semidet.
+%
+%	Detect ```{.prolog} (Doxygen) or ```{prolog} (GitHub)
+
 tilde_fence_ext(Ext) -->
-	"{.", alphas(Ext), "}".
+	"{.", !, alphas(Ext), "}".
+tilde_fence_ext(Ext) -->
+	"{", alphas(Ext), "}".
 
 md_fence([0'`|T0], [0'`|F0], C0, Ext) :- !,
 	C1 is C0+1,
