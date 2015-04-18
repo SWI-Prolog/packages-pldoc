@@ -1334,6 +1334,19 @@ pldoc_package(Request) :-
 	atom_concat('doc/packages/', Img, Path),
 	http_reply_file(swi(Path), [], Request).
 pldoc_package(Request) :-
+	memberchk(path_info('jpl'), Request), !,
+	memberchk(path(Path0), Request),
+	atom_concat(Path0, /, Path),
+	http_redirect(moved, Path, Request).
+pldoc_package(Request) :-
+	memberchk(path_info(JPLFile), Request),
+	(   JPLFile == 'jpl/'
+	->  Path = 'doc/packages/jpl/index.html'
+	;   sub_atom(JPLFile, 0, _, _, 'jpl/')
+	->  atom_concat('doc/packages/', JPLFile, Path)
+	),
+	http_reply_file(swi(Path), [], Request).
+pldoc_package(Request) :-
 	memberchk(path_info(PkgDoc), Request),
 	ensure_html_ext(PkgDoc, PkgHtml),
 	atom_concat('packages/', PkgHtml, Path),
