@@ -1310,9 +1310,19 @@ current_package(pkg(Title, HREF, HavePackage)) :-
 	http_absolute_location(pldoc_pkg(FileNoDir), HREF, []).
 
 
+:- http_handler(pldoc(jpl),	 pldoc_jpl,              [prefix]).
 :- http_handler(pldoc_pkg(.),    pldoc_package,          [prefix]).
 :- http_handler(pldoc_man(.),    pldoc_refman,           [prefix]).
 :- http_handler(pldoc(packages), pldoc_package_overview, []).
+
+%%	pldoc_jpl(+Request)
+%
+%	Hack to include JPL documentation in server.
+
+pldoc_jpl(Request) :-
+	memberchk(path_info(JPLFile), Request),
+	atom_concat('doc/packages/jpl', JPLFile, Path),
+	http_reply_file(swi(Path), [], Request).
 
 %%	pldoc_package(+Request)
 %
