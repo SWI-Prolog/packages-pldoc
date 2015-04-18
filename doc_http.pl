@@ -210,7 +210,6 @@ prepare_editor.
 :- http_handler(pldoc(.),	   pldoc_root,
 		[prefix, authentication(pldoc(read))]).
 :- http_handler(pldoc('index.html'), pldoc_index,   []).
-:- http_handler(pldoc('package/'), pldoc_package_index, []).
 :- http_handler(pldoc(file),	   pldoc_file,	   []).
 :- http_handler(pldoc(place),	   go_place,	   []).
 :- http_handler(pldoc(edit),	   pldoc_edit,
@@ -252,14 +251,6 @@ pldoc_root(_Request, false) :-
 pldoc_root(Request, _) :-
 	pldoc_index(Request).
 
-
-%%	pldoc_package_index(+Request)
-%
-%	HTTP handler to list the available packages
-
-pldoc_package_index(Request) :-
-	http_link_to_id(pldoc_object, [object=packages], HREF),
-	http_redirect(see_other, HREF, Request).
 
 %%	pldoc_index(+Request)
 %

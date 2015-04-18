@@ -1316,27 +1316,36 @@ current_package(pkg(Title, HREF, HavePackage)) :-
 
 %%	pldoc_package(+Request)
 %
-%	HTTP handler for PlDoc package documentation.  Accepts
-%	/pldoc/package/<package>.{html,gif}.
+%	HTTP  handler  for   PlDoc    package   documentation.   Accepts
+%	/pldoc/package/<package>.{html,gif}.          The           path
+%	=/pldoc/package/<package>= is redirected to the canonical object
+%	version.
 
+pldoc_package(Request) :-
+	(   \+ option(path_info(_), Request)
+	->  true
+	;   option(path_info(/), Request)
+	),
+	http_link_to_id(pldoc_object, [object=packages], HREF),
+	http_redirect(see_other, HREF, Request).
 pldoc_package(Request) :-
 	memberchk(path_info(Img), Request),
 	file_mime_type(Img, image/_), !,
 	atom_concat('doc/packages/', Img, Path),
 	http_reply_file(swi(Path), [], Request).
 pldoc_package(Request) :-
-	(   memberchk(path_info(PkgDoc), Request),
-	    \+ sub_atom(PkgDoc, _, _, _, /),
-	    Obj = section(0,_,_,_),
-	    index_manual,
-	    man_index(Obj, Title, File, packages, _),
-	    file_base_name(File, PkgDoc)
-	->  reply_html_page(pldoc(package),
-			    title(Title),
-			    \object_page(Obj, []))
-	;   memberchk(path(Path), Request),
-	    existence_error(http_location, Path)
-	).
+	memberchk(path_info(PkgDoc), Request),
+	ensure_html_ext(PkgDoc, PkgHtml),
+	atom_concat('packages/', PkgHtml, Path),
+	term_to_atom(section(Path), Object),
+	http_link_to_id(pldoc_object, [object=Object], HREF),
+	http_redirect(see_other, HREF, Request).
+
+ensure_html_ext(Pkg, PkgHtml) :-
+	file_name_extension(_, html, Pkg), !,
+	PkgHtml = Pkg.
+ensure_html_ext(Pkg, PkgHtml) :-
+	file_name_extension(Pkg, html, PkgHtml).
 
 %%	pldoc_package_overview(+Request)
 %
