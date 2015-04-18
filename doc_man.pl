@@ -114,6 +114,8 @@ index_manual :-
 		   locked_index_manual).
 
 locked_index_manual :-
+	man_index(_,_,_,_,_), !.
+locked_index_manual :-
 	(   manual_directory(Class, Dir),
 	    index_man_directory(Dir,
 				[ class(Class),
@@ -122,7 +124,7 @@ locked_index_manual :-
 	    fail ; true
 	).
 
-check_dubplicate_ids :-
+check_duplicate_ids :-
 	findall(Id, man_index(section(_,_,Id,_),_,_,_,_), Ids),
 	msort(Ids, Sorted),
 	duplicate_ids(Sorted, Duplicates),
