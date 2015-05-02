@@ -577,7 +577,8 @@ pl_file(File, File).
 %	file.
 
 wiki_file(File, TxtFile) :-
-	file_name_extension(_, txt, File), !,
+	file_name_extension(_, Ext, File),
+	wiki_file_extension(Ext), !,
 	TxtFile = File.
 wiki_file(File, TxtFile) :-
 	file_base_name(File, Base),
@@ -585,8 +586,12 @@ wiki_file(File, TxtFile) :-
 	TxtFile = File.
 wiki_file(File, TxtFile) :-
 	file_name_extension(Base, html, File),
-	file_name_extension(Base, txt, TxtFile),
+	file_name_extension(Base, Ext, TxtFile),
+	wiki_file_extension(Ext),
 	access_file(TxtFile, read).
+
+wiki_file_extension(md).
+wiki_file_extension(txt).
 
 
 %%	clean_path(+AfterDoc, -AbsPath)
