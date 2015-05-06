@@ -466,12 +466,14 @@ documentation(File, Request) :-
 	edit_options(Request, Options),
 	doc_for_wiki_file(WikiFile, Options).
 documentation(Path, Request) :-
-	pl_file(Path, File),
+	pl_file(Path, File), !,
 	(   allowed_file(File)
 	->  true
 	;   throw(http_reply(forbidden(File)))
 	),
 	doc_reply_file(File, Request).
+documentation(Path, _) :-
+	throw(http_reply(not_found(Path))).
 
 :- public
 	doc_reply_file/2.
@@ -559,14 +561,14 @@ edit_options(Request, [edit(true)]) :-
 edit_options(_, []).
 
 
-%%	pl_file(+File, -PlFile) is det.
-%
-%	@error existence_error(file, File)
+%%	pl_file(+File, -PlFile) is semidet.
 
 pl_file(File, PlFile) :-
 	file_name_extension(Base, html, File), !,
-	absolute_file_name(Base, PlFile,
-			   [ file_type(prolog),
+	absolute_file_name(Base,
+			   PlFile,
+			   [ file_errors(fail),
+			     file_type(prolog),
 			     access(read)
 			   ]).
 pl_file(File, File).
