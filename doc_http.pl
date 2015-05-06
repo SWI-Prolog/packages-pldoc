@@ -586,8 +586,8 @@ wiki_file(File, TxtFile) :-
 	TxtFile = File.
 wiki_file(File, TxtFile) :-
 	file_name_extension(Base, html, File),
-	file_name_extension(Base, Ext, TxtFile),
 	wiki_file_extension(Ext),
+	file_name_extension(Base, Ext, TxtFile),
 	access_file(TxtFile, read).
 
 wiki_file_extension(md).
