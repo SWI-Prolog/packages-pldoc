@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006-2013, University of Amsterdam
+    Copyright (C): 2006-2015, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -56,6 +56,8 @@ operator declarations in this module.
 :- op(750, xf, ...).			% Repeated argument: Arg...
 :- op(650, fx, +).			% allow +Arg
 :- op(650, fx, -).			% allow -Arg
+:- op(650, fx, ++).			% allow ++Arg
+:- op(650, fx, --).			% allow --Arg
 :- op(650, fx, ?).			% allow ?Arg
 :- op(650, fx, :).			% allow :Arg
 :- op(650, fx, @).			% allow @Arg
@@ -430,7 +432,9 @@ is_type(Type) :-
 %	Our defined argument-mode indicators
 
 mode_indicator(+).			% Instantiated to type
-mode_indicator(-).			% Unbound
+mode_indicator(-).			% Output argument
+mode_indicator(++).			% Ground
+mode_indicator(--).			% Must be unbound
 mode_indicator(?).			% Partially instantiated to type
 mode_indicator(:).			% Meta-argument (implies +)
 mode_indicator(@).			% Not instantiated by pred
@@ -438,6 +442,8 @@ mode_indicator(!).			% Mutable term
 
 mode_ind(+(X), +, X).
 mode_ind(-(X), -, X).
+mode_ind(++(X), ++, X).
+mode_ind(--(X), --, X).
 mode_ind(?(X), ?, X).
 mode_ind(:(X), :, X).
 mode_ind(@(X), @, X).
