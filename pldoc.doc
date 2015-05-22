@@ -282,10 +282,11 @@ Users should be aware that calling a predicate with arguments instantiated
 in a way other than specified by one of the templates may result in errors or
 unexpected behavior.
 
-Developers should make sure that output arguments (marked - in the template)
-behave as described above, i.e. that their value at call time does not change
-the semantics of the goal (it may be used for optimization, though). If this
-behavior cannot be guaranteed, ? should be used instead.
+Developers should ensure that predicates are steadfast with respect to output
+arguments (marked - in the template). This means that instantiation of output
+arguments at call-time does not change the semantics of the goal (it may be
+used for optimization, though). If this steadfast behavior cannot be
+guaranteed, -- should be used instead.
 
 In the current version, argument \jargon{types} are represented by an arbitrary term
 without formal semantics. In future versions we may adopt a formal type
