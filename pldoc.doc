@@ -259,10 +259,10 @@ arguments are:
 	ISO standard dictates that \exam{findall(X, Goal, 1)} raises a
 	\const{type_error} exception, breaking this semantic relation.
 	SWI-Prolog does not follow the standard here.} Determinism
-	declarations assume that the argument is unbound at call. For
-	the case where the argument is bound, \const{det} effectively
-	becomes \const{semidet}, and \const{multi} effectively becomes
-	\const{nondet}.\\
+	declarations assume that the argument is a free variable at call-time.
+	For the case where the argument is bound or involved in constraints,
+	\const{det} effectively	becomes \const{semidet}, and \const{multi}
+	effectively becomes \const{nondet}.\\
 --&	Argument is unbound at call-time.  Typically used by predicates that
 	create `something' and return a handle to the created object,
 	such as open/3 which creates a \jargon{stream}. \\
