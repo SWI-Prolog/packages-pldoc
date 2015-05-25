@@ -184,17 +184,21 @@ HTML or LaTeX.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Type and mode declarations}
+\section{Type, mode and determinism declaration headers}
 \label{sec:modes}
 
-The type and mode declaration header consists of one or more Prolog
-terms.  Each term describes a mode of the predicate.  The syntax is
-informally described below:
+Many predicates can sensibly be called in different ways, e.g. with a
+specific argument as input or as output. The header of the documentation
+of a predicate consists of one or more \jargon{templates}, each
+representing a specific way of calling the predicate.
+
+A template can contain information about types, argument instantiation
+patterns, determinism and more. The syntax is informally described below:
 
 \begin{center}
 \begin{tabular}{lrl}
 \hline
-<modedef>	\isa <head>['//'] 'is' <determinism> \\
+<template>	\isa <head>['//'] 'is' <determinism> \\
 		\ora <head>['//'] \\
 <determinism>	\isa 'det' \\
 		\ora 'semidet' \\
@@ -204,8 +208,8 @@ informally described below:
 <head>		\isa <functor>'('<argspec> {',' <argspec>}')' \\
 		\ora <functor> \\
 <argspec>	\isa [<instantiation>]<argname>[':'<type>] \\
-<instantiation> \isa '+' $\mid$ '-' $\mid$ '?' $\mid$ ':'
-		     $\mid$ '@' $\mid$ '!' \\
+<instantiation> \isa '++' $\mid$ '+' $\mid$ '-' $\mid$ '--' $\mid$ '?'
+		     $\mid$ ':' $\mid$ '@' $\mid$ '!' \\
 <type>		\isa <term> \\
 \hline
 \end{tabular}
@@ -234,40 +238,57 @@ or the recovery goal of catch/3.
 \end{tabular}
 \end{center}
 
-Instantiation patterns are:
+The meanings of the \jargon{instantiation patterns} for individual
+arguments are:
 
 \begin{center}
 \begin{tabular}{l|p{0.7\linewidth}}
 \hline
-++&	Argument must be ground, i.e., the argument may not contain a
+++&	Argument is ground at call-time, i.e., the argument does not contain a
 	variable anywhere. \\
-+ &	Argument must be fully instantiated to a term that satisfies the
-	type.  This is not necessarily \jargon{ground}, e.g., the term
++ &	Argument is fully instantiated at call-time, to a term that satisfies
+	the type.  This is not necessarily \jargon{ground}, e.g., the term
 	\exam{[_]} is a \jargon{list}, although its only member is
 	unbound. \\
-- &	Argument is an \emph{output} argument.  Unless specified
-	otherwise, output arguments need not to be unbound. For
-	example, the goal \exam{findall(X, Goal, [T])} is good style and
+- &	Argument is an \emph{output} argument. It may be unbound at call-time,
+	or it may be bound to a term. In the latter case, the predicate behaves
+	as if the argument was unbound, and then unified with that term after
+	the goal succeeds.
+	For example, the goal \exam{findall(X, Goal, [T])} is good style and
 	equivalent to \exam{findall(X, Goal, Xs), Xs = [T]}\footnote{The
 	ISO standard dictates that \exam{findall(X, Goal, 1)} raises a
 	\const{type_error} exception, breaking this semantic relation.
-	SWI-Prolog does not follow the standard here.}  Note that the
-	\jargon{determinism} specification, e.g., ``det'' only applies
-	if this argument is unbound. \\
---&	Argument must be unbound.  Typically used by predicates that
+	SWI-Prolog does not follow the standard here.} Determinism
+	declarations assume that the argument is a free variable at call-time.
+	For the case where the argument is bound or involved in constraints,
+	\const{det} effectively	becomes \const{semidet}, and \const{multi}
+	effectively becomes \const{nondet}.\\
+--&	Argument is unbound at call-time.  Typically used by predicates that
 	create `something' and return a handle to the created object,
 	such as open/3 which creates a \jargon{stream}. \\
-? &	Argument must be bound to a \emph{partial term} of the indicated
-	type.  Note that a variable is a partial term for any type. \\
+? &	Argument is bound to a \emph{partial term} of the indicated
+	type at call-time.  Note that a variable is a partial term for any
+	type. \\
 : &	Argument is a meta-argument.  Implies \chr{+}. \\
-@ &	Argument is not further instantiated. Typically used for type tests. \\
+@ &	Argument will not be further instantiated than it is at call-time.
+	Typically used for type tests. \\
 ! &	Argument contains a mutable structure that may be modified using
 	setarg/3 or nb_setarg/3. \\
 \hline
 \end{tabular}
 \end{center}
 
-In the current version types are represented by an arbitrary term
+Users should be aware that calling a predicate with arguments instantiated
+in a way other than specified by one of the templates may result in errors or
+unexpected behavior.
+
+Developers should ensure that predicates are \jargon{steadfast} with respect to
+output arguments (marked - in the template). This means that instantiation of
+output arguments at call-time does not change the semantics of the goal (it may
+be used for optimization, though). If this steadfast behavior cannot be
+guaranteed, -- should be used instead.
+
+In the current version, argument \jargon{types} are represented by an arbitrary term
 without formal semantics. In future versions we may adopt a formal type
 system that allows for runtime verification and static type analysis
 \cite{DBLP:conf/cl/Hermenegildo00,DBLP:journals/ai/MycroftO84,DBLP:conf/acsc/JefferyHS00}
