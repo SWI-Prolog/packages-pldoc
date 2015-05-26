@@ -1,9 +1,10 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2009, University of Amsterdam
+    Copyright (C): 2006-2015, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -399,7 +400,6 @@ pldoc_resource(Request) :-
 file('pldoc.css',     'pldoc.css').
 file('pllisting.css', 'pllisting.css').
 file('pldoc.js',      'pldoc.js').
-file('jquery.js',     'jquery.js').
 file('edit.png',      'edit.png').
 file('editpred.png',  'editpred.png').
 file('up.gif',        'up.gif').

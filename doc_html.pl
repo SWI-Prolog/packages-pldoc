@@ -84,6 +84,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/jquery)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(pairs)).
@@ -193,13 +194,6 @@ extracting module doc_wiki.pl into HTML+CSS.
 		   requires([ pldoc_resource('pldoc.css')
 			    ])
 		 ]).
-:- if(\+html_current_resource(jquery)).
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([ pldoc_resource('jquery.js')
-			    ])
-		 ]).
-:- endif.
 :- html_resource(pldoc_resource('pldoc.js'),
 		 [ requires([ jquery
 			    ])
