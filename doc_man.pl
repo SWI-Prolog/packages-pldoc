@@ -983,14 +983,20 @@ man_match(packages, packages) --> !,
 	     |}).
 man_match(root, root) --> !,
 	man_overview([]).
-man_match((Parent+Path)-(Obj+[element(dt,A,C)|DD]), Obj) -->
-	{ man_qualified_object(Obj, Parent, QObj, Section) }, !,
+man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj) -->
+	{ man_qualified_object(Obj, Parent, QObj, Section), !,
+	  C = [ span(style('float:right;margin-left:5px;'),
+		     \object_source_button(QObj, [link_source(true)]))
+	      | C0
+	      ]
+	},
 	dom_list([ element(dt,[],[\man_synopsis(QObj, Section)]),
 		   element(dt,A,C)
 		 | DD
 		 ], Path).
 man_match((_Parent+Path)-(Obj+DOM), Obj) -->
 	dom_list(DOM, Path).
+
 
 :- html_meta
 	dom_list(html, +, ?, ?).
