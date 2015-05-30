@@ -509,7 +509,8 @@ doc_reply_file(File, Request) :-
 			      mime_type(text/plain)
 			    ], Request)
 	;   doc_for_file(File,
-			 [ public_only(Public)
+			 [ public_only(Public),
+			   source_link(true)
 			 | EditOptions
 			 ])
 	).

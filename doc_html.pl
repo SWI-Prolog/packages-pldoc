@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2014, University of Amsterdam
+    Copyright (C): 2009-2015, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -1355,11 +1355,20 @@ anchored_pred_head(Head, Done0, Done, Options) -->
 	->  { Done = Done0 },
 	    pred_head(Head)
 	;   html([ span(style('float:right'),
-			\pred_edit_button(Head, Options)),
+			\pred_edit_or_source_button(Head, Options)),
 		   a(name=Name, \pred_head(Head))
 		 ]),
 	    { Done = [PI|Done0] }
 	).
+
+
+pred_edit_or_source_button(Head, Options) -->
+	{ option(edit(true), Options) }, !,
+	pred_edit_button(Head, Options).
+pred_edit_or_source_button(Head, Options) -->
+	{ option(source_link(true), Options) }, !,
+	pred_source_button(Head, Options).
+pred_edit_or_source_button(_, _) --> [].
 
 %%	pred_edit_button(+PredIndicator, +Options)// is det.
 %
