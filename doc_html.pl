@@ -1983,8 +1983,8 @@ in_file(Module, Head, File) :-
 	;   Primary = Module
 	),
 	module_property(Primary, file(File)).
-in_file(_, Head, File) :-
-	source_file(Head, File).
+in_file(Module, Head, File) :-
+	predicate_property(Module:Head, file(File)).
 in_file(Module, Head, File) :-
 	current_module(Module),
 	source_file(Module:Head, File).
