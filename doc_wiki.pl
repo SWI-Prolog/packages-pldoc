@@ -63,7 +63,8 @@ refinement thereof.
 :- multifile
 	prolog:doc_wiki_face//2,	% -Out, +VarNames
 	prolog:doc_url_expansion/3,	% +Alias(Rest), -HREF, -Label
-	prolog:url_expansion_hook/3.	% +Term, -Ref, -Label
+	prolog:url_expansion_hook/3,	% +Term, -Ref, -Label
+	prolog:doc_autolink_extension/2.% +Extension, -Type
 
 
 		 /*******************************
@@ -1324,8 +1325,10 @@ space_token(T) :-
 %	True if Ext is a filename extensions that create automatic links
 %	in the documentation.
 
+autolink_extension(Ext, Type) :-
+	prolog:doc_autolink_extension(Ext, Type), !.
 autolink_extension(Ext, prolog) :-
-	user:prolog_file_type(Ext,prolog).
+	user:prolog_file_type(Ext,prolog), !.
 autolink_extension(txt, wiki).
 autolink_extension(md,  wiki).
 autolink_extension(gif, image).
