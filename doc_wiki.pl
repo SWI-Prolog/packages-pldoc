@@ -396,7 +396,7 @@ md_table_structure_char(':').
 %
 %	Take the rest of a paragraph. Paragraphs   are  ended by a blank
 %	line or the start of a list-item.   The latter is a bit dubious.
-%	Why not a  general  block-level   object?  The  current defition
+%	Why not a general  block-level   object?  The current definition
 %	allows for writing lists without a blank line between the items.
 
 rest_par([], [], BI, MaxI0, MaxI, []) :- !,
@@ -745,38 +745,60 @@ input([H|T0], Rest, Input, Last) :-
 
 
 %%	wiki_faces(-WithFaces, +ArgNames)// is nondet.
+%%	wiki_faces(-WithFaces, +ArgNames, +DepthLimit)// is nondet.
 %
 %	Apply font-changes and automatic  links   to  running  text. The
 %	faces are applied after discovering   the structure (paragraphs,
 %	lists, tables, keywords).
 
-wiki_faces([EmphTerm|T], ArgNames) -->
+wiki_faces(WithFaces, ArgNames, List, Rest) :-
+	catch(wiki_faces(WithFaces, ArgNames, 5, List, Rest),
+	      pldoc(depth_limit),
+	      failed_faces(WithFaces, List, Rest)).
+
+failed_faces(WithFaces) -->
+	{ debug(markdown(overflow), 'Depth limit exceeded', []) },
+	wiki_words(WithFaces).
+
+wiki_faces([EmphTerm|T], ArgNames, Depth) -->
 	emphasis_start(C),
-	matches(wiki_faces(Emph, ArgNames), Input, Last),
+	next_level(Depth, NDepth),
+	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
 	emphasis_end(C),
 	{ emph_markdown(Last, Input),
 	  emphasis_term(C, Emph, EmphTerm)
 	}, !,
 	wiki_faces_int(T, ArgNames).
-wiki_faces(Faces, ArgNames) -->
-	wiki_faces_int(Faces, ArgNames).
+wiki_faces(Faces, ArgNames, Depth) -->
+	wiki_faces_int(Faces, ArgNames, Depth).
 
-wiki_faces_int([], _) -->
+wiki_faces_int(WithFaces, ArgNames) -->
+	wiki_faces_int(WithFaces, ArgNames, 5).
+
+wiki_faces_int([], _, _) -->
 	[].
-wiki_faces_int([Before,EmphTerm|T], ArgNames) -->
+wiki_faces_int([Before,EmphTerm|T], ArgNames, Depth) -->
 	emphasis_before(Before),
 	emphasis_start(C),
-	matches(wiki_faces(Emph, ArgNames), Input, Last),
+	next_level(Depth, NDepth),
+	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
 	emphasis_end(C),
 	{ emph_markdown(Last, Input),
 	  emphasis_term(C, Emph, EmphTerm)
 	}, !,
-	wiki_faces_int(T, ArgNames).
-wiki_faces_int([H|T], ArgNames) -->
-	wiki_face(H, ArgNames),
-	wiki_faces(T, ArgNames).
+	wiki_faces_int(T, ArgNames, Depth).
+wiki_faces_int([H|T], ArgNames, Depth) -->
+	wiki_face(H, ArgNames, Depth),
+	wiki_faces(T, ArgNames, Depth).
+
+next_level(Depth, NewDepth) -->
+	(   { succ(NewDepth, Depth) }
+	->  []
+	;   { throw(pldoc(depth_limit)) }
+	).
 
 %%	prolog:doc_wiki_face(-Out, +VarNames)// is semidet.
+%%	prolog:doc_wiki_face(-Out, +VarNames, +DepthLimit)// is semidet.
 %
 %	Hook that can be  used  to   provide  additional  processing for
 %	additional _inline_ wiki constructs.  The DCG list is a list of
@@ -792,89 +814,92 @@ wiki_faces_int([H|T], ArgNames) -->
 %	doc_latex.pl and doc_html.pl. Roughly, these   are terms similar
 %	to what html//1 from library(http/html_write) accepts.
 
-wiki_face(Out, Args) -->
+wiki_face(Out, Args, _) -->
 	prolog:doc_wiki_face(Out, Args), !.
-wiki_face(var(Arg), ArgNames) -->
+wiki_face(var(Arg), ArgNames, _) -->
 	[w(Arg)],
 	{ memberchk(Arg, ArgNames)
 	}, !.
-wiki_face(b(Bold), ArgNames) -->
-	[*,'|'], wiki_faces_int(Bold, ArgNames), ['|',*], !.
-wiki_face(i(Italic), ArgNames) -->
-	['_','|'], wiki_faces_int(Italic, ArgNames), ['|','_'], !.
-wiki_face(code(Code), _) -->
+wiki_face(b(Bold), ArgNames, Depth) -->
+	[*,'|'], next_level(Depth, NDepth),
+	wiki_faces_int(Bold, ArgNames, NDepth), ['|',*], !.
+wiki_face(i(Italic), ArgNames, Depth) -->
+	['_','|'], next_level(Depth, NDepth),
+	wiki_faces_int(Italic, ArgNames, NDepth), ['|','_'], !.
+wiki_face(code(Code), _, _) -->
 	[=], eq_code_words(Words), [=], !,
 	{ atomic_list_concat(Words, Code) }.
-wiki_face(code(Code), _) -->
+wiki_face(code(Code), _, _) -->
 	[=,'|'], wiki_words(Code), ['|',=], !.
-wiki_face(Code, _) -->
+wiki_face(Code, _, _) -->
 	['`'], code_words(Words), ['`'],
 	{ atomic_list_concat(Words, Text),
 	  catch(atom_to_term(Text, Term, Vars), _, fail), !,
 	  code_face(Text, Term, Vars, Code)
 	}.
-wiki_face(Face, _) -->
+wiki_face(Face, _, _) -->
 	[ w(Name) ], arg_list(List),
 	{ atomic_list_concat([Name|List], Text),
 	  catch(atom_to_term(Text, Term, Vars), _, fail),
 	  term_face(Text, Term, Vars, Face)
 	}, !.
-wiki_face(\predref(Name/Arity), _) -->
+wiki_face(\predref(Name/Arity), _, _) -->
 	[ w(Name), '/' ], arity(Arity),
 	{ functor_name(Name)
 	}, !.
-wiki_face(\predref(Module:(Name/Arity)), _) -->
+wiki_face(\predref(Module:(Name/Arity)), _, _) -->
 	[ w(Module), ':', w(Name), '/' ], arity(Arity),
 	{ functor_name(Name)
 	}, !.
-wiki_face(\predref(Name/Arity), _) -->
+wiki_face(\predref(Name/Arity), _, _) -->
 	prolog_symbol_char(S0),
 	symbol_string(SRest), [ '/' ], arity(Arity), !,
 	{ atom_chars(Name, [S0|SRest])
 	}.
-wiki_face(\predref(Name//Arity), _) -->
+wiki_face(\predref(Name//Arity), _, _) -->
 	[ w(Name), '/', '/' ], arity(Arity),
 	{ functor_name(Name)
 	}, !.
-wiki_face(\predref(Module:(Name//Arity)), _) -->
+wiki_face(\predref(Module:(Name//Arity)), _, _) -->
 	[ w(Module), ':', w(Name), '/', '/' ], arity(Arity),
 	{ functor_name(Name)
 	}, !.
-wiki_face(\include(Name, Type, Options), _) -->
+wiki_face(\include(Name, Type, Options), _, _) -->
 	['[','['], file_name(Base, Ext), [']',']'],
 	{ autolink_extension(Ext, Type), !,
 	  file_name_extension(Base, Ext, Name),
 	  resolve_file(Name, Options, [])
 	}, !.
-wiki_face(\include(Name, Type, [caption(Caption)|Options]), _) -->
-	(   ['!','['], tokens(Caption), [']','(']
+wiki_face(\include(Name, Type, [caption(Caption)|Options]), _, _) -->
+	(   ['!','['], tokens(100, Caption), [']','(']
 	->  file_name(Base, Ext), [')'],
 	    { autolink_extension(Ext, Type), !,
 	      file_name_extension(Base, Ext, Name),
 	      resolve_file(Name, Options, [])
 	    }
 	), !.
-wiki_face(Link, _ArgNames) -->		% TWiki: [[Label][Link]]
-	(   ['[','['], tokens(LabelParts), [']','[']
+wiki_face(Link, _ArgNames, _) -->		% TWiki: [[Label][Link]]
+	(   ['[','['], tokens(100, LabelParts), [']','[']
 	->  wiki_link(Link, [label(Label), relative(true), end(']')]),
 	    [']',']'], !,
 	    { make_label(LabelParts, Label) }
 	).
-wiki_face(Link, ArgNames) -->		% Markdown: [Label](Link)
+wiki_face(Link, ArgNames, Depth) -->		% Markdown: [Label](Link)
 	(   ['['],
-	    wiki_faces_int(Label, ArgNames),
+	    next_level(Depth, NDepth),
+	    limit(20, wiki_faces_int(Label, ArgNames, NDepth)),
 	    [']','(']
 	->  wiki_link(Link, [label(Label), relative(true), end(')')]),
 	    [')'], !
 	).
-wiki_face(Link, _ArgNames) -->
+wiki_face(Link, _ArgNames, _) -->
 	wiki_link(Link, []), !.
-wiki_face(Word, _) -->
+wiki_face(Word, _, _) -->
 	[ w(Word) ], !.
-wiki_face(SpaceOrPunct, _) -->
+wiki_face(SpaceOrPunct, _, _) -->
 	[ SpaceOrPunct ],
 	{ atomic(SpaceOrPunct) }, !.
-wiki_face(FT, ArgNames) -->
+wiki_face(FT, ArgNames, _) -->
 	[Structure],
 	{ wiki_faces(Structure, ArgNames, FT)
 	}.
@@ -1883,12 +1908,16 @@ peek(H, L, L) :-
 	L = [H|_].
 
 %%	tokens(-Tokens:list)// is nondet.
+%%	tokens(+Max, -Tokens:list)// is nondet.
 %
 %	Defensively take tokens from the input.  Backtracking takes more
 %	tokens.  Do not include structure terms.
 
 tokens([]) --> [].
 tokens([H|T]) --> token(H), tokens(T).
+
+tokens(_, []) --> [].
+tokens(C, [H|T]) --> token(H), {succ(C1, C)}, tokens(T, C1).
 
 %%	tokens_no_whitespace(-Tokens:list(atom))// is nondet.
 %
@@ -1912,6 +1941,23 @@ token(Token) -->
 
 token(w(_)) :- !.
 token(Token) :- atom(Token).
+
+%%	limit(+Count, :Rule)//
+%
+%	As limit/2, but for grammar rules.
+
+:- meta_predicate limit(+,2,?,?).
+
+limit(Count, Rule, Input, Rest) :-
+	Count > 0,
+	State = count(0),
+	call(Rule, Input, Rest),
+	arg(1, State, N0),
+	N is N0+1,
+	(   N =:= Count
+	->  !
+	;   nb_setarg(1, State, N)
+	).
 
 
 		 /*******************************
