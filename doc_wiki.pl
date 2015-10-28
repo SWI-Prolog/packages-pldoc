@@ -1917,7 +1917,7 @@ tokens([]) --> [].
 tokens([H|T]) --> token(H), tokens(T).
 
 tokens(_, []) --> [].
-tokens(C, [H|T]) --> token(H), {succ(C1, C)}, tokens(T, C1).
+tokens(C, [H|T]) --> token(H), {succ(C1, C)}, tokens(C1, T).
 
 %%	tokens_no_whitespace(-Tokens:list(atom))// is nondet.
 %
