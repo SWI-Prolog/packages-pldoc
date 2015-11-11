@@ -381,6 +381,8 @@ latex(code(Code)) -->
 	).
 latex(b(Code)) -->
 	latex(cmd(textbf(Code))).
+latex(strong(Code)) -->
+	latex(cmd(textbf(Code))).
 latex(i(Code)) -->
 	latex(cmd(textit(Code))).
 latex(var(Var)) -->
