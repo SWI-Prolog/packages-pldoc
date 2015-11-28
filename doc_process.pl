@@ -332,10 +332,6 @@ parse_comment(Comment, FilePos, Parsed) :-
 %%				   +Prefixed:list,
 %%				   +Style) is det.
 
-process_structured_comment(FilePos, Comment, _, _) :- % already processed
-	prolog_load_context(module, M),
-	locally_defined(M:'$pldoc'/4),
-	catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail), !.
 process_structured_comment(FilePos, Comment, Prefixes, Style) :-
 	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
 	      comment_warning(Style, E)),
