@@ -2186,10 +2186,12 @@ include(File, _, _) -->
 
 image_attribute(src(_)).
 image_attribute(alt(_)).
+image_attribute(title(_)).
 image_attribute(align(_)).
 image_attribute(width(_)).
 image_attribute(height(_)).
 image_attribute(border(_)).
+image_attribute(class(_)).
 
 
 %%	html_tokens_for_predicates(+PI, +Options)// is semidet.
