@@ -1428,6 +1428,7 @@ pldoc_refman(Request) :-
 		 *******************************/
 
 prolog:doc_object_summary(section(ID), Class, File, Summary) :-
+	nonvar(ID),			% when generating, only do full ones
 	index_manual,
 	man_index(section(_Level, _No, ID, _Path), Summary, File, Class, _Offset).
 prolog:doc_object_summary(Obj, Class, File, Summary) :-
