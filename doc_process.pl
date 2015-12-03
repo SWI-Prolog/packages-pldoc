@@ -331,7 +331,21 @@ parse_comment(Comment, FilePos, Parsed) :-
 %%				   +Comment:string,
 %%				   +Prefixed:list,
 %%				   +Style) is det.
+%
+%	Proccess a structured comment, adding the documentation facts to
+%	the database. This predicate verifies that   the comment has not
+%	already been loaded.
+%
+%	@tbd Note that as of version 7.3.12   clauses  from a file being
+%	reloaded are not wiped before  the   reloading  and therefore we
+%	cannot test the clause while  reloading   a  file. Ultimately we
+%	need a better test for this.
 
+process_structured_comment(FilePos, Comment, _, _) :- % already processed
+	\+ prolog_load_context(reload, true),
+	prolog_load_context(module, M),
+	locally_defined(M:'$pldoc'/4),
+	catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail), !.
 process_structured_comment(FilePos, Comment, Prefixes, Style) :-
 	catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
 	      comment_warning(Style, E)),
