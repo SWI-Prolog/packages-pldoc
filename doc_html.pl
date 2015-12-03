@@ -333,7 +333,8 @@ doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
 	Pos = File:Line,
 	findall(Line-doc(Obj,Pos,Comment),
 		doc_comment(Obj, Pos, _, Comment), Pairs),
-	keysort(Pairs, ByLine),
+	sort(Pairs, Pairs1),		% remove duplicates
+	keysort(Pairs1, ByLine),
 	pairs_values(ByLine, Objs0),
 	reply_file_objects(File, Objs0, Objects, FileOptions, Options).
 doc_file_objects(FileSpec, File, Objects, FileOptions, Options) :-
