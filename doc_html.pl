@@ -1472,15 +1472,17 @@ object_source_button(_, _) -->
 
 canonicalise_predref(M:PI0, PI, Options0, [module(M)|Options]) :- !,
 	canonicalise_predref(PI0, PI, Options0, Options).
-canonicalise_predref(//(Head), PI, Options0, Options) :-	!,
+canonicalise_predref(//(Head), PI, Options0, Options) :- !,
 	functor(Head, Name, Arity),
 	PredArity is Arity + 2,
 	canonicalise_predref(Name/PredArity, PI, Options0, Options).
-canonicalise_predref(Name//Arity, PI, Options0, Options) :- !,
+canonicalise_predref(Name//Arity, PI, Options0, Options) :-
+	integer(Arity), Arity >= 0, !,
 	PredArity is Arity + 2,
 	canonicalise_predref(Name/PredArity, PI, Options0, Options).
 canonicalise_predref(PI, PI, Options, Options) :-
-	PI = _/_, !.
+	PI = Name/Arity,
+	atom(Name), integer(Arity), Arity >= 0, !.
 canonicalise_predref(Head, PI, Options0, Options) :-
 	functor(Head, Name, Arity),
 	canonicalise_predref(Name/Arity, PI, Options0, Options).
