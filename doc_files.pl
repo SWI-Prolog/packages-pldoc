@@ -43,6 +43,7 @@
 :- use_module(pldoc(doc_pack)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(filesex)).
 
 /** <module> Create stand-alone documentation files
 
@@ -275,8 +276,8 @@ document_file(File, DocFile, Options) :-
 	    ->	true
 	    ;	working_directory(SrcTop, SrcTop)
 	    ),
-	    atom_concat(SrcTop, Local, DocFile0),
-	    atom_concat(Dir, Local, DocFile),
+	    directory_file_path(SrcTop, Local, DocFile0),
+	    directory_file_path(Dir, Local, DocFile),
 	    file_directory_name(DocFile, DocDir),
 	    ensure_dir(DocDir, Options)
 	;   DocFile = DocFile0
