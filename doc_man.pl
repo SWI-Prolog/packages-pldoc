@@ -1151,7 +1151,7 @@ rewrite_ref(cite, Ref0, Path, Ref) :-		% Citation (bit hard-wired)
 	sub_atom(Ref0, _, A, 0, Fragment),
 	uri_encoded(query_value, Fragment, Enc),
 	http_location_by_id(pldoc_man, ManHandler),
-	format(string(Ref), '~w?section=Bibliography#~w', [ManHandler, Enc]).
+	format(string(Ref), '~w?section=bibliography#~w', [ManHandler, Enc]).
 rewrite_ref(flag, Ref0, Path, Ref) :-
 	sub_atom(Ref0, B, _, A, '#'), !,
 	sub_atom(Ref0, 0, B, _, File),
