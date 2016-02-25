@@ -766,13 +766,7 @@ failed_faces(WithFaces) -->
 	wiki_words(WithFaces).
 
 wiki_faces([EmphTerm|T], ArgNames, Depth) -->
-	emphasis_start(C),
-	next_level(Depth, NDepth),
-	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
-	emphasis_end(C),
-	{ emph_markdown(Last, Input),
-	  emphasis_term(C, Emph, EmphTerm)
-	}, !,
+	emphasis_seq(EmphTerm, ArgNames, Depth), !,
 	wiki_faces_int(T, ArgNames).
 wiki_faces(Faces, ArgNames, Depth) -->
 	wiki_faces_int(Faces, ArgNames, Depth).
@@ -782,18 +776,15 @@ wiki_faces_int(WithFaces, ArgNames) -->
 
 wiki_faces_int([], _, _) -->
 	[].
+wiki_faces_int([H|T], ArgNames, Depth) -->
+	wiki_face(H, ArgNames, Depth), !,
+	wiki_faces(T, ArgNames, Depth).
 wiki_faces_int([Before,EmphTerm|T], ArgNames, Depth) -->
 	emphasis_before(Before),
-	emphasis_start(C),
-	next_level(Depth, NDepth),
-	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
-	emphasis_end(C),
-	{ emph_markdown(Last, Input),
-	  emphasis_term(C, Emph, EmphTerm)
-	}, !,
+	emphasis_seq(EmphTerm, ArgNames, Depth), !,
 	wiki_faces_int(T, ArgNames, Depth).
 wiki_faces_int([H|T], ArgNames, Depth) -->
-	wiki_face(H, ArgNames, Depth),
+	wiki_face_simple(H, ArgNames, Depth), !,
 	wiki_faces(T, ArgNames, Depth).
 
 next_level(Depth, NewDepth) -->
@@ -883,28 +874,33 @@ wiki_face(\include(Name, Type, [caption(Caption)|Options]), _, _) -->
 	      resolve_file(Name, Options, [])
 	    }
 	), !.
-wiki_face(Link, _ArgNames, _) -->		% TWiki: [[Label][Link]]
-	(   ['[','['], tokens(100, LabelParts), [']','[']
+wiki_face(Link, ArgNames, Depth) -->		% TWiki: [[Label][Link]]
+	(   ['[','['], wiki_label(Label, ArgNames, Depth), [']','[']
 	->  wiki_link(Link, [label(Label), relative(true), end(']')]),
-	    [']',']'], !,
-	    { make_label(LabelParts, Label) }
+	    [']',']'], !
 	).
 wiki_face(Link, ArgNames, Depth) -->		% Markdown: [Label](Link)
-	(   ['['],
-	    next_level(Depth, NDepth),
-	    limit(20, wiki_faces_int(Label, ArgNames, NDepth)),
-	    [']','(']
+	(   ['['], wiki_label(Label, ArgNames, Depth), [']','(']
 	->  wiki_link(Link, [label(Label), relative(true), end(')')]),
 	    [')'], !
 	).
 wiki_face(Link, _ArgNames, _) -->
 	wiki_link(Link, []), !.
-wiki_face(Word, _, _) -->
+
+wiki_label(Label, ArgNames, Depth) -->
+	next_level(Depth, NDepth),
+	limit(20, wiki_faces(Label, ArgNames, NDepth)).
+
+%%	wiki_face_simple(-Out, +ArgNames, +Depth)
+%
+%	Skip simple (non-markup) wiki.
+
+wiki_face_simple(Word, _, _) -->
 	[ w(Word) ], !.
-wiki_face(SpaceOrPunct, _, _) -->
+wiki_face_simple(SpaceOrPunct, _, _) -->
 	[ SpaceOrPunct ],
 	{ atomic(SpaceOrPunct) }, !.
-wiki_face(FT, ArgNames, _) -->
+wiki_face_simple(FT, ArgNames, _) -->
 	[Structure],
 	{ wiki_faces(Structure, ArgNames, FT)
 	}.
@@ -964,6 +960,20 @@ code_face(Text, Var, _, Code) :-
 	var(Var), !,
 	Code = var(Text).
 code_face(Text, _, _, code(Text)).
+
+
+%%	emphasis_seq(-Out, +ArgNames, +Depth) is semidet.
+%
+%	Recognise emphasis sequences
+
+emphasis_seq(EmphTerm, ArgNames, Depth) -->
+	emphasis_start(C),
+	next_level(Depth, NDepth),
+	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
+	emphasis_end(C),
+	{ emph_markdown(Last, Input),
+	  emphasis_term(C, Emph, EmphTerm)
+	}, !.
 
 
 %%	emphasis_term(+Emphasis, +Tokens, -Term) is det.
