@@ -117,36 +117,36 @@ current_options([]).
 %	Process one or  more  objects,  writing   the  LaTeX  output  to
 %	OutFile.  Spec is one of:
 %
-%		* Name/Arity
-%		Generate documentation for predicate
-%
-%		* Name//Arity
-%		Generate documentation for DCG rule
-%
-%		* File
-%		If File is a prolog file (as defined by
-%		user:prolog_file_type/2), process using
-%		latex_for_file/3, otherwise process using
-%		latex_for_wiki_file/3.
+%	  - Name/Arity
+%	    Generate documentation for predicate
+%	  - Name//Arity
+%	    Generate documentation for DCG rule
+%	  - File
+%	    If File is a prolog file (as defined by
+%	    user:prolog_file_type/2), process using
+%	    latex_for_file/3, otherwise process using
+%	    latex_for_wiki_file/3.
 %
 %	Typically Spec is either a  list  of   filenames  or  a  list of
 %	predicate indicators.   Defined options are:
 %
-%		* stand_alone(+Bool)
-%		If =true= (default), create a document that can be run
-%		through LaTeX.  If =false=, produce a document to be
-%		included in another LaTeX document.
-%
-%		* public_only(+Bool)
-%		If =true= (default), only emit documentation for
-%		exported predicates.
-%
-%		* section_level(+Level)
-%		Outermost section level produced. Level is the
-%		name of a LaTeX section command.  Default is =section=.
-%
-%		* summary(+File)
-%		Write summary declarations to the named File.
+%	  - stand_alone(+Bool)
+%	    If =true= (default), create a document that can be run
+%	    through LaTeX.  If =false=, produce a document to be
+%	    included in another LaTeX document.
+%	  - public_only(+Bool)
+%	    If =true= (default), only emit documentation for
+%	    exported predicates.
+%	  - section_level(+Level)
+%	    Outermost section level produced. Level is the
+%	    name of a LaTeX section command.  Default is =section=.
+%	  - summary(+File)
+%	    Write summary declarations to the named File.
+%	  - modules(+List)
+%	    If [[Name/Arity]] needs to be resolved, search for the
+%	    predicates in the given modules.
+%	  - module(+Module)
+%	    Same as modules([Module]).
 
 doc_latex(Spec, OutFile, Options) :-
 	load_urldefs,
@@ -282,7 +282,7 @@ latex_tokens_for_predicates(PI, Options) -->
 	},
 	object(PI, Pos, Comment, [description], _, Options).
 latex_tokens_for_predicates(Spec, Options) -->
-	{ findall(PI, documented_pi(Spec, PI), List),
+	{ findall(PI, documented_pi(Spec, PI, Options), List),
 	  (   List == []
 	  ->  print_message(warning, pldoc(no_predicates_from(Spec)))
 	  ;   true
@@ -290,8 +290,17 @@ latex_tokens_for_predicates(Spec, Options) -->
 	},
 	latex_tokens_for_predicates(List, Options).
 
-documented_pi(Spec, PI) :-
-	generalise_spec(Spec, PI),
+documented_pi(Spec, PI, Options) :-
+	option(modules(List), Options),
+	member(M, List),
+	generalise_spec(Spec, PI, M),
+	doc_comment(PI, _Pos, _Summary, _Comment), !.
+documented_pi(Spec, PI, Options) :-
+	option(module(M), Options),
+	generalise_spec(Spec, PI, M),
+	doc_comment(PI, _Pos, _Summary, _Comment), !.
+documented_pi(Spec, PI, _Options) :-
+	generalise_spec(Spec, PI, _),
 	doc_comment(PI, _Pos, _Summary, _Comment).
 
 generic_pi(Module:Name/Arity) :-
@@ -299,8 +308,8 @@ generic_pi(Module:Name/Arity) :-
 generic_pi(Module:Name//Arity) :-
 	atom(Module), atom(Name), integer(Arity).
 
-generalise_spec(Name/Arity, _M:Name/Arity).
-generalise_spec(Name//Arity, _M:Name//Arity).
+generalise_spec(Name/Arity, M:Name/Arity, M).
+generalise_spec(Name//Arity, M:Name//Arity, M).
 
 
 		 /*******************************
@@ -659,7 +668,11 @@ delete_unsafe_label_chars(LabelIn, LabelOut) :-
 %	Called from [[File]].
 
 include(PI, predicate, _) --> !,
-	(   latex_tokens_for_predicates(PI, [])
+	(   {   options(Options)
+	    ->	true
+	    ;	Options = []
+	    },
+	    latex_tokens_for_predicates(PI, Options)
 	->  []
 	;   latex(cmd(item(['[[', \predref(PI), ']]'])))
 	).
