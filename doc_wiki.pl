@@ -887,6 +887,8 @@ wiki_face(Link, ArgNames, Depth) -->		% Markdown: [Label](Link)
 wiki_face(Link, _ArgNames, _) -->
 	wiki_link(Link, []), !.
 
+wiki_label(Label, _ArgNames, _Depth) -->
+	image_label(Label).
 wiki_label(Label, ArgNames, Depth) -->
 	next_level(Depth, NDepth),
 	limit(20, wiki_faces(Label, ArgNames, NDepth)).
@@ -1084,28 +1086,15 @@ term_face(_Text, Term, _Vars, \file(Name, FileOptions)) :-
 term_face(Text, Term, Vars, Face) :-
 	code_face(Text, Term, Vars, Face).
 
-:- if(\+current_predicate(compound_name_arguments/3)).
-compound_name_arguments(Term, Name, Args) :-
-	Term =.. [Name|Args].
-:- endif.
-
-
-%%	make_label(+Parts, -Label) is det.
-%
-%	Translate the [[Parts][...] into a label
-
-make_label(Parts, Label) :-
-	phrase(image_label(Label), Parts), !.
-make_label(Parts, Label) :-
-	untag(Parts, Atoms),
-	atomic_list_concat(Atoms, Label).
-
 untag([], []).
 untag([w(W)|T0], [W|T]) :- !,
 	untag(T0, T).
 untag([H|T0], [H|T]) :-
 	untag(T0, T).
 
+%%	image_label(-Label)//
+%
+%	Match File[;param=value[,param=value]*]
 
 image_label(\include(Name, image, Options)) -->
 	file_name(Base, Ext),
