@@ -922,6 +922,15 @@ object_page(Obj, Options) -->
 		 ])
 	),
 	object_page_footer(Obj, Options).
+object_page(M:Name/Arity, Options) -->		% specified module, but public
+	{ functor(Head, Name, Arity),
+	  (   predicate_property(M:Head, exported)
+	  ->  module_property(M, class(library))
+	  ;   \+ predicate_property(M:Head, defined)
+	  )
+	},
+	prolog:doc_object_page(Name/Arity, Options), !,
+	object_page_footer(Name/Arity, Options).
 
 object_page_header(File, Options) -->
 	prolog:doc_page_header(file(File), Options), !.
