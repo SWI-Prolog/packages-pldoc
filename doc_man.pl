@@ -887,18 +887,17 @@ alt_obj(Name//DCGArity, Name/Arity) :-
 	integer(DCGArity),
 	Arity is DCGArity + 2.
 
-%%	full_object(+Object, -Full)
+%%	full_object(+Object, -Full) is semidet.
 %
 %	Translate to canonical PlDoc object
 
-full_object(M:N/A, M:N/A) :- !.
-full_object(M:N//A, M:N/A2) :-
-	integer(A2), !,
-	A2 is A+2.
-full_object(Name/Arity, _:Name/Arity) :- !.
-full_object(Name//Arity, _:Name/Arity2) :-
-	integer(Arity),
-	Arity2 is Arity+1.
+full_object(Object, M:Obj) :-
+	qualify(Object, M:Obj0),
+	alt_obj(Obj0, Obj),
+	doc_comment(M:Obj, _, _, _), !.
+
+qualify(M:O, M:O).
+qualify(O, _:O).
 
 %%	man_qualified_object(+Text, +Parent, -Object, -Section) is semidet.
 %
@@ -1103,9 +1102,7 @@ documented(PI) :-
 	index_manual,
 	man_index(PI, _, _, _, _), !.
 documented(PI) :-
-	full_object(PI, Obj),
-	doc_comment(Obj, _, _, _), !.
-
+	full_object(PI, _Obj).
 
 %%	rewrite_ref(+Class, +Ref0, +Path, -ManRef) is semidet.
 %
