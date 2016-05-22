@@ -1248,7 +1248,7 @@ row([td(Content)|T]) -->
 
 latex_summary(Options) :-
 	option(summary(File), Options), !,
-	findall(Obj, documented(Obj), Objs),
+	findall(Obj, summary_obj(Obj), Objs),
 	maplist(pi_sort_key, Objs, Keyed),
 	keysort(Keyed, KSorted),
 	pairs_values(KSorted, SortedObj),
@@ -1258,6 +1258,20 @@ latex_summary(Options) :-
 		     close(Out)).
 latex_summary(_) :-
 	retractall(documented(_)).
+
+summary_obj(Obj) :-
+	documented(Obj),
+	pi_head(Obj, Head),
+	\+ xref_hook(Head).
+
+pi_head(M:PI, M:Head) :- !,
+	pi_head(PI, Head).
+pi_head(Name/Arity, Head) :-
+	functor(Head, Name, Arity).
+pi_head(Name//DCGArity, Head) :-
+	Arity is DCGArity+2,
+	functor(Head, Name, Arity).
+
 
 pi_sort_key(M:PI, PI-(M:PI)) :- !.
 pi_sort_key(PI, PI-PI).
