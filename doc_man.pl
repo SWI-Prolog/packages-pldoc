@@ -947,6 +947,15 @@ parent_section_ndet(Section, Parent) :-
 	parent_section_ndet(Parent0, Parent).
 
 
+atom_pi(Text, Name//Arity) :-
+	atom(Text),
+	sub_atom(Text, Pre, _, Post, //),
+	sub_atom(Text, _, Post, 0, AA),
+	atom_number(AA, Arity),
+	integer(Arity),
+	Arity >= 0,
+	sub_atom(Text, 0, Pre, _, Name),
+	Name \== '', !.
 atom_pi(Text, Name/Arity) :-
 	atom(Text),
 	sub_atom(Text, Pre, _, Post, /),
@@ -1109,7 +1118,7 @@ documented(PI) :-
 %	@param Path	Currently loaded file
 %	@param ManRef	PlDoc server reference
 
-rewrite_ref(pred, Ref0, _, Ref) :-		% Predicate reference
+rewrite_ref(pred, Ref0, _, Ref) :-		% Predicate/DCG reference
 	sub_atom(Ref0, _, _, A, '#'), !,
 	sub_atom(Ref0, _, A, 0, Fragment),
 	name_to_object(Fragment, PI),
@@ -1171,10 +1180,11 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
 %	If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
 name_to_object(Atom, Object) :-
-	atom_pi(Atom, Name/Arity),
-	(   atom_concat('f-', FuncName, Name)
+	atom_pi(Atom, PI),
+	(   PI = Name/Arity,
+	    atom_concat('f-', FuncName, Name)
 	->  Object = f(FuncName/Arity)
-	;   Object = Name/Arity
+	;   Object = PI
 	).
 name_to_object(Atom, c(Function)) :-
 	atom(Atom),
