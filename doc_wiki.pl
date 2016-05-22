@@ -750,51 +750,58 @@ input([H|T0], Rest, Input, Last) :-
 
 
 %%	wiki_faces(-WithFaces, +ArgNames)// is nondet.
-%%	wiki_faces(-WithFaces, +ArgNames, +DepthLimit)// is nondet.
+%%	wiki_faces(-WithFaces, +ArgNames, +Options)// is nondet.
 %
 %	Apply font-changes and automatic  links   to  running  text. The
 %	faces are applied after discovering   the structure (paragraphs,
 %	lists, tables, keywords).
+%
+%	@arg Options is a dict, minimally containing `depth`
 
 wiki_faces(WithFaces, ArgNames, List, Rest) :-
-	catch(wiki_faces(WithFaces, ArgNames, 5, List, Rest),
+	default_faces_options(Options),
+	catch(wiki_faces(WithFaces, ArgNames, Options, List, Rest),
 	      pldoc(depth_limit),
 	      failed_faces(WithFaces, List, Rest)).
+
+default_faces_options(_{depth:5}).
 
 failed_faces(WithFaces) -->
 	{ debug(markdown(overflow), 'Depth limit exceeded', []) },
 	wiki_words(WithFaces).
 
-wiki_faces([EmphTerm|T], ArgNames, Depth) -->
-	emphasis_seq(EmphTerm, ArgNames, Depth), !,
+wiki_faces([EmphTerm|T], ArgNames, Options) -->
+	emphasis_seq(EmphTerm, ArgNames, Options), !,
 	wiki_faces_int(T, ArgNames).
-wiki_faces(Faces, ArgNames, Depth) -->
-	wiki_faces_int(Faces, ArgNames, Depth).
+wiki_faces(Faces, ArgNames, Options) -->
+	wiki_faces_int(Faces, ArgNames, Options).
 
 wiki_faces_int(WithFaces, ArgNames) -->
-	wiki_faces_int(WithFaces, ArgNames, 5).
+	{ default_faces_options(Options)
+	},
+	wiki_faces_int(WithFaces, ArgNames, Options).
 
 wiki_faces_int([], _, _) -->
 	[].
-wiki_faces_int([H|T], ArgNames, Depth) -->
-	wiki_face(H, ArgNames, Depth), !,
-	wiki_faces(T, ArgNames, Depth).
-wiki_faces_int([Before,EmphTerm|T], ArgNames, Depth) -->
+wiki_faces_int([H|T], ArgNames, Options) -->
+	wiki_face(H, ArgNames, Options), !,
+	wiki_faces(T, ArgNames, Options).
+wiki_faces_int([Before,EmphTerm|T], ArgNames, Options) -->
 	emphasis_before(Before),
-	emphasis_seq(EmphTerm, ArgNames, Depth), !,
-	wiki_faces_int(T, ArgNames, Depth).
-wiki_faces_int([H|T], ArgNames, Depth) -->
-	wiki_face_simple(H, ArgNames, Depth), !,
-	wiki_faces(T, ArgNames, Depth).
+	emphasis_seq(EmphTerm, ArgNames, Options), !,
+	wiki_faces_int(T, ArgNames, Options).
+wiki_faces_int([H|T], ArgNames, Options) -->
+	wiki_face_simple(H, ArgNames, Options), !,
+	wiki_faces(T, ArgNames, Options).
 
-next_level(Depth, NewDepth) -->
-	(   { succ(NewDepth, Depth) }
-	->  []
-	;   { throw(pldoc(depth_limit)) }
-	).
+next_level(Options0, Options) -->
+	{   succ(NewDepth, Options0.depth)
+	->  Options = Options0.put(depth, NewDepth)
+	;   throw(pldoc(depth_limit))
+	}.
 
 %%	prolog:doc_wiki_face(-Out, +VarNames)// is semidet.
-%%	prolog:doc_wiki_face(-Out, +VarNames, +DepthLimit)// is semidet.
+%%	prolog:doc_wiki_face(-Out, +VarNames, +Options0)// is semidet.
 %
 %	Hook that can be  used  to   provide  additional  processing for
 %	additional _inline_ wiki constructs.  The DCG list is a list of
@@ -816,12 +823,12 @@ wiki_face(var(Arg), ArgNames, _) -->
 	[w(Arg)],
 	{ memberchk(Arg, ArgNames)
 	}, !.
-wiki_face(b(Bold), ArgNames, Depth) -->
-	[*,'|'], next_level(Depth, NDepth),
-	wiki_faces_int(Bold, ArgNames, NDepth), ['|',*], !.
-wiki_face(i(Italic), ArgNames, Depth) -->
-	['_','|'], next_level(Depth, NDepth),
-	wiki_faces_int(Italic, ArgNames, NDepth), ['|','_'], !.
+wiki_face(b(Bold), ArgNames, Options) -->
+	[*,'|'], next_level(Options, NOptions),
+	wiki_faces_int(Bold, ArgNames, NOptions), ['|',*], !.
+wiki_face(i(Italic), ArgNames, Options) -->
+	['_','|'], next_level(Options, NOptions),
+	wiki_faces_int(Italic, ArgNames, NOptions), ['|','_'], !.
 wiki_face(code(Code), _, _) -->
 	[=], eq_code_words(Words), [=], !,
 	{ atomic_list_concat(Words, Code) }.
@@ -874,26 +881,26 @@ wiki_face(\include(Name, Type, [caption(Caption)|Options]), _, _) -->
 	      resolve_file(Name, Options, [])
 	    }
 	), !.
-wiki_face(Link, ArgNames, Depth) -->		% TWiki: [[Label][Link]]
-	(   ['[','['], wiki_label(Label, ArgNames, Depth), [']','[']
+wiki_face(Link, ArgNames, Options) -->		% TWiki: [[Label][Link]]
+	(   ['[','['], wiki_label(Label, ArgNames, Options), [']','[']
 	->  wiki_link(Link, [label(Label), relative(true), end(']')]),
 	    [']',']'], !
 	).
-wiki_face(Link, ArgNames, Depth) -->		% Markdown: [Label](Link)
-	(   ['['], wiki_label(Label, ArgNames, Depth), [']','(']
+wiki_face(Link, ArgNames, Options) -->		% Markdown: [Label](Link)
+	(   ['['], wiki_label(Label, ArgNames, Options), [']','(']
 	->  wiki_link(Link, [label(Label), relative(true), end(')')]),
 	    [')'], !
 	).
 wiki_face(Link, _ArgNames, _) -->
 	wiki_link(Link, []), !.
 
-wiki_label(Label, _ArgNames, _Depth) -->
+wiki_label(Label, _ArgNames, _Options) -->
 	image_label(Label).
-wiki_label(Label, ArgNames, Depth) -->
-	next_level(Depth, NDepth),
-	limit(20, wiki_faces(Label, ArgNames, NDepth)).
+wiki_label(Label, ArgNames, Options) -->
+	next_level(Options, NOptions),
+	limit(20, wiki_faces(Label, ArgNames, NOptions)).
 
-%%	wiki_face_simple(-Out, +ArgNames, +Depth)
+%%	wiki_face_simple(-Out, +ArgNames, +Options)
 %
 %	Skip simple (non-markup) wiki.
 
@@ -964,14 +971,14 @@ code_face(Text, Var, _, Code) :-
 code_face(Text, _, _, code(Text)).
 
 
-%%	emphasis_seq(-Out, +ArgNames, +Depth) is semidet.
+%%	emphasis_seq(-Out, +ArgNames, +Options) is semidet.
 %
 %	Recognise emphasis sequences
 
-emphasis_seq(EmphTerm, ArgNames, Depth) -->
+emphasis_seq(EmphTerm, ArgNames, Options) -->
 	emphasis_start(C),
-	next_level(Depth, NDepth),
-	matches(limit(100, wiki_faces(Emph, ArgNames, NDepth)), Input, Last),
+	next_level(Options, NOptions),
+	matches(limit(100, wiki_faces(Emph, ArgNames, NOptions)), Input, Last),
 	emphasis_end(C),
 	{ emph_markdown(Last, Input),
 	  emphasis_term(C, Emph, EmphTerm)
