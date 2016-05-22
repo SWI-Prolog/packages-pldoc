@@ -206,7 +206,6 @@ index_man_file(Class, File) :-
 %	the open attributes. Parser is the parser objects.
 
 index_on_begin(dt, Attributes, Parser) :-
-	\+ nb_getval(pldoc_man_index, dd(_,_,_)), !,
 	memberchk(class=pubdef, Attributes),
         get_sgml_parser(Parser, charpos(Offset)),
         get_sgml_parser(Parser, file(File)),
@@ -221,9 +220,10 @@ index_on_begin(dt, Attributes, Parser) :-
 	    name_to_object(Id, PI)
 	->  true
 	),
-	nb_setval(pldoc_man_index, dd(PI, File, Offset)).
+	nb_getval(pldoc_man_index, DD0),
+	nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0]).
 index_on_begin(dd, _, Parser) :- !,
-	nb_getval(pldoc_man_index, dd(Object, File, Offset)),
+	nb_getval(pldoc_man_index, DDList0), DDList0 \== [],
 	nb_setval(pldoc_man_index, []),
 	sgml_parse(Parser,
 		   [ document(DD),
@@ -232,7 +232,10 @@ index_on_begin(dd, _, Parser) :- !,
 		   ]),
 	summary(DD, Summary),
 	nb_getval(pldoc_index_class, Class),
-        assertz(man_index(Object, Summary, File, Class, Offset)).
+	reverse(DDList0, [dd(Object, File, Offset)|DDTail]),
+        assertz(man_index(Object, Summary, File, Class, Offset)),
+	forall(member(dd(Obj2,_,_), DDTail),
+	       assertz(man_index(Obj2, Summary, File, Class, Offset))).
 index_on_begin(div, Attributes, Parser) :- !,
 	memberchk(class=title, Attributes),
 	get_sgml_parser(Parser, charpos(Offset)),
