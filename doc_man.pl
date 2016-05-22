@@ -870,9 +870,26 @@ full_page(Obj, Obj) :-
 	Obj = section(_,_,_,_), !.
 full_page(section(ID), section(_,_,ID,_)) :- !.
 full_page(manual, section(_,_,'sec:intro',_)) :- !.
+full_page(Obj0, Obj) :-
+	index_manual,
+	ground(Obj0),
+	alt_obj(Obj0, Obj),
+	man_index(Obj, _, _, _, _), !.
 full_page(Obj, Obj) :-
 	ground(Obj).
 
+alt_obj(Obj, Obj).
+alt_obj(Name/Arity, Name//DCGArity) :-
+	integer(Arity),
+	Arity >= 2,
+	DCGArity is Arity - 2.
+alt_obj(Name//DCGArity, Name/Arity) :-
+	integer(DCGArity),
+	Arity is DCGArity + 2.
+
+%%	full_object(+Object, -Full)
+%
+%	Translate to canonical PlDoc object
 
 full_object(M:N/A, M:N/A) :- !.
 full_object(M:N//A, M:N/A2) :-
