@@ -462,6 +462,7 @@ indent(infixop) --> !,	       [ nl(1), indent(4) ].
 indent(prefixop) --> !,	       [ nl(1), indent(4) ].
 indent(postfixop) --> !,       [ nl(1), indent(4) ].
 indent(predicatesummary) --> !,[ nl(1) ].
+indent(dcgsummary) --> !,      [ nl(1) ].
 indent(oppredsummary) --> !,   [ nl(1) ].
 indent(hline) --> !,	       [ nl(1) ].
 indent(_) -->		       [].
@@ -484,6 +485,7 @@ outdent(infixop) --> !,		[ nl(1) ].
 outdent(prefixop) --> !,	[ nl(1) ].
 outdent(postfixop) --> !,	[ nl(1) ].
 outdent(predicatesummary) --> !,[ nl(1) ].
+outdent(dcgsummary) --> !,	[ nl(1) ].
 outdent(oppredsummary) --> !,   [ nl(1) ].
 outdent(hline) --> !,	        [ nl(1) ].
 outdent(_) -->			[].
@@ -1260,12 +1262,11 @@ latex_summary(_) :-
 pi_sort_key(M:PI, PI-(M:PI)) :- !.
 pi_sort_key(PI, PI-PI).
 
-object_name_arity(_:Term, Name, Arity) :-
+object_name_arity(_:Term, Type, Name, Arity) :-
 	nonvar(Term), !,
-	object_name_arity(Term, Name, Arity).
-object_name_arity(Name/Arity, Name, Arity).
-object_name_arity(Name//Arity0, Name, Arity) :-
-	Arity is Arity0 + 2.
+	object_name_arity(Term, Type, Name, Arity).
+object_name_arity(Name/Arity, pred, Name, Arity).
+object_name_arity(Name//Arity, dcg, Name, Arity).
 
 summarylist(Objs, Options) -->
 	latex(cmd(begin(summarylist, ll))),
@@ -1282,9 +1283,11 @@ summary_line(Obj, _Options) -->
 	{ doc_comment(Obj, _Pos, Summary, _Comment) ->
 	  atom_codes(Summary, Codes),
 	  phrase(pldoc_wiki:line_tokens(Tokens), Codes), % TBD: proper export
-	  object_name_arity(Obj, Name, Arity)
+	  object_name_arity(Obj, Type, Name, Arity)
 	},
-	(   { strip_module(Obj, M, _),
+	(   {Type == dcg}
+	->  latex(cmd(dcgsummary(Name, Arity, Tokens)))
+	;   { strip_module(Obj, M, _),
 	      current_op(Pri, Ass, M:Name)
 	    }
 	->  latex(cmd(oppredsummary(Name, Arity, Ass, Pri, Tokens)))
