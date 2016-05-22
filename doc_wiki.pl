@@ -846,6 +846,11 @@ wiki_face(Face, _, _) -->
 	  catch(atom_to_term(Text, Term, Vars), _, fail),
 	  term_face(Text, Term, Vars, Face)
 	}, !.
+	% Below this, we only do links.
+wiki_face(_, _, Options) -->
+	{ Options.get(link) == false, !,
+	  fail
+	}.
 wiki_face(\predref(Name/Arity), _, _) -->
 	[ w(Name), '/' ], arity(Arity),
 	{ functor_name(Name)
@@ -898,7 +903,7 @@ wiki_label(Label, _ArgNames, _Options) -->
 	image_label(Label).
 wiki_label(Label, ArgNames, Options) -->
 	next_level(Options, NOptions),
-	limit(20, wiki_faces(Label, ArgNames, NOptions)).
+	limit(20, wiki_faces(Label, ArgNames, NOptions.put(link,false))).
 
 %%	wiki_face_simple(-Out, +ArgNames, +Options)
 %
