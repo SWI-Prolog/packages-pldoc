@@ -373,6 +373,8 @@ latex(a(Attrs, Content)) -->
 	{ attribute(href(HREF), Attrs) },
 	(   {HREF == Content}
 	->  latex(cmd(url(HREF)))
+	;   { atom_concat(#,Sec,HREF) }
+	->  latex([Content, ' (', cmd(secref(Sec)), ')'])
 	;   latex(cmd(url(opt(Content), HREF)))
 	).
 latex(hr(_)) -->
