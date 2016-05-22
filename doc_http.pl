@@ -659,7 +659,9 @@ man_title(Obj, Title) :-
 	format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
 
 split_pi(Atom, Module:PI) :-
-	atomic_list_concat([Module, PIAtom], :, Atom), !,
+	atomic_list_concat([Module, PIAtom], :, Atom),
+	Module \== '',
+	forall(sub_atom(Module, _,1,_,C), char_type(C,alnum)), !,
 	split_pi2(PIAtom, PI).
 split_pi(Atom, PI) :-
 	split_pi2(Atom, PI).
