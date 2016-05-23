@@ -632,7 +632,7 @@ pldoc_man(Request) :-
 			  section(Sec,  [optional(true)])
 			]),
 	(   ground(PI)
-	->  split_pi(PI, Obj)
+	->  atom_pi(PI, Obj)
 	;   ground(Fun)
 	->  atomic_list_concat([Name,ArityAtom], /, Fun),
 	    atom_number(ArityAtom, Arity),
@@ -657,27 +657,6 @@ man_title(section(_Id), Title) :- !,
 	format(atom(Title), 'SWI-Prolog -- Manual', []).
 man_title(Obj, Title) :-
 	format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
-
-split_pi(Atom, Module:PI) :-
-	atomic_list_concat([Module, PIAtom], :, Atom),
-	Module \== '',
-	forall(sub_atom(Module, _,1,_,C), char_type(C,alnum)), !,
-	split_pi2(PIAtom, PI).
-split_pi(Atom, PI) :-
-	split_pi2(Atom, PI).
-
-split_pi2(Atom, Name//Arity) :-
-	sub_atom(Atom, B, _, A, //),
-	sub_atom(Atom, _, A, 0, ArityA),
-	atom_number(ArityA, Arity), !,
-	sub_atom(Atom, 0, B, _, Name).
-split_pi2(Atom, Name/Arity) :-
-	sub_atom(Atom, B, _, A, /),
-	sub_atom(Atom, _, A, 0, ArityA),
-	atom_number(ArityA, Arity), !,
-	sub_atom(Atom, 0, B, _, Name).
-split_pi2(Name, Name/_).
-
 
 %%	pldoc_object(+Request)
 %

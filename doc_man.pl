@@ -57,6 +57,7 @@
 :- use_module(doc_html).
 :- use_module(doc_search).
 :- use_module(doc_process).
+:- use_module(doc_util).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_dispatch)).
@@ -910,7 +911,9 @@ qualify(O, _:O).
 
 
 man_qualified_object(Text, Parent, Object, Section) :-
+	atom(Text),
 	atom_pi(Text, PI),
+	ground(PI), !,
 	man_qualified_object_2(PI, Parent, Object, Section).
 man_qualified_object(Object0, Parent, Object, Section) :-
 	man_qualified_object_2(Object0, Parent, Object, Section).
@@ -962,24 +965,6 @@ parent_section_ndet(Section, Parent) :-
 	parent_section(Section, Parent0),
 	parent_section_ndet(Parent0, Parent).
 
-
-atom_pi(Text, Name//Arity) :-
-	atom(Text),
-	sub_atom(Text, Pre, _, Post, //),
-	sub_atom(Text, _, Post, 0, AA),
-	atom_number(AA, Arity),
-	integer(Arity),
-	Arity >= 0,
-	sub_atom(Text, 0, Pre, _, Name),
-	Name \== '', !.
-atom_pi(Text, Name/Arity) :-
-	atom(Text),
-	sub_atom(Text, Pre, _, Post, /),
-	sub_atom(Text, _, Post, 0, AA),
-	atom_number(AA, Arity),
-	integer(Arity),
-	Arity >= 0, !,
-	sub_atom(Text, 0, Pre, _, Name).
 
 man_matches(Matches, Object, Options) -->
 	{ option(navtree(false), Options) }, !,
@@ -1194,8 +1179,10 @@ rewrite_ref(flag, Ref0, Path, Ref) :-
 %	If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
 name_to_object(Atom, Object) :-
+	atom(Atom),
 	atom_pi(Atom, PI),
 	(   PI = Name/Arity,
+	    integer(Arity),
 	    atom_concat('f-', FuncName, Name)
 	->  Object = f(FuncName/Arity)
 	;   Object = PI

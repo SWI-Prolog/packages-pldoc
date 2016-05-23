@@ -46,6 +46,7 @@
 :- use_module(doc_process).
 :- use_module(doc_html).
 :- use_module(doc_index).
+:- use_module(doc_util).
 :- include(hooks).
 
 /** <module> Search form and reply
@@ -389,11 +390,8 @@ matching_object(Search, Type-(Section-Obj), Options) :-
 	prolog:doc_object_summary(Obj, Type, Section, _),
 	matching_category(In, Type).
 matching_object(Search, Type-(Section-Obj), Options) :-
-	(   atom_codes(Search, Codes),
-	    phrase(predicate_spec(Obj), Codes)
-	;   (   current_predicate(Search, _:_)
-	    ->  Obj = (Search/_)
-	    )
+	(   atom_pi(Search, Obj0),
+	    qualify(Obj0, Obj)
 	;   catch(atom_to_term(Search, Obj, _), _, fail)
 	),
 	nonvar(Obj),
@@ -410,15 +408,11 @@ matching_object(Search, Match, Options) :-
 	    exec_search(For, Match, Options)
 	).
 
-predicate_spec(Name/Arity) -->
-	string(NameCodes),
-	"/",
-	(   "/"
-	->  integer(DCGArity),
-	    {Arity is DCGArity+2}
-	;   integer(Arity)
-	), eos, !,
-	{ atom_codes(Name, NameCodes) }.
+qualify(Obj0, Obj) :-
+	Obj0 = _:_, !,
+	Obj = Obj0.
+qualify(Obj, _:Obj).
+
 
 %%	optimise_search(+Spec, -Optimised)
 %
