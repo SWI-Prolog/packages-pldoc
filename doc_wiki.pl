@@ -903,7 +903,7 @@ wiki_label(Label, _ArgNames, _Options) -->
 	image_label(Label).
 wiki_label(Label, ArgNames, Options) -->
 	next_level(Options, NOptions),
-	limit(20, wiki_faces(Label, ArgNames, NOptions.put(link,false))).
+	limit(40, wiki_faces(Label, ArgNames, NOptions.put(link,false))).
 
 %%	wiki_face_simple(-Out, +ArgNames, +Options)
 %
