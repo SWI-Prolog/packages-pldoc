@@ -372,10 +372,10 @@ latex(center(Content)) -->
 latex(a(Attrs, Content)) -->
 	{ attribute(href(HREF), Attrs) },
 	(   {HREF == Content}
-	->  latex(cmd(url(HREF)))
+	->  latex(cmd(url(no_escape(HREF))))
 	;   { atom_concat(#,Sec,HREF) }
 	->  latex([Content, ' (', cmd(secref(Sec)), ')'])
-	;   latex(cmd(url(opt(Content), HREF)))
+	;   latex(cmd(href(no_escape(HREF), Content)))
 	).
 latex(hr(_)) -->
 	latex(cmd(hrule)).
