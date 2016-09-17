@@ -60,11 +60,15 @@
 	\mbox{\reffont #1/#2}}
 \newcommand{\dcgref}[2]{%		% functor//arity
 	\mbox{\reffont #1//#2}}
+\newcommand{\nodcgref}[2]{%		% functor//arity (non-existing)
+	\mbox{\reffont #1//#2}}
 \newcommand{\qpredref}[3]{%		% module:functor/arity
 	\mbox{\reffont #1:#2/#3}}
 \newcommand{\qdcgref}[3]{%		% module:functor//arity
 	\mbox{\reffont #1:#2//#3}}
-\newcommand{\nopredref}[2]{%		% functor/arity (external)
+\newcommand{\nopredref}[2]{%		% functor/arity (examples, etc)
+	\mbox{\reffont #1/#2}}
+\newcommand{\libpredref}[2]{%		% functor/arity (library)
 	\mbox{\reffont #1/#2}}
 \newcommand{\functor}[2]{%		% functor/arity (no predicate)
 	\mbox{\reffont #1/#2}}
@@ -126,7 +130,7 @@
 %	\directive{Name}{Arity}{Args}
 %	\predicate[Attibutes]{Name}{Arity}{Args}
 %	\function[Attibutes]{Name}{Arity}{Args}
-%	\mapfunction[Attibutes]{Name}{Arity}{Args}
+%	\dictfunction[Attibutes]{Name}{Arity}{Args}
 %	\infixop{Name}{Left}{Right}
 %	\prefixop{Name}{Right}
 %	\infixfunction{Name}{Left}{Right}
@@ -200,7 +204,7 @@
 	\defentry{#2 {\it #3}\predatt{#1}}%
 	\index{#2/1}\ignorespaces}
 \let\function\predicate
-\let\mapfunction\predicate
+\let\dictfunction\predicate
 \let\infixfunction\infixop
 \let\prefixfunction\prefixop
 \makeatother
@@ -223,6 +227,11 @@
 	    \definition{#1 {\it #2}}\ignorespaces}
 \newcommand{\postfixtermitem}[2]{%
 	    \definition{{\it #2} #1}\ignorespaces}
+
+%	\dictitem{tag}{Args}
+
+\newcommand{\dictitem}[2]{%
+	    \definition{#1\{{\it #2}\}}\ignorespaces}
 
 %	\term{functor}{Args}
 %	\infixterm{functor}{Left}{Right}
@@ -292,6 +301,7 @@
 
 \renewcommand{\arg}[1]{\ifmmode\mbox{\em #1}\else{\it #1}\fi}
 \newcommand{\class}[1]{{\em #1}\index{#1 \string\idxtype{class}}}
+\newcommand{\noclass}[1]{{\em #1}}
 \newcommand{\classs}[1]{{\em #1s}\index{#1 \string\idxtype{class}}}
 \newcommand{\demo}[1]{{\sf #1}\index{#1 \string\idxtype{demo}}}
 \newcommand{\pllib}[1]{{\texttt{#1}}\index{#1 \string\idxtype{library}}}
@@ -415,6 +425,8 @@
 \urldef{\Spercent}\satom{%}		% %
 \urldef{\Shash}\satom{#}		% #
 \urldef{\Scurl}\satom{{}}		% {}
+\urldef{\Scons}\satom{[|]}		% [|]
+\urldef{\Snil}\satom{[]}		% []
 \urldef{\SxXX}\satom{xXX..\}		% xXX..\
 
 \newcommand{\bug}[1]{\footnote{BUG: #1}}
