@@ -33,31 +33,31 @@
 */
 
 :- module(pldoc_debug,
-	  []).
+          []).
 
-		 /*******************************
-		 *	       DEBUG		*
-		 *******************************/
+                 /*******************************
+                 *             DEBUG            *
+                 *******************************/
 
 :- multifile
-        user:portray/1.
+    user:portray/1.
 
 user:portray(X) :-
-	codes(X),
-	length(X, Len),
-	Len > 2,
-	format('"~s"', [X]).
+    codes(X),
+    length(X, Len),
+    Len > 2,
+    format('"~s"', [X]).
 
 codes([]).
 codes([H|T]) :-
-	code(H),
-	codes(T).
+    code(H),
+    codes(T).
 
 code(9) :- !.
 code(10) :- !.
 code(H) :-
-	integer(H),
-	between(32, 126, H).
+    integer(H),
+    between(32, 126, H).
 
 
 

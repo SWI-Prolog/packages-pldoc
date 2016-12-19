@@ -34,8 +34,8 @@
 */
 
 :- module(pldoc_colours,
-	  [ colour_fragments/2		% +Source, -Fragments
-	  ]).
+          [ colour_fragments/2          % +Source, -Fragments
+          ]).
 :- use_module(library(prolog_xref)).
 :- use_module(library(prolog_source)).
 :- use_module(library(prolog_colour)).
@@ -48,53 +48,53 @@ create HTML fragments.
 */
 
 :- thread_local
-	fragment/3.			% Start, Length, Class
+    fragment/3.                     % Start, Length, Class
 
 :- create_prolog_flag(xref, false, [type(boolean)]).
 
-%%	colour_fragments(+In, -Fragments:list) is det.
+%!  colour_fragments(+In, -Fragments:list) is det.
 %
-%	Create a list of colour fragments from In.
+%   Create a list of colour fragments from In.
 %
-%	@param Fragments	List of fragment(Start, End, Class)
+%   @param Fragments        List of fragment(Start, End, Class)
 
 colour_fragments(Source, Fragments) :-
-	F = fragment(_,_,_),
-	retractall(F),
-	prolog_canonical_source(Source, SourceID),
-	xref_source(SourceID, [silent(true)]),
-	setup_call_cleanup(
-	    prolog_open_source(SourceID, Stream),
-	    prolog_colourise_stream(Stream, SourceID, assert_fragment),
-	    prolog_close_source(Stream)),
-	findall(F, retract(F), Fragments0),
-	sort(Fragments0, Fragments1),
-	fragment_hierarchy(Fragments1, Fragments).
+    F = fragment(_,_,_),
+    retractall(F),
+    prolog_canonical_source(Source, SourceID),
+    xref_source(SourceID, [silent(true)]),
+    setup_call_cleanup(
+        prolog_open_source(SourceID, Stream),
+        prolog_colourise_stream(Stream, SourceID, assert_fragment),
+        prolog_close_source(Stream)),
+    findall(F, retract(F), Fragments0),
+    sort(Fragments0, Fragments1),
+    fragment_hierarchy(Fragments1, Fragments).
 
 assert_fragment(Class, Start, Length) :-
-	End is Start+Length,
-	assert(fragment(Start, End, Class)).
+    End is Start+Length,
+    assert(fragment(Start, End, Class)).
 
 
-%%	fragment_hierarchy(+Fragments, -Hierarchy) is det.
+%!  fragment_hierarchy(+Fragments, -Hierarchy) is det.
 %
-%	Translate   list   of   fragment(Start,     End,   Class)   into
-%	fragment(Start, End, Class, SubFragments).
+%   Translate   list   of   fragment(Start,     End,   Class)   into
+%   fragment(Start, End, Class, SubFragments).
 %
-%	@tbd	Detect improper nesting.  How to handle?
+%   @tbd    Detect improper nesting.  How to handle?
 
 fragment_hierarchy([], []).
 fragment_hierarchy([fragment(S,E,C)|Rest0], [fragment(S,E,C,Sub)|Rest]) :-
-	sub_fragments(Rest0, E, Sub, Rest1),
-	fragment_hierarchy(Rest1, Rest).
+    sub_fragments(Rest0, E, Sub, Rest1),
+    fragment_hierarchy(Rest1, Rest).
 
 sub_fragments([], _, [], []).
 sub_fragments([F|R0], End, Sub, Rest) :-
-	F = fragment(SF,EF,C),
-	(   EF =< End
-	->  Sub = [fragment(SF,EF,C,FSub)|RSub],
-	    sub_fragments(R0, EF, FSub, R1),
-	    sub_fragments(R1, End, RSub, Rest)
-	;   Sub = [],
-	    Rest = [F|R0]
-	).
+    F = fragment(SF,EF,C),
+    (   EF =< End
+    ->  Sub = [fragment(SF,EF,C,FSub)|RSub],
+        sub_fragments(R0, EF, FSub, R1),
+        sub_fragments(R1, End, RSub, Rest)
+    ;   Sub = [],
+        Rest = [F|R0]
+    ).

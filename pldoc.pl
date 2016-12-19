@@ -34,12 +34,12 @@
 */
 
 :- module(pldoc,
-	  [ doc_collect/1,		% +Bool
+          [ doc_collect/1,              % +Bool
 
-	    pldoc_loading/0		% True if we are loading
-	  ]).
+            pldoc_loading/0             % True if we are loading
+          ]).
 :- dynamic
-	pldoc_loading/0.
+    pldoc_loading/0.
 
 pldoc_loading.
 
@@ -50,32 +50,32 @@ user:file_search_path(pldoc, library(pldoc)).
 user:file_search_path(package_documentation, swi('doc/packages')).
 
 :- multifile
-	tag_order/2.			% +Tag, -Order
+    tag_order/2.                    % +Tag, -Order
 
 :- create_prolog_flag(pldoc_collecting, false, []).
 
 doc_collect(OnOff) :-
-	set_prolog_flag(pldoc_collecting, OnOff).
+    set_prolog_flag(pldoc_collecting, OnOff).
 
 :- doc_collect(true).
 
 :- load_files([ pldoc(doc_process),
-		pldoc(doc_register),
-		pldoc(doc_modes),
-		pldoc(doc_wiki),
-		library(debug),
-		library(option),
-		library(lists),
-		library(operators),
-		library(prolog_source)
-	      ],
-	      [ silent(true),
-		if(not_loaded)
-	      ]).
+                pldoc(doc_register),
+                pldoc(doc_modes),
+                pldoc(doc_wiki),
+                library(debug),
+                library(option),
+                library(lists),
+                library(operators),
+                library(prolog_source)
+              ],
+              [ silent(true),
+                if(not_loaded)
+              ]).
 
-		 /*******************************
-		 *	  DOCUMENTATION		*
-		 *******************************/
+                 /*******************************
+                 *        DOCUMENTATION         *
+                 *******************************/
 
 /** <module> Process source documentation
 
@@ -98,32 +98,32 @@ different setup.
 
 @author  Jan Wielemaker
 @license LGPL
-@see	 doc_server/1, doc_server/2, doc_collect/1.
+@see     doc_server/1, doc_server/2, doc_collect/1.
 */
 
-%%	doc_collect(+Bool) is det.
+%!  doc_collect(+Bool) is det.
 %
-%	Switch collecting comments true/false.   This autoload predicate
-%	can be used to force loading  the   pldoc  library. In a typical
-%	development setup loading pldoc  is   normally  triggered  using
-%	doc_server/1.
+%   Switch collecting comments true/false.   This autoload predicate
+%   can be used to force loading  the   pldoc  library. In a typical
+%   development setup loading pldoc  is   normally  triggered  using
+%   doc_server/1.
 
-%%	pldoc_loading is semidet.
+%!  pldoc_loading is semidet.
 %
-%	True if we are loading the  PlDoc libraries. Required internally
-%	to avoid undefined predicates  while   re-loading  and  document
-%	itself.
+%   True if we are loading the  PlDoc libraries. Required internally
+%   to avoid undefined predicates  while   re-loading  and  document
+%   itself.
 
-%%	tag_order(?Tag, ?Order) is semidet.
+%!  tag_order(?Tag, ?Order) is semidet.
 %
-%	Hook that allows for defining additional tags.
+%   Hook that allows for defining additional tags.
 %
-%	@see pldoc_wiki:tag_order/2 for the default definition.
+%   @see pldoc_wiki:tag_order/2 for the default definition.
 
 
-		 /*******************************
-		 *	     FINISH UP		*
-		 *******************************/
+                 /*******************************
+                 *           FINISH UP          *
+                 *******************************/
 
 :- retract(pldoc_loading),
    process_stored_comments.

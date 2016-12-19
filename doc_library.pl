@@ -34,59 +34,63 @@
 */
 
 :- module(pldoc_library,
-	  [ doc_load_library/0
-	  ]).
+          [ doc_load_library/0
+          ]).
 
-%%	doc_load_library
+%!  doc_load_library
 %
-%	Load the SWI-Prolog library, so we can access all comments from
-%	the library.
+%   Load the SWI-Prolog library, so we can access all comments from
+%   the library.
 
 doc_load_library :-
-	set_prolog_flag(verbose_load, false),
-	absolute_file_name(swi(library), Dir, [file_type(directory)]),
-	load_all(Dir).
+    set_prolog_flag(verbose_load, false),
+    absolute_file_name(swi(library), Dir, [file_type(directory)]),
+    load_all(Dir).
 
 
 load_all([]) :- !.
 load_all([H|T]) :-
-	load_all(H), !,
-	load_all(T).
+    load_all(H),
+    !,
+    load_all(T).
 load_all(Dir0) :-
-	atom(Dir0),
-	expand_file_name(Dir0, [Dir1]),
-	downcase_atom(Dir1, Dir),	% Deal with Windows
-	\+ ( blocked(Blocked),
-	     sub_atom(Dir, _, _, 0, Blocked)
-	   ),
-	exists_directory(Dir), !,
-	atom_concat(Dir, '/*', Pattern),
-	expand_file_name(Pattern, Contents),
-	load_all(Contents).
+    atom(Dir0),
+    expand_file_name(Dir0, [Dir1]),
+    downcase_atom(Dir1, Dir),       % Deal with Windows
+    \+ ( blocked(Blocked),
+         sub_atom(Dir, _, _, 0, Blocked)
+       ),
+    exists_directory(Dir),
+    !,
+    atom_concat(Dir, '/*', Pattern),
+    expand_file_name(Pattern, Contents),
+    load_all(Contents).
 load_all(File) :-
-	atom(File),
-	file_name_extension(_, pl, File),
-	downcase_atom(File, LwrCase),
-	\+ ( blocked(Blocked),
-	     sub_atom(LwrCase, _, _, 0, Blocked)
-	   ), !,
-	use_module(File, []).
+    atom(File),
+    file_name_extension(_, pl, File),
+    downcase_atom(File, LwrCase),
+    \+ ( blocked(Blocked),
+         sub_atom(LwrCase, _, _, 0, Blocked)
+       ),
+    !,
+    use_module(File, []).
 load_all(Spec) :-
-	compound(Spec), !,
-	forall(absolute_file_name(Spec, Path,
-				  [ access(read),
-				    file_errors(fail)
-				  ]),
-	       load_all(Path)).
+    compound(Spec),
+    !,
+    forall(absolute_file_name(Spec, Path,
+                              [ access(read),
+                                file_errors(fail)
+                              ]),
+           load_all(Path)).
 load_all(_).
 
-%%	blocked(+Path) is semidet.
+%!  blocked(+Path) is semidet.
 %
-%	True if file or directory should not   be loaded. Note that file
-%	from the directory chr are  already   loaded  by chr.pl. Similar
-%	arguments apply for a few others.
+%   True if file or directory should not   be loaded. Note that file
+%   from the directory chr are  already   loaded  by chr.pl. Similar
+%   arguments apply for a few others.
 %
-%	@bug	We force lowercase to make it also work on Windows
+%   @bug    We force lowercase to make it also work on Windows
 
 blocked('/chr').
 blocked('/clpq').
@@ -95,13 +99,13 @@ blocked('/pldoc').
 blocked('/ciao').
 blocked('/checkselect.pl').
 blocked('/checklast.pl').
-blocked('/clp/clp_distinct.pl').	% deprecated file
-%blocked('/jpl.pl').			% should be added
+blocked('/clp/clp_distinct.pl').        % deprecated file
+%blocked('/jpl.pl').                    % should be added
 blocked('/pldoc.pl').
 blocked('/index.pl').
 
-blocked('/ciao.pl').			% is an include-file.  We must
-					% find a more general solution here
+blocked('/ciao.pl').                    % is an include-file.  We must
+                                        % find a more general solution here
 blocked('/commons.pl').
 blocked('/swipl-lfr.pl').
-blocked('/dcg_basics.pl').		% deprecated file
+blocked('/dcg_basics.pl').              % deprecated file
