@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2014, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -34,7 +34,7 @@
 */
 
 :- module(pldoc_htmlsrc,
-          [ source_to_html/3            % +Source, +OutStream, +Options
+          [ source_to_html/3            % +Source, +Out, +Options
           ]).
 :- use_module(library(apply)).
 :- use_module(library(option)).
@@ -93,14 +93,14 @@ cross-reference based technology as used by PceEmacs.
 %     * print_html_footer/2.
 %     * html_fragments/6
 %
-%   @param In       A filename.  Can also be an abstract name,
+%   @arg In         A filename.  Can also be an abstract name,
 %                   which is subject to library(prolog_source)
 %                   abstract file handling. See
 %                   prolog_open_source/2.  Note that this cannot
 %                   be a stream as we need to read the file three
 %                   times: (1) xref, (2) assign colours and (3)
 %                   generate HTML.
-%   @param Out      Term stream(Stream) or file-name specification
+%   @arg Out        Term stream(Stream) or filename specification
 
 source_to_html(Src, stream(Out), MOptions) :-
     !,
