@@ -109,3 +109,4 @@ blocked('/ciao.pl').                    % is an include-file.  We must
 blocked('/commons.pl').
 blocked('/swipl-lfr.pl').
 blocked('/dcg_basics.pl').              % deprecated file
+blocked('/readline.pl').                % conflicts with editline.pl
