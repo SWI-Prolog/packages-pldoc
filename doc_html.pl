@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -100,6 +100,7 @@
 :- use_module(doc_wiki).
 :- use_module(doc_search).
 :- use_module(doc_index).
+:- use_module(doc_util).
 :- include(hooks).
 
 /** <module> PlDoc HTML backend
@@ -1913,7 +1914,8 @@ pred_source_href(Name/Arity, Module, HREF) :-
     (   catch(relative_file(Module:Head, File), _, fail)
     ->  uri_data(path, Components, File),
         uri_components(HREF, Components)
-    ;   in_file(Module:Head, File),
+    ;   in_file(Module:Head, File0),
+        insert_alias(File0, File),
         http_location_by_id(pldoc_doc, DocHandler),
         atom_concat(DocHandler, File, Path),
         uri_data(path, Components, Path),
