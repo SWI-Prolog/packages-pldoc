@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2011, University of Amsterdam
+    Copyright (c)  2007-2017, University of Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -80,8 +80,11 @@ expand_alias(Path, Path).
 %   paths below the SWI-Prolog home to   give them shorter and fixed
 %   names.
 
-path_alias('/swi/', Dir) :-
+path_alias('/_SWI_/', Dir) :-
     current_prolog_flag(home, Dir0),
+    ensure_slash_end(Dir0, Dir).
+path_alias('/_CWD_/', Dir) :-
+    working_directory(Dir0, Dir0),
     ensure_slash_end(Dir0, Dir).
 
 
