@@ -476,11 +476,11 @@ pre.listing
 
 span.line-no
 { font-weight: normal;
-  color: #333;
-  background-color: #ccc;
-  padding-right: 2px;
-  border-right: 1px solid #333;
-  margin-right: 1em;
+  color: #999;
+  background-color: #f7f7f7;
+  padding-right: 4px;
+  border-right: 1px solid #ddd;
+  margin-right: 5px;
 }
 
 div.comment h1.module

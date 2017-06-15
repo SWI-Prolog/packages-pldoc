@@ -505,7 +505,7 @@ content_escape(C, Out, L, L) :-
     put_code(Out, C).
 
 write_line_no(LineNo, Out) :-
-    format(Out, '<span class="line-no">~|~t~d~4+</span>', [LineNo]).
+    format(Out, '<span class="line-no">~|~t~d~5+</span>', [LineNo]).
 
 %!  copy_rest(+In, +Out, +StateIn, -StateOut) is det.
 %
