@@ -213,7 +213,7 @@ html_fragments([H|T], In, Out, State0, State, Options) :-
 %   Print from current position upto the end of Fragment.  First
 %   clause deals with structured comments.
 
-html_fragment(fragment(Start, End, structured_comment, []),
+html_fragment(fragment(Start, End, comment(structured), []),
               In, Out, State0, [], Options) :-
     option(format_comments(true), Options, true),
     !,
