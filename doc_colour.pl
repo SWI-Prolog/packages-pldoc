@@ -39,6 +39,7 @@
 :- use_module(library(prolog_xref)).
 :- use_module(library(prolog_source)).
 :- use_module(library(prolog_colour)).
+:- use_module(library(lists)).
 
 /** <module> Source colouring support
 
@@ -56,9 +57,9 @@ create HTML fragments.
 %
 %   Create a list of colour fragments from In.
 %
-%   @param Fragments        List of fragment(Start, End, Class)
+%   @param Fragments List of fragment(Start, End, Class, Subs)
 
-colour_fragments(Source, Fragments) :-
+colour_fragments(Source, Hierarchy) :-
     F = fragment(_,_,_),
     retractall(F),
     prolog_canonical_source(Source, SourceID),
@@ -68,12 +69,28 @@ colour_fragments(Source, Fragments) :-
         prolog_colourise_stream(Stream, SourceID, assert_fragment),
         prolog_close_source(Stream)),
     findall(F, retract(F), Fragments0),
-    sort(Fragments0, Fragments1),
-    fragment_hierarchy(Fragments1, Fragments).
+    sort(2, >=, Fragments0, Fragments1),
+    sort(1, =<, Fragments1, Fragments2),
+    fragment_hierarchy(Fragments2, Hierarchy0),
+    include_fullstops(Hierarchy0, Hierarchy).
 
 assert_fragment(Class, Start, Length) :-
     End is Start+Length,
     assert(fragment(Start, End, Class)).
+
+%!  include_fullstops(+FragmentsIn, -FragmentsOut) is det.
+%
+%   Include fullstops into the term that preceeds them.
+
+include_fullstops([], []).
+include_fullstops([fragment(TS,FS,Class,Subs0),fragment(FS,FE,fullstop,[])|T0],
+                  [fragment(TS,FE0,Class,Subs)|T]) :-
+    !,
+    append(Subs0, [fragment(FS,FE0,fullstop,[])], Subs),
+    FE0 is FE-1,
+    include_fullstops(T0, T).
+include_fullstops([H|T0], [H|T]) :-
+    include_fullstops(T0, T).
 
 
 %!  fragment_hierarchy(+Fragments, -Hierarchy) is det.
