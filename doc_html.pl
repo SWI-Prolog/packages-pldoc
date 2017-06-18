@@ -1442,7 +1442,9 @@ anchored_pred_head(Head, Done0, Done, Options) -->
     ->  { Done = Done0 },
         pred_head(Head)
     ;   html([ span(style('float:right'),
-                    \pred_edit_or_source_button(Head, Options)),
+                    [ \pred_edit_or_source_button(Head, Options),
+                      &(nbsp)
+                    ]),
                a(name=Name, \pred_head(Head))
              ]),
         { Done = [PI|Done0] }
