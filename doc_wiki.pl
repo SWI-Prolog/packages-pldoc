@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -52,6 +52,7 @@
 :- use_module(library(option)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 
 
 /** <module> PlDoc wiki parser
@@ -1788,7 +1789,7 @@ sentence([C,End], []) -->
     { \+ code_type(C, period),
       code_type(End, period)                % ., !, ?
     },
-    white,
+    space_or_eos,
     !.
 sentence([0' |T0], T) -->
     space,
@@ -1801,9 +1802,11 @@ sentence([H|T0], T) -->
 sentence([0' |T], T) -->                % '
     eos.
 
-white -->
-    space.
-white -->
+space_or_eos -->
+    [C],
+    !,
+    {code_type(C, space)}.
+space_or_eos -->
     eos.
 
 %!  skip_empty_lines(+LinesIn, -LinesOut) is det.
@@ -1997,12 +2000,6 @@ strip_leading_par(L, L).
                  /*******************************
                  *           DCG BASICS         *
                  *******************************/
-
-%!  eos// is det
-%
-%   Peek at end of input
-
-eos([], []).
 
 %!  ws// is det
 %
