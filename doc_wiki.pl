@@ -1113,7 +1113,7 @@ emphasis_end(Which), [After] -->
     emphasis(Which),
     [ After ],
     !,
-    { After \= w(_) }.
+    { emphasis_close_sep(After) }.
 emphasis_end(Which) -->
     emphasis(Which).
 
@@ -1127,6 +1127,12 @@ emphasis_after_sep('=').
 emphasis_after_sep('+').
 emphasis_after_sep('\\').
 emphasis_after_sep('@').
+
+emphasis_close_sep(' ').
+emphasis_close_sep(',').
+emphasis_close_sep('.').
+emphasis_close_sep('!').
+emphasis_close_sep('?').
 
 
 %!  arg_list(-Atoms) is nondet.
