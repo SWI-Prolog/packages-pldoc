@@ -881,13 +881,13 @@ wiki_face(var(Arg), ArgNames, _) -->
     },
     !.
 wiki_face(b(Bold), ArgNames, Options) -->
-    [*,'|'], next_level(Options, NOptions),
-    wiki_faces_int(Bold, ArgNames, NOptions), ['|',*],
-    !.
+    [*,'|'], string(Tokens), ['|',*],
+    !,
+    { phrase(wiki_faces(Bold, ArgNames, Options), Tokens) }.
 wiki_face(i(Italic), ArgNames, Options) -->
-    ['_','|'], next_level(Options, NOptions),
-    wiki_faces_int(Italic, ArgNames, NOptions), ['|','_'],
-    !.
+    ['_','|'], string(Tokens), ['|','_'],
+    !,
+    { phrase(wiki_faces(Italic, ArgNames, Options), Tokens) }.
 wiki_face(code(Code), _, _) -->
     [=], eq_code_words(Words), [=],
     !,
