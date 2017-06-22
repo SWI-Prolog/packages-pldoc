@@ -847,7 +847,7 @@ wiki_faces_int([Before,EmphTerm|T], ArgNames, Options) -->
 wiki_faces_int([H|T], ArgNames, Options) -->
     wiki_face_simple(H, ArgNames, Options),
     !,
-    wiki_faces(T, ArgNames, Options).
+    wiki_faces_int(T, ArgNames, Options).
 
 next_level(Options0, Options) -->
     {   succ(NewDepth, Options0.depth)
