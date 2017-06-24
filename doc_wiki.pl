@@ -1128,11 +1128,12 @@ emphasis_after_sep('+').
 emphasis_after_sep('\\').
 emphasis_after_sep('@').
 
-emphasis_close_sep(' ').
-emphasis_close_sep(',').
+emphasis_close_sep(' ').                        % white
+emphasis_close_sep(',').                        % sentence punctuation
 emphasis_close_sep('.').
 emphasis_close_sep('!').
 emphasis_close_sep('?').
+emphasis_close_sep(']').                        % [**label**](link)
 
 
 %!  arg_list(-Atoms) is nondet.
