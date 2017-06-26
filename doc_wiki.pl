@@ -1091,6 +1091,7 @@ emphasis_before(Before) -->
     [Before],
     { emphasis_start_sep(Before) }.
 
+emphasis_start_sep('\n').
 emphasis_start_sep(' ').
 emphasis_start_sep('<').
 emphasis_start_sep('{').
@@ -1119,6 +1120,7 @@ emphasis_end(Which) -->
 
 % these characters should not be before a closing * or _.
 
+emphasis_after_sep('\n').
 emphasis_after_sep(' ').
 emphasis_after_sep('(').
 emphasis_after_sep('[').
@@ -1128,11 +1130,14 @@ emphasis_after_sep('+').
 emphasis_after_sep('\\').
 emphasis_after_sep('@').
 
+emphasis_close_sep('\n').                       % white
 emphasis_close_sep(' ').                        % white
 emphasis_close_sep(',').                        % sentence punctuation
 emphasis_close_sep('.').
 emphasis_close_sep('!').
 emphasis_close_sep('?').
+emphasis_close_sep(':').
+emphasis_close_sep(';').
 emphasis_close_sep(']').                        % [**label**](link)
 
 
