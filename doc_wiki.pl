@@ -758,6 +758,12 @@ structure_term(h4(Att, Args), h4(Att), [Args]) :- !.
 structure_term(hr(Att), hr(Att), []) :- !.
 structure_term(p(Args), p, [Args]) :- !.
 structure_term(Term, Functor, Args) :-
+    structure_term_any(Term, Functor, Args).
+
+structure_term(Term) :-
+    structure_term_any(Term, _Functor, _Args).
+
+structure_term_any(Term, Functor, Args) :-
     functor(Term, Functor, 1),
     structure_tag(Functor),
     !,
@@ -774,6 +780,7 @@ structure_tag(tr).
 structure_tag(td).
 structure_tag(blockquote).
 structure_tag(center).
+
 
 %!  verbatim_term(?Term) is det
 %
@@ -1114,7 +1121,7 @@ emphasis_end(Which), [After] -->
     emphasis(Which),
     [ After ],
     !,
-    { emphasis_close_sep(After) }.
+    { emphasis_close_sep(After) -> true }.
 emphasis_end(Which) -->
     emphasis(Which).
 
@@ -1139,6 +1146,8 @@ emphasis_close_sep('?').
 emphasis_close_sep(':').
 emphasis_close_sep(';').
 emphasis_close_sep(']').                        % [**label**](link)
+emphasis_close_sep(Token) :-
+    structure_term(Token).
 
 
 %!  arg_list(-Atoms) is nondet.
