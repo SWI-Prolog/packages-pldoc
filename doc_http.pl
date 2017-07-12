@@ -136,8 +136,7 @@ doc_server(Port, Options) :-
                   [ port(Port)
                   ], HTTPOptions),
     http_server(http_dispatch, HTTPOptions),
-    assertz(doc_server_port(Port)),
-    print_message(informational, pldoc(server_started(Port))).
+    assertz(doc_server_port(Port)).
 
 %!  doc_current_server(-Port) is det.
 %
@@ -770,17 +769,3 @@ param(format_comments,
         default(true),
         description('If true, use PlDoc for rendering structured comments')
       ]).
-
-
-                 /*******************************
-                 *           MESSAGES           *
-                 *******************************/
-
-:- multifile
-    prolog:message/3.
-
-prolog:message(pldoc(server_started(Port))) -->
-    { http_location_by_id(pldoc_root, Root) },
-    [ 'Started Prolog Documentation server at port ~w'-[Port], nl,
-      'You may access the server at http://localhost:~w~w'-[Port, Root]
-    ].
