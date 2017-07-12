@@ -1,0 +1,4 @@
+{
+  "dom":"[\\(pred_dt([mode(hello,[])],pubdef,[])),dd(=(class,defbody),['Hello',' ',i([world]),'.'])]",
+  "html":"\n<dt class=\"pubdef\"><span style=\"float:right\">&nbsp;<\/span><a name=\"hello/0\"><b class=\"pred\">hello<\/b><\/a><\/dt><dd class=\"defbody\">Hello <i>world<\/i>.<\/dd>"
+}
