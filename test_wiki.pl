@@ -3,8 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
-                              VU University Amsterdam
+    Copyright (c)  2017, VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,131 +32,202 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(test_wiki,
-          [ pldoc/0,
-            test_wiki/0,
-            test_wiki/1
+
+:- module(test_pldoc,
+          [
           ]).
-:- use_module(library(option)).
-:- use_module(library(prolog_source)).
 :- use_module(library(pldoc)).
-:- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(pldoc/doc_process)).
-:- use_module(library(pldoc/doc_modes)).
-:- use_module(library(pldoc/doc_html)).
-:- use_module(library(doc_http)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/json)).
+:- use_module(library(http/http_json)).
+:- use_module(library(http/http_error)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/jquery)).
+:- use_module(library(pldoc/doc_modes)).
+:- use_module(library(pldoc/doc_wiki)).
+:- use_module(library(pldoc/doc_html), []).
+:- use_module(library(readutil)).
+:- use_module(library(sgml)).
 
-/** <module> PlDoc testing module
+/** <module> PlDoc test suite
 
-Just some random tests.
+This module provides the infrastructure to   define  and test PlDoc wiki
+processing. To use it, run the command   below and point your browser at
+http://localhost:4040/
+
+    swipl test_wiki.pl
 */
 
-process_comment(File, Pos-String, DOM) :-
-    stream_position_data(line_count, Pos, Line),
-    FilePos = File:Line,
+user:file_search_path(js, js).
+user:file_search_path(js, .).
+user:file_search_path(css, css).
+user:file_search_path(css, .).
+
+:- initialization(server(4040), main).
+
+%!  server(?Port)
+%
+%   Start the server at http://localhost:4040/
+
+server(Port) :-
+    set_prolog_flag(toplevel_goal, prolog),
+    http_server(http_dispatch,
+                [ port(localhost:Port)
+                ]).
+
+:- http_handler(root(.),       home,    []).
+:- http_handler(root(wiki),    wiki,    []).
+:- http_handler(root(approve), approve, []).
+:- http_handler(root(tests),   tests,   []).
+
+%!  home(+Request)
+%
+%   Present the test home page
+
+home(_Request) :-
+    reply_html_page(
+        title('PlDoc test environment'),
+        [ \html_requires(jquery),
+          \html_requires(js('pldoc.js')),
+          \html_requires(js('laconic.js')),
+          \html_requires(js('test_pldoc.js')),
+          \html_requires(css('pldoc.css')),
+          \html_requires(css('test_pldoc.css')),
+          h1('PlDoc test environment'),
+          div(class(content), []),
+          div(class(footer), button(id(new), 'Add new test'))
+        ]).
+
+%!  tests(+Request)
+%
+%   Read all defined test cases.
+
+tests(_Request) :-
+    expand_file_name('tests/*.in', Inputs),
+    maplist(read_test, Inputs, Tests),
+    reply_json_dict(Tests).
+
+read_test(File, _{name:Test, text:String}) :-
+    read_file_to_string(File, String, [encoding(utf8)]),
+    file_base_name(File, Base),
+    file_name_extension(Test, _, Base).
+
+%!  approve(+Request)
+%
+%   Save and approve a test
+
+approve(Request) :-
+    http_read_json_dict(Request, In),
+    directory_file_path(tests, In.name, Base),
+    file_name_extension(Base, in, FileIn),
+    file_name_extension(Base, ap, FileAp),
+    text_to_html(In.text, HTML, DOM),
+    with_output_to(string(DOMS), write_canonical(DOM)),
+    setup_call_cleanup(
+        open(FileIn, write, OutText, [encoding(utf8)]),
+        format(OutText, '~w', [In.text]),
+        close(OutText)),
+    setup_call_cleanup(
+        open(FileAp, write, OutAp, [encoding(utf8)]),
+        json_write_dict(OutAp,
+                        json{status:approved,
+                             html:HTML,
+                             dom:DOMS}),
+        close(OutAp)),
+    reply_json_dict(_{result: true}).
+
+
+%!  wiki(+Request)
+%
+%   Handle a post request, returning  the   HTML.  Implemented as a JSON
+%   POST request.
+
+wiki(Request) :-
+    http_read_json_dict(Request, In),
+    text_to_html(In.text, HTML, DOM),
+    approved(In.name, HTML, DOM, Approval),
+    dom_pretty_string(DOM, DOMS),
+    reply_json_dict(_{name: In.name, html:HTML, dom:DOMS}.put(Approval)).
+
+
+text_to_html(String, HTML, DOM) :-
     is_structured_comment(String, Prefixes),
+    !,
     string_codes(String, Codes),
     indented_lines(Codes, Prefixes, Lines),
     (   section_comment_header(Lines, Header, Lines1)
     ->  DOM = [Header|DOM1],
         Args = []
-    ;   process_modes(Lines, user, FilePos, Modes, Args, Lines1)
+    ;   process_modes(Lines, user, tmp:1, Modes, Args, Lines1)
     ->  DOM = [\pred_dt(Modes, pubdef, []), dd(class=defbody, DOM1)]
     ),
     wiki_lines_to_dom(Lines1, Args, DOM0),
-    strip_leading_par(DOM0, DOM1).
+    strip_leading_par(DOM0, DOM1),
+    add_missing_tag(DOM, body, DOMz),
+    dom_to_html_string(DOMz, HTML).
+text_to_html(String, HTML, DOM) :-
+    string_codes(String, Codes),
+    wiki_codes_to_dom(Codes, [], DOM),
+    dom_to_html_string(DOM, HTML).
 
-%!  read_structured_comments(+File, -Comments) is det.
+dom_to_html_string(DOM, HTML) :-
+    phrase(html(pldoc_html:DOM), Tokens),
+    with_output_to(string(HTML), print_html(current_output, Tokens)).
 
-read_structured_comments(File, Comments) :-
-    setup_call_cleanup(
-        prolog_open_source(File, In),
-        read_comments(In, Comments0),
-        prolog_close_source(In)),
-    append(Comments0, Comments1),
-    include(structured_comment, Comments1, Comments).
-
-structured_comment(_Pos-Comment) :-
-    is_structured_comment(Comment, _).
-
-read_comments(In, [H|T]) :-
-    prolog_read_source_term(In, Term, _, [comments(H)]),
-    (   Term == end_of_file
-    ->  T = []
-    ;   read_comments(In, T)
-    ).
-
-%!  process_comment_list(+Comments, +File, -DOM) is det.
-%
-%   @param Mode     Enclosing environment, =body= or =dl=
-
-process_comment_list(Comments, File, DOM) :-
-    maplist(process_comment(File), Comments, DOMList),
-    phrase(missing_tags(DOMList, body), DOM).
-
-missing_tags([], _) -->
-    [].
-missing_tags([H|T0], Outer) -->
-    { requires(H, Tag), Tag \== Outer,
-      !,
-      Env =.. [Tag,C],
-      phrase(in_tag([H|T0], T, Tag), C)
-    },
-    [Env],
-    missing_tags(T, Outer).
-missing_tags([H|T], Outer) -->
-    H,
-    missing_tags(T, Outer).
-
-in_tag([], [], _) -->
+add_missing_tag(H, Outer, Env) :-
+    requires(H, Tag), Tag \== Outer,
     !,
-    [].
-in_tag(L, L, Tag) -->
-    { L = [H|_],
-      \+ requires(H,Tag)
-    },
-    !,
-    [].
-in_tag([H|T0], T, Tag) -->
-    H,
-    in_tag(T0, T, Tag).
-
+    Env =.. [Tag,H].
+add_missing_tag(H, _Outer, H).
 
 requires([\pred_dt(_)|_], dl).
 
-test_wiki :-
-    test_wiki('wiki_test_data').
+dom_pretty_string(DOM, String) :-
+    with_output_to(string(String), print_term(DOM, [output(current_output)])).
 
-test_wiki(Spec) :-
-    absolute_file_name(Spec, File, [file_type(prolog)]),
-    read_structured_comments(File, Comments),
-    process_comment_list(Comments, File, DOM),
-    doc_file_name(File, DocFile, [format(html)]),
-    setup_call_cleanup(
-        open(DocFile, write, Out),
-        doc_write_html(Out, File, DOM),
-        close(Out)).
-
-:- http_handler(root(test), serve_wiki, [prefix]).
-
-serve_wiki(Request) :-
-    option(path_info(DPath), Request),
-    atom_concat(/, Path, DPath),
-    absolute_file_name(Path, File, [file_type(prolog)]),
-    read_structured_comments(File, Comments),
-    process_comment_list(Comments, File, DOM),
-    format('Content-type: text/html~n~n'),
-    doc_write_html(current_output, File, DOM).
-
-%!  pldoc
+%! approved(+Test:string, +HTML:string, DOM:term, Approval:dict) is det.
 %
-%   Start documentation server and open in browser.
+%  Evaluate the test result against the approved version
 
-pldoc :-
-    Port = 4000,
-    doc_server(Port),
-    format(atom(URL), 'http://localhost:~w/', [Port]),
-    www_open_url(URL).
+approved(Test, HTML, DOM, Approval) :-
+    directory_file_path(tests, Test, Base),
+    file_name_extension(Base, ap, FileAp),
+    exists_file(FileAp),
+    !,
+    setup_call_cleanup(
+        open(FileAp, read, In, [encoding(utf8)]),
+        json_read_dict(In, ApDict),
+        close(In)),
+    term_string(DOMAp, ApDict.dom),
+    (   DOMAp =@= DOM
+    ->  DOMOK = true
+    ;   DOMOK = false
+    ),
+    (   same_html(HTML, ApDict.html)
+    ->  HTMLOK = true
+    ;   HTMLOK = false
+    ),
+    dom_pretty_string(ApDict.dom, DOMS),
+    Approval = json{ approved:
+                     _{ html:ApDict.html,
+                        dom:DOMS
+                      },
+                     result:
+                     _{ dom:DOMOK,
+                        html:HTMLOK
+                      }}.
+approved(_, _, _, json{approved:null}).
+
+same_html(HTML1, HTML2) :-
+    html_dom(HTML1, DOM1),
+    html_dom(HTML2, DOM2),
+    DOM1 =@= DOM2.
+
+html_dom(String, DOM) :-
+    setup_call_cleanup(
+        open_string(String, In),
+        load_html(In, DOM, []),
+        close(In)).
