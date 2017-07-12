@@ -1,4 +1,4 @@
----+ PlDoc --- SWI-Prolog source documentation
+# PlDoc --- SWI-Prolog source documentation
 
 The pldoc module processes structured comments   in Prolog source files.
 These  comments  can  be  saved   to    file.   During  development  the
@@ -12,10 +12,8 @@ Note that by default the web-pages allow  for starting an editor only if
 the connection comes from =localhost=.  See   doc_server/2  to realise a
 different setup.
 
-==
-:- doc_server(4000).
-:- [application].
-==
+    :- doc_server(4000).
+    :- [application].
 
 @author  Jan Wielemaker
 @license LGPL
