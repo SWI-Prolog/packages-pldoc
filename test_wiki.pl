@@ -34,9 +34,11 @@
 */
 
 :- module(test_wiki,
-          [ test_wiki/0,
+          [ pldoc/0,
+            test_wiki/0,
             test_wiki/1
           ]).
+:- use_module(library(option)).
 :- use_module(library(prolog_source)).
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_wiki)).
@@ -45,6 +47,8 @@
 :- use_module(library(pldoc/doc_html)).
 :- use_module(library(doc_http)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/http_dispatch)).
 
 /** <module> PlDoc testing module
 
@@ -125,18 +129,34 @@ in_tag([H|T0], T, Tag) -->
 requires([\pred_dt(_)|_], dl).
 
 test_wiki :-
-    test('wiki_test_data').
+    test_wiki('wiki_test_data').
 
 test_wiki(Spec) :-
     absolute_file_name(Spec, File, [file_type(prolog)]),
     read_structured_comments(File, Comments),
     process_comment_list(Comments, File, DOM),
     doc_file_name(File, DocFile, [format(html)]),
-    open(DocFile, write, Out),
-    call_cleanup(doc_write_html(Out, File, DOM),
-                 close(Out)).
+    setup_call_cleanup(
+        open(DocFile, write, Out),
+        doc_write_html(Out, File, DOM),
+        close(Out)).
 
-doc :-
+:- http_handler(root(test), serve_wiki, [prefix]).
+
+serve_wiki(Request) :-
+    option(path_info(DPath), Request),
+    atom_concat(/, Path, DPath),
+    absolute_file_name(Path, File, [file_type(prolog)]),
+    read_structured_comments(File, Comments),
+    process_comment_list(Comments, File, DOM),
+    format('Content-type: text/html~n~n'),
+    doc_write_html(current_output, File, DOM).
+
+%!  pldoc
+%
+%   Start documentation server and open in browser.
+
+pldoc :-
     Port = 4000,
     doc_server(Port),
     format(atom(URL), 'http://localhost:~w/', [Port]),
