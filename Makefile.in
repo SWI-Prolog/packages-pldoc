@@ -19,8 +19,8 @@ all::
 install:	$(LIBSRCALL) $(PUBSRCPL)
 		mkdir -p $(DESTDIR)$(PLLIBDIR)/pldoc
 		$(INSTALL_DATA) $(LIBSRCALL) $(DESTDIR)$(PLLIBDIR)/pldoc
-		$(INSTALL_DATA) $(srcdir)/README $(DESTDIR)$(PLLIBDIR)/pldoc/README$(TXTEXT)
 		$(INSTALL_DATA) $(PUBSRCPL) $(DESTDIR)$(PLLIBDIR)
+		$(INSTALL_DATA) $(srcdir)/README.md $(DESTDIR)$(PLLIBDIR)/pldoc/README.md
 		$(MKINDEX)
 
 ln-install:	$(LIBSRCALL)
