@@ -34,7 +34,8 @@
 */
 
 :- module(pldoc_http,
-          [ doc_server/1,               % ?Port
+          [ doc_enable/1,               % +Boolean
+            doc_server/1,               % ?Port
             doc_server/2,               % ?Port, +Options
             doc_browser/0,
             doc_browser/1               % +What
@@ -76,14 +77,32 @@ _after_ library(pldoc) has been loaded.
 */
 
 :- dynamic
-    doc_server_port/1.
+    doc_server_port/1,
+    doc_enabled/0.
 
-http:location(pldoc, root(pldoc), []).
-http:location(pldoc_man, pldoc(refman), []).
-http:location(pldoc_pkg, pldoc(package), []).
+http:location(pldoc, root(pldoc), []) :-
+    doc_enabled.
+http:location(pldoc_man, pldoc(refman), []) :-
+    doc_enabled.
+http:location(pldoc_pkg, pldoc(package), []) :-
+    doc_enabled.
 http:location(pldoc_resource, Path, []) :-
+    doc_enabled,
     http_location_by_id(pldoc_resource, Path).
 
+%!  doc_enable(+Boolean)
+%
+%   Actually activate the PlDoc server. Merely   loading the server does
+%   not do so to avoid incidental loading   in a user HTTP server making
+%   the documentation available.
+
+doc_enable(true) :-
+    (   doc_enabled
+    ->  true
+    ;   assertz(doc_enabled)
+    ).
+doc_enable(false) :-
+    retractall(doc_enabled).
 
 %!  doc_server(?Port) is det.
 %!  doc_server(?Port, +Options) is det.
@@ -113,8 +132,7 @@ http:location(pldoc_resource, Path, []) :-
 %   ==
 %   doc_server(Port) :-
 %           doc_server(Port,
-%                      [ workers(1),
-%                        allow(localhost)
+%                      [ allow(localhost)
 %                      ]).
 %   ==
 %
@@ -127,9 +145,11 @@ doc_server(Port) :-
                ]).
 
 doc_server(Port, _) :-
+    doc_enable(true),
     catch(doc_current_server(Port), _, fail),
     !.
 doc_server(Port, Options) :-
+    doc_enable(true),
     prepare_editor,
     host_access_options(Options, ServerOptions),
     merge_options(ServerOptions,
