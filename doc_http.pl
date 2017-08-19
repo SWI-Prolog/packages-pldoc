@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2017, University of Amsterdam
                               VU University Amsterdam
     All rights reserved.
 
@@ -78,7 +78,7 @@ _after_ library(pldoc) has been loaded.
 :- dynamic
     doc_server_port/1.
 
-http:location(pldoc, root(.), []).
+http:location(pldoc, root(pldoc), []).
 http:location(pldoc_man, pldoc(refman), []).
 http:location(pldoc_pkg, pldoc(package), []).
 http:location(pldoc_resource, Path, []) :-
