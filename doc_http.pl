@@ -80,14 +80,10 @@ _after_ library(pldoc) has been loaded.
     doc_server_port/1,
     doc_enabled/0.
 
-http:location(pldoc, root(pldoc), []) :-
-    doc_enabled.
-http:location(pldoc_man, pldoc(refman), []) :-
-    doc_enabled.
-http:location(pldoc_pkg, pldoc(package), []) :-
-    doc_enabled.
+http:location(pldoc, root(pldoc), []).
+http:location(pldoc_man, pldoc(refman), []).
+http:location(pldoc_pkg, pldoc(package), []).
 http:location(pldoc_resource, Path, []) :-
-    doc_enabled,
     http_location_by_id(pldoc_resource, Path).
 
 %!  doc_enable(+Boolean)
@@ -241,7 +237,10 @@ prepare_editor.
                  *******************************/
 
 :- http_handler(pldoc(.),          pldoc_root,
-                [prefix, authentication(pldoc(read))]).
+                [ prefix,
+                  authentication(pldoc(read)),
+                  condition(doc_enabled)
+                ]).
 :- http_handler(pldoc('index.html'), pldoc_index,   []).
 :- http_handler(pldoc(file),       pldoc_file,     []).
 :- http_handler(pldoc(place),      go_place,       []).
