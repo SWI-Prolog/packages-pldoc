@@ -1720,9 +1720,11 @@ pred_det(Det) -->
 %   @tbd    Properly merge with pred_head//1
 
 term(_, Atom, []) -->
-    { atomic(Atom) },
-    !,
-    html(span(class=functor, Atom)).
+    { atomic(Atom),
+      !,
+      format(string(S), '~W', [Atom,[quoted(true)]])
+    },
+    html(span(class=functor, S)).
 term(_, Term, Bindings) -->
     { is_mode(Term is det),         % HACK. Bit too strict?
       bind_vars(Bindings)
