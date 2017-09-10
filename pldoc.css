@@ -536,3 +536,37 @@ table.latex tr.hline th
 table.frame-box
 { border: 2px solid black;
 }
+
+/* Term rendering */
+
+span.pl-ellipsis	{}
+span.pl-var		{color:#8b0000;font-style:italic;}
+span.pl-avar		{color:#8b0000;font-style:italic;}
+span.pl-atom		{}
+span.pl-quoted-atom	{color:#000080;}
+span.pl-string		{color:#000080;}
+span.pl-int		{}
+span.pl-float		{}
+span.pl-curl		{}
+span.pl-compound	{}
+span.pl-list		{}
+span.pl-var-tail	{color:#8b0000;font-style:italic;}
+span.pl-nonvar-tail	{color:#800;}
+span.pl-compound	{}
+span.pl-dict		{}
+span.pl-key		{font-weight:bold;}
+span.pl-constraint	{color:#008b8b;}
+span.pl-comment		{color: #060; font-style: italic;}
+span.pl-blob {
+   border-radius: 1em;
+   background-color: #444;
+   margin: 0.1ex;
+   padding: 0ex .5ex 0.2ex 0.5ex;
+   color:#fff
+}
+
+span.pl-compound.pl-level-0 > .pl-functor,
+span.pl-compound.pl-level-0 > .pl-prefix,
+span.pl-compound.pl-level-0 > .pl-infix,
+span.pl-compound.pl-level-0 > .pl-postfix
+{font-weight:bold;}

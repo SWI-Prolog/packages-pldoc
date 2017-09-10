@@ -89,6 +89,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/term_html)).
 :- use_module(library(http/jquery)).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
@@ -1725,6 +1726,11 @@ term(_, Atom, []) -->
       format(string(S), '~W', [Atom,[quoted(true)]])
     },
     html(span(class=functor, S)).
+term(_, Key:Type, [TypeName=Type]) -->
+    { atomic(Key)
+    },
+    !,
+    html([span(class='pl-key', Key), :, span(class('pl-var'), TypeName)]).
 term(_, Term, Bindings) -->
     { is_mode(Term is det),         % HACK. Bit too strict?
       bind_vars(Bindings)
@@ -1732,8 +1738,10 @@ term(_, Term, Bindings) -->
     !,
     pred_head(Term).
 term(_, Term, Bindings) -->
-    { bind_vars(Term, Bindings) },
-    argtype(Term).
+    term(Term,
+         [ variable_names(Bindings),
+           quoued(true)
+         ]).
 
 
                  /*******************************
