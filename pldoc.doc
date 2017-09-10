@@ -34,11 +34,11 @@ as a web-server for the loaded project during program development.
 
 The SWI-Prolog website (\url{http:www.swi-prolog.org}) is written in
 Prolog and integrates PlDoc to provide a comprehensive searchable
-\url[online manual]{http://www.swi-prolog.org/pldoc/index.html}.
+\href{http://www.swi-prolog.org/pldoc/index.html}{online manual}.
 
 Version~2 of PlDoc extends the syntax with
-\url[Markdown]{http://en.wikipedia.org/wiki/Markdown} markup as
-specified by \url[Docygen]{http://www.stack.nl/~dimitri/doxygen/}.
+\href{http://en.wikipedia.org/wiki/Markdown}{Markdown} markup as
+specified by \href{http://www.stack.nl/~dimitri/doxygen/}{Docygen}.
 Based on experience with version~1, PlDoc~2 both tightens some rules
 to avoid misinterpretations and relaxes others that were considered
 too conservative.
@@ -370,7 +370,7 @@ Not yet realised behaviour that is enticipated in future versions.
 \label{sec:wiki}
 
 Structured comments that provide part of the documentation are written
-in Wiki notation, based on \url[TWiki]{http://www.twiki.org}, with some
+in Wiki notation, based on \href{http://www.twiki.org}{TWiki}, with some
 Prolog specific additions.
 
 \subsection{Structuring conventions}
@@ -1043,19 +1043,19 @@ producing high-quality PDF documents.
 \label{sec:pldoc-compatibility}
 
 Initially, the PlDoc wiki language was based on
-\url[Twiki]{http://www.twiki.org}. Currently,
-\url[markdown]{http://en.wikipedia.org/wiki/Markdown} is a wiki syntax
+\href{http://www.twiki.org}{Twiki}. Currently,
+\href{http://en.wikipedia.org/wiki/Markdown}{markdown} is a wiki syntax
 that is widely accepted and not tight to a single system.  In PlDoc~2,
 we have adopted markdown, including many of the limitations and
 extensions introduced by
-\url[Docygen]{http://www.stack.nl/~dimitri/doxygen/}.  Limitations are
+\href{http://www.stack.nl/~dimitri/doxygen/}{Docygen}.  Limitations are
 needed to avoid ambiguities due to the common use of symbol charaters
 in programming languages. Extensions are desirable to make use of
 already existing conventions and support requirements of program
 documentation.
 
 Some of the changes in PlDoc~2 are to achieve compatibility with the
-\url[Prolog Commons]{http://prolog-commons.org/} project. The library
+\href{http://prolog-commons.org/}{Prolog Commons} project. The library
 documentation conventions of this project will be based on PlDoc and the
 Ciao lpdoc standards.  It is likely that there will be more changes to
 the PlDoc format to synchronise with Commons.  We do not anticipate
