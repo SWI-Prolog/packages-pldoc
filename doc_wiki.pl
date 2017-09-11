@@ -1146,6 +1146,8 @@ emphasis_close_sep('?').
 emphasis_close_sep(':').
 emphasis_close_sep(';').
 emphasis_close_sep(']').                        % [**label**](link)
+emphasis_close_sep(')').                        % ... _italic_)
+emphasis_close_sep('}').                        % ... _italic_}
 emphasis_close_sep(Token) :-
     structure_term(Token).
 
