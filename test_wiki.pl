@@ -98,9 +98,26 @@ home(_Request) :-
           \html_requires(css('pldoc.css')),
           \html_requires(css('test_pldoc.css')),
           h1('PlDoc test environment'),
+          div(class(header),
+              [ label('Show: '),
+                \summary(passed),
+                \summary(failed),
+                \summary('not-approved'),
+                \summary(total, [checked(checked)]),
+                button(id('re-run-all'), 'Re-run all')
+              ]),
           div(class(content), []),
           div(class(footer), button(id(new), 'Add new test'))
         ]).
+
+summary(Id) -->
+    summary(Id, []).
+summary(Id, Extra) -->
+    html(span([\show(Id, Extra), span([class(count), id(Id)], '0'), Id])).
+
+show(Id, Extra) -->
+    { atom_concat(Id, '-r', IdR) },
+    html(input([type(radio), id(IdR), name(counter)|Extra])).
 
 %!  tests(+Request)
 %
