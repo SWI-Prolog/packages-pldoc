@@ -1,0 +1,1 @@
+use crypto_password_hash/3 (with a specified _salt_)

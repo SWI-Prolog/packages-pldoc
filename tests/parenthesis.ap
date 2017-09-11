@@ -1,0 +1,5 @@
+{
+  "dom":"[p([use,' ',\\(predref(/(crypto_password_hash,3))),' ','(',with,' ',a,' ',specified,' ',i([salt]),')'])]",
+  "html":"\n\n<p>\nuse <a class=\"packages\" href=\"/pldoc/man?predicate=crypto_password_hash/3\">crypto_password_hash/3<\/a> (with a specified <i>salt<\/i>)<\/p>",
+  "status":"approved"
+}

@@ -1,0 +1,5 @@
+{
+  "dom":"[p([i([a,' ',x,*,y]),' ',*,' ',z])]",
+  "html":"\n\n<p>\n<i>a x*y<\/i> * z<\/p>",
+  "status":"approved"
+}

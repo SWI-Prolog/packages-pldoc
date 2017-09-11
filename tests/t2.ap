@@ -1,0 +1,5 @@
+{
+  "dom":"[\\(section(module,'Test module header')),'This',' ',is,' ',a,' ',module,' ',header,\\(tags([\\(tag(author,[['Jan',' ','Wielemaker']]))]))]",
+  "html":"\n\n<h1 class=\"module\">Test module header<\/h1>\n\nThis is a module header\n\n<dl class=\"tags\">\n<dt class=\"keyword-author\">author<\/dt><dd class=\"keyword-author\">- Jan Wielemaker<\/dd>\n<\/dl>\n\n",
+  "status":"approved"
+}
