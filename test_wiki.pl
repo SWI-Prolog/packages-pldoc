@@ -47,6 +47,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/jquery)).
 :- use_module(library(pldoc/doc_modes)).
+:- use_module(library(pldoc/doc_man)).
 :- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(pldoc/doc_html), []).
 :- use_module(library(readutil)).
@@ -154,6 +155,7 @@ wiki(Request) :-
 
 
 text_to_html(String, HTML, DOM) :-
+    nb_setval(pldoc_options, [prefer(manual)]),
     is_structured_comment(String, Prefixes),
     !,
     string_codes(String, Codes),
@@ -210,7 +212,7 @@ approved(Test, HTML, DOM, Approval) :-
     ->  HTMLOK = true
     ;   HTMLOK = false
     ),
-    dom_pretty_string(ApDict.dom, DOMS),
+    dom_pretty_string(DOMAp, DOMS),
     Approval = json{ approved:
                      _{ html:ApDict.html,
                         dom:DOMS

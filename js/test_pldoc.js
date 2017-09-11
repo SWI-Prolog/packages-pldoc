@@ -35,7 +35,8 @@ function test(test) {
 		   $.el.div({class:"output"},
 			    $.el.div({class:"html"}),
 			    $.el.div({class:"raw"}),
-			    $.el.div({class:"DOM"}))));
+			    $.el.div({class:"DOM"})),
+		   $.el.div({class:"errors"})));
   div = $(div);
 
   adjust_textarea(div.find("textarea"));
@@ -67,10 +68,22 @@ function run(tests) {
 	       test.find(".output .DOM").html(obj.dom);
 	       if ( obj.result ) {
 		 console.log(obj.result);
-		 if ( obj.result.dom && obj.result.html )
+		 if ( obj.result.dom && obj.result.html ) {
 		   test.addClass("passed");
-		 else
+		 } else {
 		   test.addClass("failed");
+		   if ( !obj.result.dom ) {
+		     test.find(".errors")
+		         .append($.el.p("Wrong DOM"),
+				 $.el.p(obj.approved.dom));
+		   }
+		   if ( !obj.result.html ) {
+		     test.find(".errors")
+		         .append($.el.p("Wrong HTML"),
+				 $.el.p(obj.approved.html));
+
+		   }
+		 }
 	       } else {
 		 test.addClass("not-approved");
 	       }

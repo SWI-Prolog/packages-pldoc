@@ -20,6 +20,7 @@ div.test           div.output > div      { display: none; }
 div.test.show-html div.output > div.html { display: block; }
 div.test.show-raw  div.output > div.raw  { display: block; }
 div.test.show-DOM  div.output > div.DOM  { display: block; }
+div.error { color: red; }
 
 div.output { padding: 5px; border: 1px solid #888; }
 
