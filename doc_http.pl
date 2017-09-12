@@ -218,7 +218,7 @@ browser_url(Spec, URL) :-
     ->  format(string(S), '~q/~w', [Name, Arity])
     ;   format(string(S), '~q:~q/~w', [M, Name, Arity])
     ),
-    http_link_to_id(doc_object, [object=S], URL).
+    http_link_to_id(pldoc_object, [object=S], URL).
 
 %!  prepare_editor
 %
