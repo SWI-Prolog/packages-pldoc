@@ -69,6 +69,7 @@ function run(tests) {
     var name = test.find(".control input").val();
 
     test.removeClass("passed failed not-approved");
+    test.find(".errors").html("");
 
     $.ajax({ type: "POST",
 	     url: "/wiki",
