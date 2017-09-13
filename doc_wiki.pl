@@ -916,6 +916,10 @@ wiki_face(Face, _, _) -->
       term_face(Text, Term, Vars, Face)
     },
     !.
+wiki_face(br([]), _, _) -->
+    [<,w(br),>,'\n'], !.
+wiki_face(br([]), _, _) -->
+    [<,w(br),/,>,'\n'], !.
         % Below this, we only do links.
 wiki_face(_, _, Options) -->
     { Options.get(link) == false,

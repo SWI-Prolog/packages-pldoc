@@ -548,6 +548,12 @@ three examples, the last two of which are valid markdown.
 		- - -
 \end{code}
 
+    \item [Line breaks]
+A line break may be added by \emph{ending} the physical line with the
+HTML linebreak, \verb$<br>$ or \verb$<br/>$.\footnote{The markdown
+conventions are (original) two spaces at the of the physical line and
+(GitHub) a physical line break. Neither fit well with source code.
+Doxygen supports restricted HTML and allows for \verb$<br>$.}
 \end{description}
 
 \subsection{Text markup: fonts and links}

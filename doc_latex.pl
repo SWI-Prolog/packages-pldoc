@@ -390,6 +390,8 @@ latex(a(Attrs, Content)) -->
     ->  latex([Content, ' (', cmd(secref(Sec)), ')'])
     ;   latex(cmd(href(no_escape(HREF), Content)))
     ).
+latex(br(_)) -->
+    latex(latex(\\)).
 latex(hr(_)) -->
     latex(cmd(hrule)).
 latex(code(CodeList)) -->

@@ -1,0 +1,5 @@
+{
+  "dom":"[p(['Line',' ','1',' ',br([]),'Line',' ','2',' ',br([]),'Line',' ','3',' ',<,br,>,' ',still,' ',line,' ','3'])]",
+  "html":"\n\n<p>\nLine 1 <br>\nLine 2 <br>\nLine 3 &lt;br&gt; still line 3<\/p>",
+  "status":"approved"
+}
