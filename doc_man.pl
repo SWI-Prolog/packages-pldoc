@@ -226,7 +226,10 @@ index_on_begin(dt, Attributes, Parser) :-
     ->  true
     ),
     nb_getval(pldoc_man_index, DD0),
-    nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0]).
+    (   memberchk(dd(PI, File, _), DD0)
+    ->  true
+    ;   nb_setval(pldoc_man_index, [dd(PI, File, Offset)|DD0])
+    ).
 index_on_begin(dd, _, Parser) :-
     !,
     nb_getval(pldoc_man_index, DDList0), DDList0 \== [],
