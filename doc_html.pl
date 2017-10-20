@@ -2366,6 +2366,7 @@ image_attribute(width(_)).
 image_attribute(height(_)).
 image_attribute(border(_)).
 image_attribute(class(_)).
+image_attribute(style(_)).
 
 
 %!  html_tokens_for_predicates(+PI, +Options)// is semidet.
