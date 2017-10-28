@@ -2115,7 +2115,7 @@ pi_type(_:PI) -->
 pi_type(_/_) -->
     html(['Predicate ']).
 pi_type(_//_) -->
-    html(['Grammer rule ']).
+    html(['Grammar rule ']).
 
 
 
