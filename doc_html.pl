@@ -2403,7 +2403,8 @@ html_tokens_for_predicates(Spec, Options) -->
     man_page(Spec,
              [ links(false),                % no header
                navtree(false),              % no navigation tree
-               footer(false)                % no footer
+               footer(false),               % no footer
+               synopsis(false)              % no synopsis
              | Options
              ]).
 

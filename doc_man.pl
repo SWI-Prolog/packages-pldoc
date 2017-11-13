@@ -77,6 +77,7 @@
                      [ for(atom),
                        links(boolean),
                        navtree(boolean),
+                       synopsis(boolean),
                        footer(boolean),
                        no_manual(oneof([fail,error])),
                        search_in(oneof([all, app, man])),
@@ -839,6 +840,9 @@ object_spec(Atom, PI) :-
 %           If Action = =fail=, fail instead of displaying a
 %           not-found message.
 %
+%           * synopsis(Bool)
+%           If `false`, omit the synopsis line
+%
 %           * links(Bool)
 %           If =true= (default), include links to the parent object;
 %           if =false=, just emit the manual material.
@@ -1020,31 +1024,34 @@ man_matches(Matches, Object, Options) -->
 man_matches_nt([Match], Object, Options) -->
     { option(footer(true), Options, true) },
     !,
-    man_match(Match, Object),
+    man_match(Match, Object, Options),
     object_page_footer(Object, []).
-man_matches_nt(Matches, Object, _) -->
-    man_matches_list(Matches, Object).
+man_matches_nt(Matches, Object, Options) -->
+    man_matches_list(Matches, Object, Options).
 
-man_matches_list([], _) --> [].
-man_matches_list([H|T], Obj) --> man_match(H, Obj), man_matches_list(T, Obj).
+man_matches_list([], _, _) --> [].
+man_matches_list([H|T], Obj, Options) -->
+    man_match(H, Obj, Options),
+    man_matches_list(T, Obj, Options).
 
-%!  man_match(+Term, +Object)//
+%!  man_match(+Term, +Object, +Options)// is det.
 %
 %   If  possible,  insert  the  synopsis  into   the  title  of  the
 %   description.
 
-man_match(packages, packages) -->
+man_match(packages, packages, _) -->
     !,
     html({|html||
               <p>
               Packages are relatively independent add-on libraries that
               may not be available in all installations.
              |}).
-man_match(root, root) -->
+man_match(root, root, _) -->
     !,
     man_overview([]).
-man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj) -->
-    { man_qualified_object(Obj, Parent, QObj, Section),
+man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
+    { \+ option(synopsis(false), Options),
+      man_qualified_object(Obj, Parent, QObj, Section),
       !,
       C = [ span(style('float:right;margin-left:5px;'),
                  \object_source_button(QObj, [link_source(true)]))
@@ -1055,7 +1062,7 @@ man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj) -->
                element(dt,A,C)
              | DD
              ], Path).
-man_match((_Parent+Path)-(Obj+DOM), Obj) -->
+man_match((_Parent+Path)-(Obj+DOM), Obj, _) -->
     dom_list(DOM, Path).
 
 
