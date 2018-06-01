@@ -98,6 +98,7 @@ blocked('/clpr').
 blocked('/pldoc').
 blocked('/ciao').
 blocked('/checkselect.pl').
+blocked('/tabling.pl').                 % deprecated file
 blocked('/checklast.pl').
 blocked('/clp/clp_distinct.pl').        % deprecated file
 %blocked('/jpl.pl').                    % should be added
