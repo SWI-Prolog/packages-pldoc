@@ -170,7 +170,7 @@ print_html_head(Out, Options) :-
     http_absolute_location(pldoc_resource('pldoc.css'), PlDocCSS, []),
     http_absolute_location(pldoc_resource('pllisting.css'), PlListingCSS, []),
     option(stylesheets(Sheets), Options, [PlListingCSS, PlDocCSS]),
-    format(Out, '<!DOCTYPE html', []),
+    format(Out, '<!DOCTYPE html>~n', []),
     format(Out, '<html>~n', []),
     format(Out, '  <head>~n', []),
     format(Out, '    <title>~w</title>~n', [Title]),
