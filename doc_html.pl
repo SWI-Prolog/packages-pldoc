@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -102,6 +103,7 @@
 :- use_module(doc_search).
 :- use_module(doc_index).
 :- use_module(doc_util).
+:- use_module(library(solution_sequences)).
 :- include(hooks).
 
 /** <module> PlDoc HTML backend
@@ -2129,24 +2131,27 @@ pi_type(_//_) -->
 
 in_file(Module:Head, File) :-
     !,
-    in_file(Module, Head, File).
+    distinct(File, in_file(Module, Head, File)).
 in_file(Head, File) :-
-    in_file(_, Head, File).
+    distinct(File, in_file(_, Head, File)).
 
-in_file(_, Head, File) :-
+in_file(Module, Head, File) :-
     xref_current_source(File),
     atom(File),                     % only plain files
+    xref_module(File, Module),
     xref_defined(File, Head, How),
     How \= imported(_From).
 in_file(Module, Head, File) :-
-    predicate_property(Module:Head, exported),
-    (   predicate_property(Module:Head, imported_from(Primary))
-    ->  true
-    ;   Primary = Module
-    ),
+    distinct(Primary,
+             (predicate_property(Module:Head, exported),
+              (   predicate_property(Module:Head, imported_from(Primary))
+              ->  true
+              ;   Primary = Module
+              ))),
     module_property(Primary, file(File)).
 in_file(Module, Head, File) :-
-    predicate_property(Module:Head, file(File)).
+    predicate_property(Module:Head, file(File)),
+    \+ predicate_property(Module:Head, imported_from(_)).
 in_file(Module, Head, File) :-
     current_module(Module),
     source_file(Module:Head, File).
