@@ -2091,6 +2091,10 @@ object_name(_, file(File), _) -->
 object_name(_, directory(Dir), _) -->
     { file_base_name(Dir, Base) },
     html(Base).
+object_name(_, module(Title), _Options) -->
+    { print_message(warning,
+                    pldoc(module_comment_outside_module(Title)))
+    }.
 
 pi(title, PI, Options) -->
     pi_type(PI),
@@ -2507,3 +2511,8 @@ pred_anchor_name(//(Head), Name/Arity, Anchor) :-
 pred_anchor_name(Head, Name/Arity, Anchor) :-
     functor(Head, Name, Arity),
     format(atom(Anchor), '~w/~d', [Name, Arity]).
+
+:- multifile prolog:message//1.
+
+prolog:message(pldoc(module_comment_outside_module(Title))) -->
+    [ 'PlDoc comment <module> ~w does not appear in a module'-[Title] ].
