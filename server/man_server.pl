@@ -1,4 +1,4 @@
-#!@prefix@/bin/@PL@ -f none -g main -s
+#!/usr/bin/env swipl
 
 :- doc_collect(true).
 :- use_module(library(pldoc/doc_library)).

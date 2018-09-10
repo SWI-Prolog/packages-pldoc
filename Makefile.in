@@ -69,5 +69,4 @@ clean:
 		rm -rf html
 
 distclean:	clean
-		rm -f server/man_server.pl
 		rm -f $(TARGETS) config.cache config.status Makefile
