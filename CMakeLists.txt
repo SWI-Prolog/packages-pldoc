@@ -19,3 +19,8 @@ swipl_plugin(pldoc
 	     PL_LIBS ${PLDOC_PUBL})
 
 swipl_examples(server/README server/man_server.pl)
+
+pkg_doc(pldoc
+	SOURCES latex.txt
+	SUBSECTION
+	    doc_files.pl)
