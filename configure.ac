@@ -5,4 +5,4 @@ AC_PREREQ([2.50])
 
 m4_include([../ac_swi_noc.m4])
 
-AC_OUTPUT(Makefile server/man_server.pl)
+AC_OUTPUT(Makefile)
