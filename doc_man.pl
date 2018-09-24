@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,7 @@
             index_man_directory/2,      % +DirSpec, +Options
             index_man_file/2,           % +Class, +FileSpec
             current_man_object/1,       % ?Object
+            man_object_property/2,      % ?Object, ?Property
                                         % HTML generation
             man_page//2,                % +Obj, +Options
             man_overview//1,            % +Options
@@ -79,6 +81,7 @@
                        navtree(boolean),
                        synopsis(boolean),
                        footer(boolean),
+                       link_source(boolean),
                        no_manual(oneof([fail,error])),
                        search_in(oneof([all, app, man])),
                        search_match(oneof([name, summary])),
@@ -410,6 +413,18 @@ cdata(_) -->
 current_man_object(Object) :-
     index_manual,
     man_index(Object, _, _, _, _).
+
+%!  man_object_property(?Object, ?Property) is nondet.
+%
+%   True when Property is a property of the given manual object. Defined
+%   properties are:
+%
+%     - summary(-Text)
+%     Summary text for the object.
+
+man_object_property(Object, summary(Summary)) :-
+    index_manual,
+    man_index(Object, Summary, _, _, _).
 
 
                  /*******************************
@@ -846,6 +861,10 @@ object_spec(Atom, PI) :-
 %           * links(Bool)
 %           If =true= (default), include links to the parent object;
 %           if =false=, just emit the manual material.
+%
+%           * navtree(Bool)
+%           If `true` (default), display the navigation tree, otherwise
+%           suppress it.
 
 man_page(Obj, Options) -->
     { ground(Obj),
@@ -884,10 +903,12 @@ man_page(Obj, Options) -->                      % PlDoc predicates, etc.
     ->  object_page_header(File, Options)
     ;   object_page_header(-, Options)
     ),
-    objects(Objs, [ synopsis(true),
-                    navtree(true)
-                  | Options
-                  ]).
+    { merge_options(Options,
+                    [ synopsis(true),
+                      navtree(true)
+                    ], Options2)
+    },
+    objects(Objs, Options2).
 man_page(Obj, Options) -->                      % failure
     { \+ option(no_manual(fail), Options)
     },
@@ -1051,10 +1072,11 @@ man_match(root, root, _) -->
     man_overview([]).
 man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
     { \+ option(synopsis(false), Options),
+      option(link_source(Link), Options, true),
       man_qualified_object(Obj, Parent, QObj, Section),
       !,
       C = [ span(style('float:right;margin-left:5px;'),
-                 \object_source_button(QObj, [link_source(true)]))
+                 \object_source_button(QObj, [source_link(Link)]))
           | C0
           ]
     },
