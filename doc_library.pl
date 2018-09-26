@@ -97,6 +97,7 @@ blocked('/clpq').
 blocked('/clpr').
 blocked('/pldoc').
 blocked('/ciao').
+blocked('/latex2html').
 blocked('/checkselect.pl').
 blocked('/tabling.pl').                 % deprecated file
 blocked('/checklast.pl').
