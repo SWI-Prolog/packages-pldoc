@@ -421,10 +421,15 @@ current_man_object(Object) :-
 %
 %     - summary(-Text)
 %     Summary text for the object.
+%     - id(ID)
+%     Return unique id for the text, so we can remove duplicates
 
 man_object_property(Object, summary(Summary)) :-
     index_manual,
     man_index(Object, Summary, _, _, _).
+man_object_property(Object, id(File-CharNo)) :-
+    index_manual,
+    man_index(Object, _, File, _, CharNo).
 
 
                  /*******************************
