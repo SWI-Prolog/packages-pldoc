@@ -65,6 +65,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/mimetype)).
+:- use_module(library(prolog_xref)).
 :- include(hooks).
 
 /** <module> Process SWI-Prolog HTML manuals
@@ -966,7 +967,8 @@ full_object(Object, M:Obj) :-
 qualify(M:O, M:O).
 qualify(O, _:O).
 
-%!  man_qualified_object(+Text, +Parent, -Object, -Section) is semidet.
+%!  man_qualified_object(+Object, +Parent,
+%!                       -LibraryOpt, -QObject, -Section) is semidet.
 %
 %   Get a qualified predicate description from  Text that appears in
 %   the section Parent.
@@ -975,20 +977,20 @@ qualify(O, _:O).
 %   export the same predicate. We must find   from  the title of the
 %   manual section which library is documented.
 
-
-man_qualified_object(Text, Parent, Object, Section) :-
+man_qualified_object(Text, Parent, LibOpt, Object, Section) :-
     atom(Text),
     atom_pi(Text, PI),
     ground(PI),
     !,
-    man_qualified_object_2(PI, Parent, Object, Section).
-man_qualified_object(Object0, Parent, Object, Section) :-
-    man_qualified_object_2(Object0, Parent, Object, Section).
+    man_qualified_object_2(PI, Parent, LibOpt, Object, Section).
+man_qualified_object(Object0, Parent, LibOpt, Object, Section) :-
+    man_qualified_object_2(Object0, Parent, LibOpt, Object, Section).
 
-man_qualified_object_2(Name/Arity, Parent, Module:Name/Arity, Section) :-
-    object_module(Parent, Module, Section),
+man_qualified_object_2(Name/Arity, Parent,
+                       LibOpt, Module:Name/Arity, Section) :-
+    object_module(Parent, Module, Section, LibOpt),
     !.
-man_qualified_object_2(Object, Parent, Object, Parent).
+man_qualified_object_2(Object, Parent, [], Object, Parent).
 
 
 %!  man_synopsis(+Object, +Section)//
@@ -1000,18 +1002,18 @@ man_qualified_object_2(Object, Parent, Object, Parent).
     man_synopsis//2.                % called from man_match//2
 
 man_synopsis(PI, Section) -->
+    man_synopsis(PI, Section, []).
+
+man_synopsis(PI, Section, Options) -->
     { object_href(Section, HREF)
     },
-    object_synopsis(PI, [href(HREF)]).
+    object_synopsis(PI, [href(HREF)|Options]).
 
-%!  object_module(+Section0, -Module, -Section) is semidet.
+%!  object_module(+Section0, -Module, -Section, -LibOpt) is semidet.
 %
 %   Find the module documented by Section.
-%
-%   @tbd This requires that the documented file is loaded. If
-%   not, should we use the title of the section?
 
-object_module(Section0, Module, Section) :-
+object_module(Section0, Module, Section, [source(Term)]) :-
     parent_section_ndet(Section0, Section),
     man_index(Section, Title, _File, _Class, _Offset),
     (   once(sub_atom(Title, B, _, _, :)),
@@ -1025,7 +1027,12 @@ object_module(Section0, Module, Section) :-
                              access(read),
                              file_errors(fail)
                            ]),
-        module_property(Module, file(PlFile))
+        (   module_property(Module, file(PlFile))
+        ->  true
+        ;   xref_public_list(PlFile, -,         % module is not loaded
+                             [ module(Module)
+                             ])
+        )
     ).
 
 parent_section_ndet(Section, Section).
@@ -1078,14 +1085,14 @@ man_match(root, root, _) -->
 man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
     { \+ option(synopsis(false), Options),
       option(link_source(Link), Options, true),
-      man_qualified_object(Obj, Parent, QObj, Section),
+      man_qualified_object(Obj, Parent, LibOpt, QObj, Section),
       !,
       C = [ span(style('float:right;margin-left:5px;'),
                  \object_source_button(QObj, [source_link(Link)]))
           | C0
           ]
     },
-    dom_list([ element(dt,[],[\man_synopsis(QObj, Section)]),
+    dom_list([ element(dt,[],[\man_synopsis(QObj, Section, LibOpt)]),
                element(dt,A,C)
              | DD
              ], Path).

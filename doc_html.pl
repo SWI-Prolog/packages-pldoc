@@ -1035,10 +1035,13 @@ object_synopsis(Name/Arity, Options) -->
     object_synopsis(_:Name/Arity, Options).
 object_synopsis(M:Name/Arity, Options) -->
     { functor(Head, Name, Arity),
-      predicate_property(M:Head, exported),
-      \+ predicate_property(M:Head, imported_from(_)),
-      module_property(M, file(File)),
-      file_name_on_path(File, Spec),
+      (   option(source(Spec), Options)
+      ->  true
+      ;   predicate_property(M:Head, exported),
+          \+ predicate_property(M:Head, imported_from(_)),
+          module_property(M, file(File)),
+          file_name_on_path(File, Spec)
+      ),
       !,
       unquote_filespec(Spec, Unquoted),
       (   predicate_property(Head, autoload(FileBase)),
@@ -1078,6 +1081,7 @@ synopsis(Text) -->
 unquote_filespec(Spec, Unquoted) :-
     compound(Spec),
     Spec =.. [Alias,Path],
+    atom(Path),
     atomic_list_concat(Parts, /, Path),
     maplist(need_no_quotes, Parts),
     !,
