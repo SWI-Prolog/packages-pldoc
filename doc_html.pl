@@ -1036,7 +1036,11 @@ object_synopsis(Name/Arity, Options) -->
 object_synopsis(M:Name/Arity, Options) -->
     { functor(Head, Name, Arity),
       (   option(source(Spec), Options)
-      ->  true
+      ->  absolute_file_name(Spec, File,
+                             [ access(read),
+                               file_type(prolog),
+                               file_errors(fail)
+                             ])
       ;   predicate_property(M:Head, exported),
           \+ predicate_property(M:Head, imported_from(_)),
           module_property(M, file(File)),
