@@ -204,7 +204,8 @@ doc_file_name(Source, Doc, Options) :-
 doc_file_has_comments(Source) :-
     source_file_property(Source, module(M)),
     locally_defined(M:'$pldoc'/4),
-    M:'$pldoc'(_, _, _, _).
+    M:'$pldoc'(_, _, _, _),
+    !.
 
 
 %!  doc_comment(?Objects, -Pos,

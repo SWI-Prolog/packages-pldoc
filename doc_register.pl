@@ -67,6 +67,7 @@ do_comment_hook(Comments, TermPos, File, _) :-
     !,
     assert(mydoc(Comments, TermPos, File)).
 do_comment_hook(Comments, TermPos, File, _Term) :-
+    \+ current_prolog_flag(xref, true),
     prolog_load_context(module, Module),
     pldoc_module(Module),
     !,

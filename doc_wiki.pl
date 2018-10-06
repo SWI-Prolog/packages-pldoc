@@ -794,6 +794,8 @@ verbatim_term(\term(_,_,_)).
 %   True when Goal runs successfully on the DCG input and Input
 %   is the list of matched tokens.
 
+:- meta_predicate matches(2, -, -, ?, ?).
+
 matches(Goal, Input, Last, List, Rest) :-
     call(Goal, List, Rest),
     input(List, Rest, Input, Last).
