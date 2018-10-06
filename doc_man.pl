@@ -106,8 +106,19 @@ clean_man_index :-
 %   True if Dir is a directory holding manual files. Class is an
 %   identifier used by doc_object_summary/4.
 
-manual_directory(manual,   swi('doc/Manual')).
-manual_directory(packages, swi('doc/packages')).
+user:file_search_path(swi_man_manual,   swi('doc/Manual')).
+user:file_search_path(swi_man_packages, swi('doc/packages')).
+
+manual_directory(Class,   Dir) :-
+    man_path_spec(Class, Spec),
+    absolute_file_name(Spec, Dir,
+                       [ file_type(directory),
+                         access(read),
+                         solutions(all)
+                       ]).
+
+man_path_spec(manual,   swi_man_manual(.)).
+man_path_spec(packages, swi_man_packages(.)).
 
 
                  /*******************************
