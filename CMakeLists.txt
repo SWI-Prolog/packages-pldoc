@@ -12,11 +12,10 @@ set(SUPPORT pldoc.css pldoc.js pllisting.css pldoc.sty edit.png
     private.png public.png reload.png favicon.ico up.gif source.png
     h1-bg.png pub-bg.png multi-bg.png priv-bg.png h2-bg.png editpred.png)
 
-swipl_plugin(pldoc_priv
-	     PL_LIB_SUBDIR pldoc
-	     PL_LIBS ${PLDOC_PRIV} ${SUPPORT})
 swipl_plugin(pldoc
-	     PL_LIBS ${PLDOC_PUBL})
+	     PL_LIBS ${PLDOC_PUBL}
+	     PL_LIB_SUBDIR pldoc
+	         PL_LIBS ${PLDOC_PRIV} ${SUPPORT})
 
 swipl_examples(server/README server/man_server.pl)
 
