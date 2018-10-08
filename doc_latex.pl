@@ -1372,7 +1372,8 @@ summary([H|T], Options) -->
     summary(T, Options).
 
 summary_line(Obj, _Options) -->
-    { doc_comment(Obj, _Pos, Summary, _Comment) ->
+    { doc_comment(Obj, _Pos, Summary, _Comment),
+      !,
       atom_codes(Summary, Codes),
       phrase(pldoc_wiki:line_tokens(Tokens), Codes), % TBD: proper export
       object_name_arity(Obj, Type, Name, Arity)
@@ -1385,7 +1386,9 @@ summary_line(Obj, _Options) -->
     ->  latex(cmd(oppredsummary(Name, Arity, Ass, Pri, Tokens)))
     ;   latex(cmd(predicatesummary(Name, Arity, Tokens)))
     ).
-
+summary_line(Obj, _Options) -->
+    { print_message(warning, pldoc(no_summary_for(Obj)))
+    }.
 
                  /*******************************
                  *          PRINT TOKENS        *
@@ -1668,3 +1671,14 @@ footer('\\end{document}').
 generated('% This LaTeX document was generated using the LaTeX backend of PlDoc,').
 generated('% The SWI-Prolog documentation system').
 generated('').
+
+
+		 /*******************************
+		 *            MESSAGES		*
+		 *******************************/
+
+:- multifile
+    prolog:message//1.
+
+prolog:message(pldoc(no_summary_for(Obj))) -->
+    [ 'No summary documentation for ~p'-[Obj] ].
