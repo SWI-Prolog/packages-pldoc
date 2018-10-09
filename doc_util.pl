@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2017, University of Amsterdam
+    Copyright (c)  2007-2018, University of Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -36,8 +37,11 @@
           [ insert_alias/2,             % +Path, -Aliased
             expand_alias/2,             % +Aliased, -Path
             ensure_slash_end/2,         % +Dir, -DirSlash
-            atom_pi/2                   % +Atom, -PI
+            atom_pi/2,                  % +Atom, -PI
+            atom_to_object/2,           % +Atom, -Object
+            normalise_white_space//1    % -Text
           ]).
+:- use_module(library(dcg/basics)).
 
 /** <module> PlDoc utilities
 
@@ -136,3 +140,55 @@ atom_pi2(Atom, Name/Arity) :-
     !,
     sub_atom(Atom, 0, B, _, Name).
 atom_pi2(Name, Name/_).
+
+%!  atom_to_object(+Atom, -PredicateIndicator) is semidet.
+%
+%   If Atom is `Name/Arity', decompose to Name and Arity. No errors.
+
+atom_to_object(Atom, Object) :-
+    atom(Atom),
+    atom_pi(Atom, PI),
+    ground(PI),
+    (   PI = Name/Arity,
+        integer(Arity),
+        atom_concat('f-', FuncName, Name)
+    ->  Object = f(FuncName/Arity)
+    ;   Object = PI
+    ).
+atom_to_object(Atom, c(Function)) :-
+    atom(Atom),
+    sub_atom(Atom, 0, _, _, 'PL_'),
+    sub_atom(Atom, B, _, _, '('),
+    !,
+    sub_atom(Atom, 0, B, _, Function).
+
+%!  normalise_white_space(-Text)// is det.
+%
+%   Text is input after deleting leading   and  trailing white space
+%   and mapping all internal white space to a single space.
+
+normalise_white_space(Text) -->
+    blanks,
+    normalise_white_space2(Text).
+
+normalise_white_space2(Text) -->
+    non_ws(Text, Tail),
+    blanks,
+    (   eos
+    ->  { Tail = [] }
+    ;   { Tail = [0'\s|T2] },
+        normalise_white_space2(T2)
+    ).
+
+%!  non_ws(-Text, ?Tail) is det.
+%
+%   True if the  difference  list  Text-Tail   is  the  sequence  of
+%   non-white-space characters.
+
+non_ws([H|T0], T) -->
+    [H],
+    { \+ code_type(H, space) },
+    !,
+    non_ws(T0, T).
+non_ws(T, T) -->
+    [].

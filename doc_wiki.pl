@@ -40,7 +40,6 @@
             summary_from_lines/2,       % +Lines, -Codes
             indented_lines/3,           % +Text, +PrefixChars, -Lines
             strip_leading_par/2,        % +DOM0, -DOM
-            normalise_white_space/3,    % -Text, //
             autolink_extension/2,       % ?Extension, ?Type
             autolink_file/2             % +FileName, -Type
           ]).
@@ -53,6 +52,8 @@
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
+
+:- use_module(doc_util).
 
 
 /** <module> PlDoc wiki parser
@@ -1538,26 +1539,6 @@ section_line(\section(Type, Title)) -->
       atom_codes(Title, TitleCodes)
     }.
 
-
-%!  normalise_white_space(-Text)// is det.
-%
-%   Text is input after deleting leading   and  trailing white space
-%   and mapping all internal white space to a single space.
-
-normalise_white_space(Text) -->
-    ws,
-    normalise_white_space2(Text).
-
-normalise_white_space2(Text) -->
-    non_ws(Text, Tail),
-    ws,
-    (   eos
-    ->  { Tail = [] }
-    ;   { Tail = [0'\s|T2] },
-        normalise_white_space2(T2)
-    ).
-
-
                  /*******************************
                  *           TOKENIZER          *
                  *******************************/
@@ -2048,20 +2029,6 @@ ws -->
 space -->
     [C],
     {code_type(C, space)}.
-
-%!  non_ws(-Text, ?Tail) is det.
-%
-%   True if the  difference  list  Text-Tail   is  the  sequence  of
-%   non-white-space characters.
-
-non_ws([H|T0], T) -->
-    [H],
-    { \+ code_type(H, space) },
-    !,
-    non_ws(T0, T).
-non_ws(T, T) -->
-    [].
-
 
 %!  nl//
 %
