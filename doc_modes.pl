@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -44,7 +45,6 @@
           ]).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
-:- use_module(library(memfile)).
 :- use_module(library(operators)).
 :- use_module(library(error)).
 
@@ -181,11 +181,13 @@ mode_syntax_error(_).
 
 
 read_mode_terms(Text, File:Line, End, Terms) :-
-    new_memory_file(MemFile),
-    open_memory_file(MemFile, write, Out),
-    format(Out, '~s~w', [Text, End]),
-    close(Out),
-    open_memory_file(MemFile, read, In),
+    format(string(S), '~s~w', [Text, End]),
+    setup_call_cleanup(
+        open_string(S, In),
+        read_modes(In, File, Line, Terms),
+        close(In)).
+
+read_modes(In, File, Line, Terms) :-
     (   atom(File)                  % can be PceEmacs buffer
     ->  set_stream(In, file_name(File))
     ;   true
@@ -193,9 +195,7 @@ read_mode_terms(Text, File:Line, End, Terms) :-
     stream_property(In, position(Pos0)),
     set_line(Pos0, Line, Pos),
     set_stream_position(In, Pos),
-    call_cleanup(read_modes(In, Terms),
-                 (   close(In),
-                     free_memory_file(MemFile))).
+    read_modes(In, Terms).
 
 set_line('$stream_position'(CharC, _, LinePos, ByteC),
          Line,

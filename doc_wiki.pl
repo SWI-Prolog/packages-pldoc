@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2017, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -46,7 +47,6 @@
 :- use_module(library(lists)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
-:- use_module(library(memfile)).
 :- use_module(library(pairs)).
 :- use_module(library(option)).
 :- use_module(library(debug)).
@@ -315,32 +315,25 @@ term_item(li(Tokens),
         ;   TermTokens = Tokens,
             Descr = []
         )
-    ->  setup_call_cleanup(
-            ( new_memory_file(MemFile),
-              open_memory_file(MemFile, write, Out)
-            ),
-            ( forall(member(T, TermTokens),
-                     write_token(Out, T)),
-              write(Out, ' .\n')
-            ),
-            close(Out)),
+    ->  with_output_to(string(Tmp),
+                       ( forall(member(T, TermTokens),
+                                write_token(T)),
+                         write(' .\n'))),
         catch(setup_call_cleanup(
-                  open_memory_file(MemFile, read, In,
-                                   [ free_on_close(true)
-                                   ]),
+                  open_string(Tmp, In),
                   ( read_dt_term(In, Term, Bindings),
                     read_dt_term(In, end_of_file, []),
-                    memory_file_to_atom(MemFile, Text)
+                    atom_string(Text, Tmp)
                   ),
                   close(In)),
               _, fail)
     ).
 
-write_token(Out, w(X)) :-
+write_token(w(X)) :-
     !,
-    write(Out, X).
-write_token(Out, X) :-
-    write(Out, X).
+    write(X).
+write_token(X) :-
+    write(X).
 
 read_dt_term(In, Term, Bindings) :-
     read_term(In, Term,
