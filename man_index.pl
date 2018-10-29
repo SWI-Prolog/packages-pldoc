@@ -137,13 +137,12 @@ locked_index_manual :-
     man_index(_,_,_,_,_),
     !.
 locked_index_manual :-
-    (   manual_directory(Class, Dir),
-        index_man_directory(Dir,
-                            [ class(Class),
-                              file_errors(fail)
-                            ]),
-        fail ; true
-    ).
+    forall(manual_directory(Class, Dir),
+           index_man_directory(Dir,
+                               [ class(Class),
+                                 file_errors(fail)
+                               ])).
+
 
 %!  check_duplicate_ids
 %
@@ -206,6 +205,7 @@ index_man_file(Class, File) :-
     absolute_file_name(File, Path,
                        [ access(read)
                        ]),
+    debug(pldoc(man_index), 'Indexing ~p ~p', [Class, File]),
     open(Path, read, In, [type(binary)]),
     dtd(html, DTD),
     new_sgml_parser(Parser, [dtd(DTD)]),
@@ -451,9 +451,14 @@ man_object_property(Object, id(File-CharNo)) :-
 swi_local_path(Path, Local) :-
     atom(Path),
     is_absolute_file_name(Path),
-    absolute_file_name(swi(doc), SWI,
+    manual_root(RootSpec, Dir),
+    absolute_file_name(RootSpec, SWI,
                        [ file_type(directory),
                          solutions(all)
                        ]),
-    directory_file_path(SWI, Local, Path),
-    !.
+    directory_file_path(SWI, ManLocal, Path),
+    !,
+    directory_file_path(Dir, ManLocal, Local).
+
+manual_root(swi_man_manual(.),   'Manual').
+manual_root(swi_man_packages(.), 'packages').

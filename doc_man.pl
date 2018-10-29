@@ -159,7 +159,7 @@ make_man_tree :-
     man_tree_done,
     !.
 make_man_tree :-
-    man_content_tree(swi('doc/Manual'), ManTree),
+    man_content_tree(swi_man_manual('.'), ManTree),
     man_packages_tree(PkgTree),
     assert_tree(node(root, [ManTree, PkgTree])),
     assertz(man_tree_done).
