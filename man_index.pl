@@ -34,6 +34,7 @@
 
 :- module(prolog_manual_index,
           [ clean_man_index/0,          %
+            save_man_index/0,
             index_man_directory/2,      % +DirSpec, +Options
             index_man_file/2,           % +Class, +FileSpec
                                         % Query
@@ -46,6 +47,7 @@
 :- use_module(library(occurs)).
 :- use_module(library(lists)).
 :- use_module(library(filesex)).
+:- use_module(library(error)).
 :- use_module(doc_util).
 
 /** <module> Index the HTML manuals
@@ -122,6 +124,19 @@ man_path_spec(packages, swi_man_packages(.)).
                  *          PARSE MANUAL        *
                  *******************************/
 
+%!  save_man_index
+%
+%   Create swi('doc/manindex.db'), containing an  index   into  the HTML
+%   manuals for use with help/1 and   similar predicates. This predicate
+%   is called during the build process.
+
+save_man_index :-
+    man_index(_,_,_,_,_),
+    !,
+    save_index.
+save_man_index :-
+    index_manual.
+
 %!  index_manual is det.
 %
 %   Load the manual index if not already done.
@@ -137,11 +152,68 @@ locked_index_manual :-
     man_index(_,_,_,_,_),
     !.
 locked_index_manual :-
+    cached_index_file(read, File),
+    catch(read_index(File), E,
+          print_message(warning, E)),
+    !.
+locked_index_manual :-
     forall(manual_directory(Class, Dir),
            index_man_directory(Dir,
                                [ class(Class),
                                  file_errors(fail)
-                               ])).
+                               ])),
+    catch(save_index, E,
+          print_message(warning, E)).
+
+%!  read_index(+File)
+%
+%   Read the manual index from File.
+
+read_index(File) :-
+    setup_call_cleanup(
+        open(File, read, In, [encoding(utf8)]),
+        read_man_index(In),
+        close(In)).
+
+read_man_index(In) :-
+    read_term(In, Term, []),
+    (   Term == end_of_file
+    ->  true
+    ;   valid_term(Term),
+        assert(Term),
+        read_man_index(In)
+    ).
+
+valid_term(Term) :-
+    ground(Term),
+    Term = man_index(_,_,_,_,_),
+    !.
+valid_term(Term) :-
+    type_error(man_index_term, Term).
+
+%!  save_index
+%
+%   Save the manual index to the file returned by cached_index_file/2.
+
+save_index :-
+    cached_index_file(write, File),
+    !,
+    Term = man_index(_,_,_,_,_),
+    setup_call_cleanup(
+        open(File, write, Out, [encoding(utf8)]),
+        (   format(Out, '/*  Generated manual index.~n', []),
+            format(Out, '    Do not edit.~n', []),
+            format(Out, '*/~n~n', []),
+            forall(Term, format(Out, '~q.~n', [Term]))
+        ),
+        close(Out)).
+save_index.
+
+cached_index_file(Access, File) :-
+    absolute_file_name(swi('doc/manindex.db'), File,
+                       [ access(Access),
+                         file_errors(fail)
+                       ]).
 
 
 %!  check_duplicate_ids
