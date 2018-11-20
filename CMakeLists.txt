@@ -17,6 +17,9 @@ swipl_plugin(pldoc
 	     PL_LIB_SUBDIR pldoc
 	         PL_LIBS ${PLDOC_PRIV} ${SUPPORT})
 
+set(SWIPL_QLF_BASE ${SWIPL_BUILD_HOME}/library/pldoc)
+add_qcompile_target(doc_html PRELOAD "lib:pldoc")
+
 swipl_examples(server/README server/man_server.pl)
 
 pkg_doc(pldoc
