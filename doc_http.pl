@@ -148,8 +148,10 @@ doc_server(Port, Options) :-
     doc_enable(true),
     prepare_editor,
     host_access_options(Options, ServerOptions),
+    http_absolute_location(pldoc('.'), Entry, []),
     merge_options(ServerOptions,
-                  [ port(Port)
+                  [ port(Port),
+                    entry_page(Entry)
                   ], HTTPOptions),
     http_server(http_dispatch, HTTPOptions),
     assertz(doc_server_port(Port)).
