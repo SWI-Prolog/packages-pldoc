@@ -59,6 +59,7 @@ in IDE tools.
 
 :- predicate_options(index_man_directory/2, 2,
                      [ class(oneof([manual,packages,misc])),
+                       symbolic(any),
                        pass_to(system:absolute_file_name/3, 3)
                      ]).
 
@@ -108,7 +109,7 @@ clean_man_index :-
 user:file_search_path(swi_man_manual,   swi('doc/Manual')).
 user:file_search_path(swi_man_packages, swi('doc/packages')).
 
-manual_directory(Class,   Dir) :-
+manual_directory(Class, Spec, Dir) :-
     man_path_spec(Class, Spec),
     absolute_file_name(Spec, Dir,
                        [ file_type(directory),
@@ -131,11 +132,19 @@ man_path_spec(packages, swi_man_packages(.)).
 %   is called during the build process.
 
 save_man_index :-
-    man_index(_,_,_,_,_),
-    !,
-    save_index.
-save_man_index :-
-    index_manual.
+    cached_index_file(write, File),
+    setup_call_cleanup(
+        open(File, write, Out, [encoding(utf8)]),
+        (   format(Out, '/*  Generated manual index.~n', []),
+            format(Out, '    Do not edit.~n', []),
+            format(Out, '*/~n~n', []),
+            setup_call_cleanup(
+                b_setval(pldoc_save_index, Out),
+                do_index_manual,
+                nb_delete(pldoc_save_index))
+        ),
+        close(Out)).
+
 
 %!  index_manual is det.
 %
@@ -157,57 +166,59 @@ locked_index_manual :-
           print_message(warning, E)),
     !.
 locked_index_manual :-
-    forall(manual_directory(Class, Dir),
+    do_index_manual.
+
+do_index_manual :-
+    forall(manual_directory(Class, Symbolic, Dir),
            index_man_directory(Dir,
                                [ class(Class),
+                                 symbolic(Symbolic),
                                  file_errors(fail)
-                               ])),
-    catch(save_index, E,
-          print_message(warning, E)).
+                               ])).
 
 %!  read_index(+File)
 %
 %   Read the manual index from File.
 
 read_index(File) :-
+    empty_assoc(State0),
     setup_call_cleanup(
         open(File, read, In, [encoding(utf8)]),
-        read_man_index(In),
+        read_man_index(In, State0),
         close(In)).
 
-read_man_index(In) :-
-    read_term(In, Term, []),
-    (   Term == end_of_file
+read_man_index(In, State0) :-
+    read_term(In, TermIn, []),
+    (   TermIn == end_of_file
     ->  true
-    ;   valid_term(Term),
+    ;   valid_term(TermIn, Term, State0, State),
         assert(Term),
-        read_man_index(In)
+        read_man_index(In, State)
     ).
 
-valid_term(Term) :-
-    ground(Term),
-    Term = man_index(_,_,_,_,_),
+valid_term(TermIn, Term, State0, State) :-
+    ground(TermIn),
+    resolve_index(TermIn, Term, State0, State),
     !.
-valid_term(Term) :-
+valid_term(Term, _, _, _) :-
     type_error(man_index_term, Term).
 
-%!  save_index
-%
-%   Save the manual index to the file returned by cached_index_file/2.
+resolve_index(i(Object0, Summary, File0, Class, Offset),
+              man_index(Object, Summary, File, Class, Offset),
+              State0, State) :-
+    map_section(Object0, Object, File),
+    resolve_index_file(File0, File, State0, State).
 
-save_index :-
-    cached_index_file(write, File),
-    !,
-    Term = man_index(_,_,_,_,_),
-    setup_call_cleanup(
-        open(File, write, Out, [encoding(utf8)]),
-        (   format(Out, '/*  Generated manual index.~n', []),
-            format(Out, '    Do not edit.~n', []),
-            format(Out, '*/~n~n', []),
-            forall(Term, format(Out, '~q.~n', [Term]))
-        ),
-        close(Out)).
-save_index.
+resolve_index_file(File0, File, State, State) :-
+    get_assoc(File0, State, File),
+    !.
+resolve_index_file(File0, File, State0, State) :-
+    absolute_file_name(File0, File, [access(read)]),
+    put_assoc(File0, State0, File, State).
+
+map_section(section(Level, Nr, Label), section(Level, Nr, Label, File), File) :-
+    !.
+map_section(Object, Object, _).
 
 cached_index_file(Access, File) :-
     absolute_file_name(swi('doc/manindex.db'), File,
@@ -225,7 +236,7 @@ cached_index_file(Access, File) :-
     check_duplicate_ids/0.
 
 check_duplicate_ids :-
-    findall(Id, man_index(section(_,_,Id,_),_,_,_,_), Ids),
+    findall(Id, man_index(section(_,_,Id),_,_,_,_), Ids),
     msort(Ids, Sorted),
     duplicate_ids(Sorted, Duplicates),
     (   Duplicates == []
@@ -247,33 +258,39 @@ take_prefix(H, [H|T0], T) :-
 take_prefix(_, L, L).
 
 
-%!  index_man_directory(Dir, +Options) is det
+%!  index_man_directory(+Dir, +Options) is det
 %
 %   Index  the  HTML  directory   Dir.    Options are:
 %
 %           * class(Class)
 %           Define category of the found objects.
+%           * symbolic(+Term)
+%           Symbolic (file search) specification for Dir
 %
 %   Remaining Options are passed to absolute_file_name/3.
 
 index_man_directory(Spec, Options) :-
     select_option(class(Class), Options, Options1, misc),
+    select_option(symbolic(Symbolic), Options1, Options2, Spec),
     absolute_file_name(Spec, Dir,
                        [ file_type(directory),
                          access(read)
-                       | Options1
+                       | Options2
                        ]),
     atom_concat(Dir, '/*.html', Pattern),
     expand_file_name(Pattern, Files),
-    maplist(index_man_file(Class), Files).
+    maplist(index_man_file(Class, Symbolic), Files).
 
 
-%!  index_man_file(+Class, +File)
+%!  index_man_file(+Class, +File) is det.
+%!  index_man_file(+Class, +File, +Symbolic) is det.
 %
 %   Collect the documented objects from the SWI-Prolog manual file
 %   File.
 
 index_man_file(Class, File) :-
+    index_man_file(Class, File, File).
+index_man_file(Class, Symbolic, File) :-
     absolute_file_name(File, Path,
                        [ access(read)
                        ]),
@@ -286,6 +303,7 @@ index_man_file(Class, File) :-
     set_sgml_parser(Parser, shorttag(false)),
     nb_setval(pldoc_man_index, []),
     nb_setval(pldoc_index_class, Class),
+    nb_setval(pldoc_man_dir, Symbolic),
     call_cleanup(sgml_parse(Parser,
                             [ source(In),
                               syntax_errors(quiet),
@@ -293,7 +311,8 @@ index_man_file(Class, File) :-
                             ]),
                  (   free_sgml_parser(Parser),
                      close(In),
-                     nb_delete(pldoc_man_index)
+                     nb_delete(pldoc_man_index),
+                     nb_delete(pldoc_man_dir)
                  )).
 
 
@@ -335,9 +354,9 @@ index_on_begin(dd, _, Parser) :-
     summary(DD, Summary),
     nb_getval(pldoc_index_class, Class),
     reverse(DDList0, [dd(Object, File, Offset)|DDTail]),
-    assertz(man_index(Object, Summary, File, Class, Offset)),
+    assert_index(Object, Summary, File, Class, Offset),
     forall(member(dd(Obj2,_,_), DDTail),
-           assertz(man_index(Obj2, Summary, File, Class, Offset))).
+           assert_index(Obj2, Summary, File, Class, Offset)).
 index_on_begin(div, Attributes, Parser) :-
     !,
     memberchk(class=title, Attributes),
@@ -351,8 +370,8 @@ index_on_begin(div, Attributes, Parser) :-
     dom_to_text(DOM, Title),
     nb_getval(pldoc_index_class, Class),
     swi_local_path(File, Local),
-    assertz(man_index(section(0, '0', Local, File),
-                      Title, File, Class, Offset)).
+    assert_index(section(0, '0', Local, File),
+                 Title, File, Class, Offset).
 index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
     heading(H, Level),
     get_sgml_parser(Parser, charpos(Offset)),
@@ -365,8 +384,25 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
     dom_section(Doc, Nr, Title),
     nb_getval(pldoc_index_class, Class),
     section_id(Attributes, Title, File, ID),
-    assertz(man_index(section(Level, Nr, ID, File),
-                      Title, File, Class, Offset)).
+    assert_index(section(Level, Nr, ID, File),
+                 Title, File, Class, Offset).
+
+assert_index(Object, Summary, File, Class, Offset) :-
+    b_getval(pldoc_save_index, Out),
+    !,
+    map_section(Object1, Object, File),
+    symbolic_file(File, Symbolic),
+    format(Out, '~q.~n', [i(Object1, Summary, Symbolic, Class, Offset)]).
+assert_index(Object, Summary, File, Class, Offset) :-
+    assertz(man_index(Object, Summary, File, Class, Offset)).
+
+symbolic_file(File, Symbolic) :-
+    nb_getval(pldoc_man_dir, Dir),
+    Dir =.. [Alias,'.'],
+    !,
+    file_base_name(File, Base),
+    Symbolic =.. [Alias,Base].
+symbolic_file(File, File).
 
 section_id(Attributes, _Title, _, ID) :-
     memberchk(id=ID, Attributes),
@@ -517,8 +553,7 @@ man_object_property(Object, summary(Summary)) :-
     index_manual,
     man_index(Object, Summary, _, _, _).
 man_object_property(Object, id(File-CharNo)) :-
-    index_manual,
-    man_index(Object, _, File, _, CharNo).
+    manual_object(Object, _, File, _, CharNo).
 
 swi_local_path(Path, Local) :-
     atom(Path),
