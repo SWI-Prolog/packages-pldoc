@@ -388,7 +388,7 @@ index_on_begin(H, Attributes, Parser) :- % TBD: add class for document title.
                  Title, File, Class, Offset).
 
 assert_index(Object, Summary, File, Class, Offset) :-
-    b_getval(pldoc_save_index, Out),
+    nb_current(pldoc_save_index, Out),
     !,
     map_section(Object1, Object, File),
     symbolic_file(File, Symbolic),
