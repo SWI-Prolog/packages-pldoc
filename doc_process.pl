@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -39,7 +40,8 @@
             is_structured_comment/2,    % +Comment, -Prefixes
             parse_comment/3,            % +Comment, +FilePos, -Parsed
             process_comments/3,         % +Comments, +StartTermPos, +File
-            doc_file_name/3             % +Source, -Doc, +Options
+            doc_file_name/3,            % +Source, -Doc, +Options
+            doc_clean/1                 % +Module
           ]).
 
 :- dynamic   user:file_search_path/2.
@@ -448,6 +450,15 @@ decl_module([H0|T0], M, [H|T]) :-
     ;   H = H0
     ),
     decl_module(T0, M, T).
+
+%!  doc_clean(+Module) is det.
+%
+%   Clean documentation for Module.
+
+doc_clean(Module) :-
+    abolish(Module:'$mode'/2),
+    abolish(Module:'$pldoc'/4),
+    abolish(Module:'$pldoc_link'/2).
 
 
                  /*******************************
