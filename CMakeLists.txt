@@ -25,6 +25,6 @@ add_qcompile_target(doc_html
 swipl_examples(server/README server/man_server.pl)
 
 pkg_doc(pldoc
-	SOURCES latex.txt
+	SOURCE latex.md --lib=doc_latex
 	SUBSECTION
 	    doc_files.pl)
