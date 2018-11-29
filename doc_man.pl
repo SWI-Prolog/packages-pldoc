@@ -777,19 +777,20 @@ dom_element(span, Att, [CDATA], _) -->
     html(a(href(HREF), CDATA)).
 dom_element(img, Att0, [], Path) -->
     { selectchk(src=Src, Att0, Att1),
-      current_prolog_flag(home, SWI),
-      sub_atom(Path, 0, Len, _, SWI),
-      (   sub_atom(Path, Len, _, _, '/doc/Manual/')
-      ->  Handler = manual_file
-      ;   sub_atom(Path, Len, _, _, '/doc/packages/')
-      ->  Handler = pldoc_package
-      ),
+      relative_file_name(ImgFile, Path, Src),
+      handler_alias(Handler, DirAlias),
+      absolute_file_name(DirAlias, Dir,
+                         [ file_errors(fail),
+                           solutions(all),
+                           file_type(directory)
+                         ]),
+      ensure_slash(Dir, DirS),
+      atom_concat(DirS, NewSrc, ImgFile),
       !,
       http_link_to_id(Handler, [], ManRef),
-      directory_file_path(ManRef, Src, NewPath),
+      directory_file_path(ManRef, NewSrc, NewPath),
       Begin =.. [img, src(NewPath) | Att1]
     },
-    !,
     html_begin(Begin),
     html_end(img).
 dom_element(div, Att, _, _) -->
@@ -811,6 +812,15 @@ dom_element(Name, Attrs, Content, Path) -->
     html_begin(Begin),
     dom_list(Content, Path),
     html_end(Name).
+
+handler_alias(manual_file,   swi_man_manual(.)).
+handler_alias(pldoc_package, swi_man_packages(.)).
+
+ensure_slash(Dir, DirS) :-
+    (   sub_atom(Dir, _, _, 0, /)
+    ->  DirS = Dir
+    ;   atom_concat(Dir, /, DirS)
+    ).
 
 %!  documented(+PI) is semidet.
 %
@@ -1096,8 +1106,7 @@ pldoc_package(Request) :-
     memberchk(path_info(Img), Request),
     file_mime_type(Img, image/_),
     !,
-    atom_concat('doc/packages/', Img, Path),
-    http_reply_file(swi(Path), [], Request).
+    http_reply_file(swi_man_packages(Img), [], Request).
 pldoc_package(Request) :-
     memberchk(path_info('jpl'), Request),
     !,
