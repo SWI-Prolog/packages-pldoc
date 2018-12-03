@@ -319,6 +319,7 @@ term_item(li(Tokens),
                        ( forall(member(T, TermTokens),
                                 write_token(T)),
                          write(' .\n'))),
+        E = error(_,_),
         catch(setup_call_cleanup(
                   open_string(Tmp, In),
                   ( read_dt_term(In, Term, Bindings),
@@ -326,7 +327,7 @@ term_item(li(Tokens),
                     atom_string(Text, Tmp)
                   ),
                   close(In)),
-              _, fail)
+              E, fail)
     ).
 
 write_token(w(X)) :-
@@ -901,14 +902,16 @@ wiki_face(code(Code), _, _) -->
 wiki_face(Code, _, _) -->
     ['`'], code_words(Words), ['`'],
     { atomic_list_concat(Words, Text),
-      catch(atom_to_term(Text, Term, Vars), _, fail),
+      E = error(_,_),
+      catch(atom_to_term(Text, Term, Vars), E, fail),
       !,
       code_face(Text, Term, Vars, Code)
     }.
 wiki_face(Face, _, _) -->
     [ w(Name) ], arg_list(List),
     { atomic_list_concat([Name|List], Text),
-      catch(atom_to_term(Text, Term, Vars), _, fail),
+      E = error(_,_),
+      catch(atom_to_term(Text, Term, Vars), E, fail),
       term_face(Text, Term, Vars, Face)
     },
     !.
@@ -1090,7 +1093,8 @@ emphasis_term('**',  Term, strong(Term)).
 emph_markdown(_, [w(_)]) :- !.
 emph_markdown(Last, Tokens) :-
     \+ emphasis_after_sep(Last),
-    catch(b_getval(pldoc_object, Obj), _, Obj = '??'),
+    E = error(_,_),
+    catch(b_getval(pldoc_object, Obj), E, Obj = '??'),
     debug(markdown(emphasis), '~q: additionally emphasis: ~p',
           [Obj, Tokens]).
 
@@ -1311,7 +1315,8 @@ wiki_link(a(href(Ref), Label), Options) -->
       ->  Term =.. [Alias,'.']
       ;   Term =.. [Alias,Local]
       ),
-      catch(expand_url_path(Term, Ref), _, fail),
+      E = error(_,_),
+      catch(expand_url_path(Term, Ref), E, fail),
       option(label(Label), Options, Ref)
     }.
 wiki_link(a(href(Ref), Label), Options) -->
@@ -1386,7 +1391,8 @@ resolve_file(_, Options, Options).
 
 
 existing_file(Name, Options, Rest) :-
-    catch(existing_file_p(Name, Options, Rest), _, fail).
+    E = error(_,_),
+    catch(existing_file_p(Name, Options, Rest), E, fail).
 
 existing_file_p(Name, Options, Rest) :-
     nb_current(pldoc_file, RelativeTo),
@@ -1412,7 +1418,8 @@ existing_file_p(Name, Options, Rest) :-
 
 arity(Arity) -->
     [ w(Word) ],
-    { catch(atom_number(Word, Arity), _, fail),
+    { E = error(_,_),
+      catch(atom_number(Word, Arity), E, fail),
       Arity >= 0, Arity < 20
     }.
 
