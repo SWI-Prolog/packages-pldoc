@@ -903,14 +903,14 @@ wiki_face(code(Code), _, _) -->
     ['`','`'], wiki_words(Code), ['`','`'],
     !.
 wiki_face(Code, _, _) -->
-    ['`'], code_words(Words), ['`'],
-    !,
-    { atomic_list_concat(Words, Text),
-      E = error(_,_),
-      catch(atom_to_term(Text, Term, Vars), E, fail),
-      !,
-      code_face(Text, Term, Vars, Code)
-    }.
+    (   ['`'], code_words(Words), ['`']
+    ->  { atomic_list_concat(Words, Text),
+          E = error(_,_),
+          catch(atom_to_term(Text, Term, Vars), E, fail),
+          !,
+          code_face(Text, Term, Vars, Code)
+        }
+    ).
 wiki_face(Face, _, _) -->
     [ w(Name) ], arg_list(List),
     { atomic_list_concat([Name|List], Text),
