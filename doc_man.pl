@@ -251,7 +251,8 @@ package_node(File, Tree) :-
 %
 %       node(Object, ListOfTree).
 
-html_content_tree(File, Tree) :-
+html_content_tree(FileIn, Tree) :-
+    absolute_file_name(FileIn, File),
     findall(Offset-Obj,
             manual_object(Obj, _Summary, File, _Class, Offset),
             Pairs),
