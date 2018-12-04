@@ -392,7 +392,7 @@ assert_index(Object, Summary, File, Class, Offset) :-
     !,
     map_section(Object1, Object, File),
     symbolic_file(File, Symbolic),
-    format(Out, '~q.~n', [i(Object1, Summary, Symbolic, Class, Offset)]).
+    format(Out, '~k.~n', [i(Object1, Summary, Symbolic, Class, Offset)]).
 assert_index(Object, Summary, File, Class, Offset) :-
     assertz(man_index(Object, Summary, File, Class, Offset)).
 
