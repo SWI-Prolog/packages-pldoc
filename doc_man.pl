@@ -714,10 +714,18 @@ man_matches_list([H|T], Obj, Options) -->
 man_match(packages, packages, _) -->
     !,
     html({|html||
-              <p>
-              Packages are relatively independent add-on libraries that
-              may not be available in all installations.
-             |}).
+          <p>
+          Packages are relatively independent add-on libraries that
+          may not be available in all installations.  Packages are
+          part of the source code releases of SWI-Prolog and may be
+          enabled or disabled during the build.</p>
+
+          <p>
+          See also <a href="/pack/list">Add-ons</a> for extensions
+          provided by the community that must be installed seperately
+          using
+          <a href="/pldoc/doc_for?object=pack_install/1">pack_install/1</a>.</p>
+         |}).
 man_match(root, root, _) -->
     !,
     man_overview([]).
