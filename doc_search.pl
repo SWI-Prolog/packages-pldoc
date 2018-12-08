@@ -208,7 +208,9 @@ search_reply(For, Options) -->
                ])
          ]).
 search_reply(For, Options) -->
-    { search_doc(For, PerCategory, Options),
+    { search_doc(For, PerCategory, NPages, Options),
+      option(page(Page), Options, 1),
+      page_query(For, Options, CurrentQuery),
       PerCategory \== [],
       option(resultFormat(Format), Options, summary)
     },
@@ -217,10 +219,34 @@ search_reply(For, Options) -->
                          span(class(for), ['"', For, '"'])
                        ],
                   Options),
-    indexed_matches(Format, PerCategory, Options).
+    indexed_matches(Format, PerCategory, Options),
+    search_pagination(Page, NPages, CurrentQuery).
 search_reply(For, Options) -->
     search_header(For, 'No matches', Options).
 
+page_query(For, Options, Query) :-
+    option(search_in(In), Options, all),
+    option(search_match(Match), Options, summary),
+    option(resultFormat(Format), Options, summary),
+    format(string(Query),
+           "?for=~w&in=~w&match=~w&resultFormat=~w",
+           [For, In, Match, Format]).
+search_pagination(Page, NPages, CurrentQuery) -->
+    html(
+        div(class(pagination),
+            [span(class(current), ['Page ', Page, ' of ', NPages]),
+             \search_prev(Page, CurrentQuery),
+             \search_next(NPages, Page, CurrentQuery)])).
+search_prev(Page, _) -->
+    { Page =:= 1, ! }, [].
+search_prev(Page, Q) -->
+    { Prev is Page - 1 },
+    html(a(href(Q + '&page=' + Prev), '< Prev')).
+search_next(NPages, Page, _) -->
+    { Page =:= NPages, ! }, [].
+search_next(_NPages, Page, Q) -->
+    { Next is Page + 1 },
+    html(a(href(Q + '&page=' + Next), 'Next >')).
 
 search_header(_For, _Title, Options) -->
     { option(header(false), Options) },
@@ -360,8 +386,8 @@ category_title(Category) -->
 %   Pages is the number of pages of results available.
 
 search_doc(Search, PerType, NPages, Options) :-
-    ( option(page(Page), Options) ; Page = 1 ),
-    ( option(per_page(PerPage), Options) ; PerPage = 100 ),
+    option(page(Page), Options, 1),
+    option(per_page(PerPage), Options, 100),
     findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
     sort(Tuples0, AllTuples),
     length(AllTuples, TuplesL),

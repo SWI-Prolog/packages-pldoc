@@ -736,7 +736,7 @@ pldoc_search(Request) :-
                             description('String to search for')
                           ]),
                       page(Page,
-                           [ positive_integer,
+                           [ integer,
                              default(1),
                              description('Page of search results to view')
                            ]),
