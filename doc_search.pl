@@ -69,7 +69,12 @@
                        search_match(oneof([name,summary])),
                        header(boolean),
                        edit(boolean),
-                       pass_to(pldoc_index:doc_links//2, 2)
+                       pass_to(pldoc_index:doc_links//2, 2),
+                       pass_to(search_doc/4, 4)
+                     ]).
+:- predicate_options(search_doc/4, 4,
+                     [ per_page(positive_integer),
+                       page(positive_integer)
                      ]).
 
 %!  search_form(+Options)//
@@ -172,6 +177,12 @@ hidden(Name, Value) -->
 %
 %           * header(+Boolean)
 %           If =false=, suppress the header.
+%
+%           * per_page(+positive_integer)
+%           Number of results per page (default 100).
+%
+%           * page(+positive_integer)
+%           Page number to show results for (default 1).
 
 :- html_meta
     search_header(+, html, +, ?, ?).
@@ -342,15 +353,41 @@ category_title(Category) -->
     },
     html(Title).
 
-%!  search_doc(+SearchString, -PerType:list, +Options) is det.
+%!  search_doc(+SearchString, -PerType:list, -Pages:integer, +Options) is det.
 %
 %   Return matches of SearchString  as   Type-PerFile  tuples, where
 %   PerFile is a list File-ListOfObjects.
+%   Pages is the number of pages of results available.
 
-search_doc(Search, PerType, Options) :-
+search_doc(Search, PerType, NPages, Options) :-
+    ( option(page(Page), Options) ; Page = 1 ),
+    ( option(per_page(PerPage), Options) ; PerPage = 100 ),
     findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
-    sort(Tuples0, Tuples),
+    sort(Tuples0, AllTuples),
+    length(AllTuples, TuplesL),
+    NPages is ceiling(TuplesL / PerPage),
+    paged(Page, PerPage, AllTuples, Tuples),
     group_hits(Tuples, PerType).
+
+take(N, Lst, Lst) :-
+    length(Lst, L),
+    L =< N, !.
+take(N, Lst, Head) :-
+    length(Head, N),
+    append(Head, _Tail, Lst).
+
+drop(N, Lst, []) :-
+    length(Lst, L),
+    L =< N, !.
+drop(N, Lst, Tail) :-
+    length(Head, N),
+    append(Head, Tail, Lst).
+
+paged(PageN, PerPage, Full, Page) :-
+    ToDrop is PerPage * (PageN - 1),
+    drop(ToDrop, Full, Rest),
+    take(PerPage, Rest, Page).
+
 
 group_hits(Tuples, PerType) :-
     group_pairs_by_key(Tuples, PerCat0),

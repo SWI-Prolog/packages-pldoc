@@ -735,6 +735,11 @@ pldoc_search(Request) :-
                           [ optional(true),
                             description('String to search for')
                           ]),
+                      page(Page,
+                           [ positive_integer,
+                             default(1),
+                             description('Page of search results to view')
+                           ]),
                       in(In,
                          [ oneof([all,app,man]),
                            default(all),
@@ -758,7 +763,8 @@ pldoc_search(Request) :-
                     \search_reply(For,
                                   [ resultFormat(Format),
                                     search_in(In),
-                                    search_match(Match)
+                                    search_match(Match),
+                                    page(Page)
                                   | EditOptions
                                   ])).
 
