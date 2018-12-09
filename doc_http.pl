@@ -741,7 +741,7 @@ pldoc_search(Request) :-
                              description('Page of search results to view')
                            ]),
                       in(In,
-                         [ oneof([all,app,man]),
+                         [ oneof([all,app,noapp,man,lib,pack,wiki]),
                            default(all),
                            description('Search everying, application only or manual only')
                          ]),

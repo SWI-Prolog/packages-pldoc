@@ -41,7 +41,8 @@
             current_man_object/1,       % ?Object
             man_object_property/2,      % ?Object, ?Property
 
-            manual_object/5             % ?Obj, ?Summary, ?File, ?Class, ?Offset
+            manual_object/5,            % ?Obj, ?Summary, ?File, ?Class, ?Offset
+            doc_object_identifier/2     % +Obj, -Name
           ]).
 :- use_module(library(sgml)).
 :- use_module(library(occurs)).
@@ -569,3 +570,15 @@ swi_local_path(Path, Local) :-
 
 manual_root(swi_man_manual(.),   'Manual').
 manual_root(swi_man_packages(.), 'packages').
+
+%!  doc_object_identifier(+DocObject, -Identifier) is semidet.
+%
+%   True when Identifier is the _name_ of DocObject.
+
+doc_object_identifier(Name/_, Name).
+doc_object_identifier(Name//_, Name).
+doc_object_identifier(_:Name/_, Name).
+doc_object_identifier(_:Name//_, Name).
+doc_object_identifier(M:_, M).
+doc_object_identifier(f(Name/_), Name).
+doc_object_identifier(c(Name), Name).

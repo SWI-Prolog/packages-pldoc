@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2015, University of Amsterdam
+    Copyright (c)  2006-2018, University of Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -40,13 +41,22 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(dcg/basics)).
-:- use_module(library(occurs)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
+:- use_module(library(uri)).
+:- use_module(library(debug)).
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(atom)).
+:- use_module(library(porter_stem)).
+
 :- use_module(doc_process).
 :- use_module(doc_html).
 :- use_module(doc_index).
 :- use_module(doc_util).
+:- use_module(doc_words).
+:- use_module(man_index).
+
 :- include(hooks).
 
 /** <module> Search form and reply
@@ -68,13 +78,11 @@
                        search_in(oneof([all,noapp,app,man])),
                        search_match(oneof([name,summary])),
                        header(boolean),
+                       private(boolean),
                        edit(boolean),
-                       pass_to(pldoc_index:doc_links//2, 2),
-                       pass_to(search_doc/4, 4)
-                     ]).
-:- predicate_options(search_doc/4, 4,
-                     [ per_page(positive_integer),
-                       page(positive_integer)
+                       page(positive_integer),
+                       per_page(positive_integer),
+                       pass_to(pldoc_index:doc_links//2, 2)
                      ]).
 
 %!  search_form(+Options)//
@@ -171,6 +179,10 @@ hidden(Name, Value) -->
 %           Determine which databases to search.  One of
 %           =all=, =app=, =man=
 %
+%           * private(Boolean)
+%           If `false` (default `true`), hide private predicates
+%           from results.
+%
 %           * search_match(Match)
 %           What part of the object to match. One of =name=,
 %           =summary=
@@ -179,7 +191,7 @@ hidden(Name, Value) -->
 %           If =false=, suppress the header.
 %
 %           * per_page(+positive_integer)
-%           Number of results per page (default 100).
+%           Number of results per page (default 25).
 %
 %           * page(+positive_integer)
 %           Page number to show results for (default 1).
@@ -208,10 +220,13 @@ search_reply(For, Options) -->
                ])
          ]).
 search_reply(For, Options) -->
-    { search_doc(For, PerCategory, NPages, Options),
-      option(page(Page), Options, 1),
-      page_query(For, Options, CurrentQuery),
+    { statistics(cputime, T0),
+      search_doc(For, PerCategory0, Options),
+      order_matches(PerCategory0, PerCategory),
+      statistics(cputime, T1),
+      Time is T1-T0,
       PerCategory \== [],
+      page_location(PerCategory, NPages, Offset, Limit, Options),
       option(resultFormat(Format), Options, summary)
     },
     !,
@@ -219,34 +234,64 @@ search_reply(For, Options) -->
                          span(class(for), ['"', For, '"'])
                        ],
                   Options),
-    indexed_matches(Format, PerCategory, Options),
-    search_pagination(Page, NPages, CurrentQuery).
+    { DisplayOptions = [ for(For),
+                         cputime(Time),
+                         page_count(NPages)
+                       | Options
+                       ]
+    },
+    indexed_matches(Format, PerCategory, Offset, Limit, DisplayOptions),
+    search_pagination(DisplayOptions).
 search_reply(For, Options) -->
-    search_header(For, 'No matches', Options).
+    search_header(For, 'No matches', Options),
+    html(div(class('search-no-matches'), 'No matches')).
 
-page_query(For, Options, Query) :-
+page_location(PerCategory, NPages, Offset, Limit, Options) :-
+    option(page(Page), Options, 1),
+    option(per_page(Limit), Options, 25),
+    Offset is (Page-1)*Limit,
+    count_matches(PerCategory, Total),
+    NPages is (Total+Limit-1)//Limit.
+
+search_pagination(Options) -->
+    { option(page(Page), Options, 1),
+      option(page_count(NPages), Options, 1)
+    },
+    html(div(class(pagination),
+             [ \search_prev(Page, Options),
+               span(class(current), ['Page ', Page, ' of ', NPages]),
+               \search_next(NPages, Page, Options)
+             ])).
+
+search_prev(Page, _) -->
+    { Page =:= 1 },
+    !.
+search_prev(Page, Options) -->
+    { Prev is Page - 1,
+      page_link(Prev, Link, Options)
+    },
+    html(a(href(Link), '< Prev')).
+
+search_next(NPages, Page, _) -->
+    { Page =:= NPages, ! }, [].
+search_next(_NPages, Page, Options) -->
+    { Next is Page + 1,
+      page_link(Next, Link, Options)
+    },
+    html(a(href(Link), 'Next >')).
+
+page_link(Page, '?'+QueryString, Options) :-
+    option(for(For), Options),
     option(search_in(In), Options, all),
     option(search_match(Match), Options, summary),
     option(resultFormat(Format), Options, summary),
-    format(string(Query),
-           "?for=~w&in=~w&match=~w&resultFormat=~w",
-           [For, In, Match, Format]).
-search_pagination(Page, NPages, CurrentQuery) -->
-    html(
-        div(class(pagination),
-            [span(class(current), ['Page ', Page, ' of ', NPages]),
-             \search_prev(Page, CurrentQuery),
-             \search_next(NPages, Page, CurrentQuery)])).
-search_prev(Page, _) -->
-    { Page =:= 1, ! }, [].
-search_prev(Page, Q) -->
-    { Prev is Page - 1 },
-    html(a(href(Q + '&page=' + Prev), '< Prev')).
-search_next(NPages, Page, _) -->
-    { Page =:= NPages, ! }, [].
-search_next(_NPages, Page, Q) -->
-    { Next is Page + 1 },
-    html(a(href(Q + '&page=' + Next), 'Next >')).
+    uri_query_components(QueryString,
+                         [ for(For),
+                           in(In),
+                           match(Match),
+                           resultFormat(Format),
+                           page(Page)
+                         ]).
 
 search_header(_For, _Title, Options) -->
     { option(header(false), Options) },
@@ -272,31 +317,142 @@ matching_object_table(Objects, Options) -->
 obj_cat_sec(Object, Cat-(Section-Object)) :-
     prolog:doc_object_summary(Object, Cat, Section, _Summary).
 
+indexed_matches(Format, PerCategory, Offset, Limit, Options) -->
+    { cat_offset(Offset, _,PerCategory, PerCategory1),
+      cat_limit(Limit, _, PerCategory1, PerCategory2)
+    },
+    (   { PerCategory2 == PerCategory }
+    ->  indexed_matches(Format, PerCategory, Options)
+    ;   category_counts(PerCategory,
+                        [ showing('Total'),
+                          link(category)
+                        | Options
+                        ]),
+        { delete(Options, cputime(_), Options1) },
+        category_counts(PerCategory2,
+                        [ showing('Showing'),
+                          class([showing])
+                        | Options1
+                        ]),
+        search_pagination(Options),
+        matches(Format, PerCategory2, Options)
+    ).
+
+%!  cat_offset(+Offset, -Remaining, +PerCat0, -PerCat) is det.
+%!  cat_limit(+Limit, -Remaining, +PerCat0, -PerCat) is det.
+
+cat_offset(0, 0, PerCat, PerCat) :-
+    !.
+cat_offset(N, R, [C-H|T], PerCat) :-
+    H = [_-[_|_]|_],
+    !,
+    cat_offset(N, R1, H, H1),
+    (   H1 == []
+    ->  !, cat_offset(R1, R, T, PerCat)
+    ;   PerCat = [C-H1|T]
+    ).
+cat_offset(N, R, [_C-L|T0], PerCat) :-
+    length(L, Len),
+    Left is N-Len,
+    Left > 0,
+    !,
+    cat_offset(Left, R, T0, PerCat).
+cat_offset(N, 0, [C-L0|T], [C-L|T]) :-
+    !,
+    length(Skip, N),
+    append(Skip, L, L0).
+cat_offset(N, N, Obj, Obj).
+
+cat_limit(0, 0, _PerCat, []) :-
+    !.
+cat_limit(N, R, [C-H|T], PerCat) :-
+    H = [_-[_|_]|_],
+    !,
+    cat_limit(N, R1, H, H1),
+    (   R1 == 0
+    ->  PerCat = [C-H1]
+    ;   PerCat = [C-H|T1],
+        cat_limit(R1, R, T, T1)
+    ).
+cat_limit(N, R, [C-L|T0], [C-L|T]) :-
+    length(L, Len),
+    More is N - Len,
+    More >= 0,
+    !,
+    cat_limit(More, R, T0, T).
+cat_limit(N, 0, [C-L0|_], [C-L]) :-
+    length(L, N),
+    append(L, _, L0).
+cat_limit(N, N, [], []).
+
+
+%!  order_matches(+PerCat, -Ordered) is det.
+%
+%   Order matches per category. Each low level   object  is of the shape
+%   q(Q, Object), where Q is a number  between   0  and  1, 1 implying a
+%   perfect fit.
+
+order_matches(PerCat0, PerCat) :-
+    maplist(order_category, PerCat0, PerCat).
+
+order_category(Cat-PerSection0, Cat-PerSection) :-
+    maplist(order_section, PerSection0, PerSectionTagged),
+    sort(1, >=, PerSectionTagged, Ordered),
+    pairs_values(Ordered, PerSection).
+
+order_section(Section-Objects0, Q-(Section-Objects)) :-
+    sort(1, >=, Objects0, Objects),
+    maplist(arg(1), Objects, QList),
+    join_quality(QList, Q).
+
+join_quality([], 0).
+join_quality([Q], Q).
+join_quality([QH|QL], Q) :-
+    join_quality(QL, QT),
+    Q is 1-(1-QH)*(1-QT).
+
+
+%!  indexed_matches(+Format, +PerCategory, +Options)//
+%
+%   Emit the matches.
 
 indexed_matches(Format, PerCategory, Options) -->
-    { count_matches(PerCategory, Matches)
+    category_counts(PerCategory, Options),
+    matches(Format, PerCategory, Options).
+
+category_counts(PerCategory, Options) -->
+    { count_matches(PerCategory, Matches),
+      option(class(Classes), Options, []),
+      (   PerCategory = [_]
+      ->  merge_options([link(false)], Options, Options1)
+      ;   Options1 = Options
+      )
     },
-    html([ div(class('search-counts'),
-               [ Matches, ' matches; ',
-                 \count_by_category(PerCategory)
+    html([ div(class(['search-counts'|Classes]),
+               [ \category_showing(Options1),
+                 Matches,
+                 \count_by_category(PerCategory, Options1),
+                 \search_time(Options1)
                ])
-         | \matches(Format, PerCategory, Options)
          ]).
 
-count_by_category([]) -->
+count_by_category([Cat-_PerFile], Options) -->
+    !,
+    html(' matches from '),
+    category_link(Cat, Options).
+count_by_category(PerCategory, Options) -->
+    html(' matches; '),
+    count_by_category_list(PerCategory, Options).
+
+count_by_category_list([], _) -->
     [].
-count_by_category([Cat-PerFile|T]) -->
-    { count_category(PerFile, Count),
-      atom_concat(#, Cat, HREF)
-    },
-    html([ a(href(HREF), \category_title(Cat)),
-           ': ',
-           Count
-         ]),
+count_by_category_list([Cat-PerFile|T], Options) -->
+    { count_category(PerFile, Count) },
+    html([ \category_link(Cat, Options), ': ', Count ]),
     (   {T == []}
     ->  []
     ;   html(', '),
-        count_by_category(T)
+        count_by_category_list(T, Options)
     ).
 
 count_matches([], 0).
@@ -310,6 +466,19 @@ count_category([_-Objs|T], Count) :-
     count_category(T, Count0),
     length(Objs, N),
     Count is Count0 + N.
+
+category_showing(Options) -->
+    { option(showing(Showing), Options) },
+    html(span(class('search-showing'), [Showing, :])).
+category_showing(_) -->
+    [].
+
+search_time(Options) -->
+    { option(cputime(Time), Options) },
+    !,
+    html(span(class('search-time'), '(~2f sec.)'-[Time])).
+search_time(_) -->
+    [].
 
 %!  matches(+Format, +PerCategory, +Options)// is det
 %
@@ -371,6 +540,34 @@ category_sep(Which) -->
     html(tr(th([class(Which), colspan(3)],
                &(nbsp)))).
 
+category_link(Category, Options) -->
+    { option(link(false), Options) },
+    !,
+    category_title(Category).
+category_link(Category, Options) -->
+    { option(link(category), Options),
+      category_link(Category, HREF, Options)
+    },
+    !,
+    html(a(href(HREF), \category_title(Category))).
+category_link(Category, _Options) -->
+    { atom_concat(#, Category, HREF) },
+    html(a(href(HREF), \category_title(Category))).
+
+category_link(Category, '?'+QueryString, Options) :-
+    (   category_abbreviation(Category, Abbrev)
+    ->  true
+    ;   Abbrev = Category
+    ),
+    option(for(For), Options),
+    option(search_match(Match), Options, summary),
+    option(resultFormat(Format), Options, summary),
+    uri_query_components(QueryString,
+                         [ for(For),
+                           in(Abbrev),
+                           match(Match),
+                           resultFormat(Format)
+                         ]).
 
 category_title(Category) -->
     {   prolog:doc_category(Category, _Order, Title)
@@ -379,44 +576,20 @@ category_title(Category) -->
     },
     html(Title).
 
-%!  search_doc(+SearchString, -PerType:list, -Pages:integer, +Options) is det.
+%!  search_doc(+SearchString, -PerType:list, +Options) is det.
 %
-%   Return matches of SearchString  as   Type-PerFile  tuples, where
-%   PerFile is a list File-ListOfObjects.
-%   Pages is the number of pages of results available.
+%   Return matches of SearchString as Type-PerFile tuples, where PerFile
+%   is a list File-ListOfObjects.
 
-search_doc(Search, PerType, NPages, Options) :-
-    option(page(Page), Options, 1),
-    option(per_page(PerPage), Options, 100),
+search_doc(Search, PerType, Options) :-
     findall(Tuples, matching_object(Search, Tuples, Options), Tuples0),
-    sort(Tuples0, AllTuples),
-    length(AllTuples, TuplesL),
-    NPages is ceiling(TuplesL / PerPage),
-    paged(Page, PerPage, AllTuples, Tuples),
-    group_hits(Tuples, PerType).
-
-take(N, Lst, Lst) :-
-    length(Lst, L),
-    L =< N, !.
-take(N, Lst, Head) :-
-    length(Head, N),
-    append(Head, _Tail, Lst).
-
-drop(N, Lst, []) :-
-    length(Lst, L),
-    L =< N, !.
-drop(N, Lst, Tail) :-
-    length(Head, N),
-    append(Head, Tail, Lst).
-
-paged(PageN, PerPage, Full, Page) :-
-    ToDrop is PerPage * (PageN - 1),
-    drop(ToDrop, Full, Rest),
-    take(PerPage, Rest, Page).
-
+    sort(Tuples0, Tuples),
+    group_hits(Tuples, PerType0),
+    prune_library(PerType0, PerType).
 
 group_hits(Tuples, PerType) :-
-    group_pairs_by_key(Tuples, PerCat0),
+    keysort(Tuples, Tuples1),
+    group_pairs_by_key(Tuples1, PerCat0),
     key_sort_order(PerCat0, PerCat1),
     keysort(PerCat1, PerCat2),
     pairs_values(PerCat2, PerCat),
@@ -438,31 +611,69 @@ group_by_file([Type-Tuples0|T0], [Type-ByFile|T]) :-
     group_by_file(T0, T).
 
 
+%!  prune_library(+PerCat0, -PerCat) is det.
+%
+%   Prune objects from the libary that also appear in the manual.
+
+prune_library(PerCat0, PerCat) :-
+    selectchk(library-InLib0, PerCat0, library-InLib, PerCat1),
+    !,
+    (   cat_objects(manual, PerCat0, Manual),
+        cat_objects(packages, PerCat0, Packages),
+        append(Manual, Packages, Objects),
+        sort(Objects, OSet0),
+        maplist(arg(2), OSet0, OSet),       % get rid of q(Q,Obj)
+        convlist(prune_section(OSet), InLib0, InLib),
+        InLib \== []
+    ->  PerCat = PerCat1
+    ;   selectchk(library-_, PerCat0, PerCat)
+    ).
+prune_library(PerCat, PerCat).
+
+cat_objects(Cat, PerCat, Objects) :-
+    memberchk(Cat-Sections, PerCat),
+    !,
+    pairs_values(Sections, NestedObjects),
+    append(NestedObjects, Objects).
+cat_objects(_, _, []).
+
+prune_section(Prune, Section-Objects0, Section-Objects) :-
+    exclude(in_set(Prune), Objects0, Objects),
+    Objects \== [].                     % specific library becomes empty
+
+in_set(Prune, q(_Q,Obj)) :-
+    memberchk(Obj, Prune),
+    !.
+in_set(Prune, q(_Q,_Module:Obj)) :-
+    memberchk(Obj, Prune).
+
+
 %!  matching_object(+SearchString, -Object, +Options) is nondet.
 %
 %   Object matches SearchString.  Options include
 %
-%           * search_in(In)
-%           One of =all=, =app=, =man=.
+%     - search_in(In)
+%       One of `all`, `app`, `man`.
 %
-%           * search_match(Match)
-%           One of =name=, =summary=
+%     - search_match(Match)
+%       One of `name`, `summary`
 %
 %   @param Object   Term of the form File-Item
 %   @tbd Deal with search syntax
 
-matching_object(Search, Type-(Section-Obj), Options) :-
+matching_object(Search, Type-(Section-q(1,Obj)), Options) :-
     atom_concat(Function, '()', Search),
     Obj = c(Function),
     option(search_in(In), Options, all),
     prolog:doc_object_summary(Obj, Type, Section, _),
     matching_category(In, Type).
-matching_object(Search, Type-(Section-Obj), Options) :-
-    (   atom_pi(Search, Obj0),
-        qualify(Obj0, Obj)
-    ;   catch(atom_to_term(Search, Obj, _), _, fail)
+matching_object(Search, Type-(Section-q(1,Obj)), Options) :-
+    (   atom_pi(Search, Obj0)
+    ->  ground(Obj0)
+    ;   catch(atom_to_term(Search, Obj0, _), _, fail),
+        nonvar(Obj0)
     ),
-    nonvar(Obj),
+    opt_qualify(Obj0, Obj),
     option(search_in(In), Options, all),
     prolog:doc_object_summary(Obj, Type, Section, _),
     matching_category(In, Type).
@@ -476,11 +687,12 @@ matching_object(Search, Match, Options) :-
         exec_search(For, Match, Options)
     ).
 
-qualify(Obj0, Obj) :-
+opt_qualify(Obj0, Obj) :-
     Obj0 = _:_,
     !,
     Obj = Obj0.
-qualify(Obj, _:Obj).
+opt_qualify(Obj, Obj).
+opt_qualify(Obj, _:Obj).
 
 
 %!  optimise_search(+Spec, -Optimised)
@@ -500,36 +712,36 @@ optimise_search(A, A).
 %
 %   Spec is one of
 %
-%           * and(Spec, Spec)
-%           Intersection of the specification
-%
-%           * not(Spec)
-%           Negation of the specification
+%     - and(Spec, Spec)
+%       Intersection of the specification
+%     - not(Spec)
+%       Negation of the specification
 
-exec_search(and(A, B), Match, Options) :-
+exec_search(Spec, Match, Options) :-
+    exec_search(Spec, Match0, Q, Options),
+    add_quality(Match0, Q, Match).
+
+add_quality(Type-(Section-Obj), Q, Type-(Section-q(Q,Obj))).
+
+exec_search(and(A, B), Match, Q, Options) :-
     !,
-    exec_search(A, Match, Options),
-    exec_search(B, Match, Options).
-exec_search(Search, Type-(Section-Obj), Options) :-
+    exec_search(A, Match, Q1, Options),
+    exec_search(B, Match, Q2, Options),
+    Q is 1-((1-Q1)*(1-Q2)).
+exec_search(Search, Type-(Section-Obj), Q, Options) :-
     option(search_in(In), Options, all),
     option(search_match(Match), Options, summary),
+    option(private(Public), Options, true),
     prolog:doc_object_summary(Obj, Type, Section, Summary),
     matching_category(In, Type),
+    match_private(Public, Obj),
     (   Search = not(For)
-    ->  \+ (   Match == summary,
-               apropos_match(For, Summary)
-           ->  true
-           ;   sub_term(S, Obj),
-               atom(S),
-               apropos_match(For, S)
-           )
-    ;   (   Match == summary,
-            apropos_match(Search, Summary)
-        ->  true
-        ;   sub_term(S, Obj),
-            atom(S),
-            apropos_match(Search, S)
-        )
+    ->  State = s(0),
+        \+ ( match_object(For, Obj, Summary, Match, Q),
+             nb_setarg(1, State, Q)
+           ),
+        arg(1, State, Q)
+    ;   match_object(Search, Obj, Summary, Match, Q)
     ).
 
 
@@ -537,8 +749,35 @@ matching_category(all, _).
 matching_category(noapp, Category) :-
     !,
     Category \== application.
-matching_category(app, application).
-matching_category(man, manual).
+matching_category(Category, Category).
+matching_category(Abbrev, Category) :-
+    category_abbreviation(Category, Abbrev).
+
+category_abbreviation(application, app).
+category_abbreviation(manual,      man).
+category_abbreviation(library,     lib).
+category_abbreviation(packages,    pack).
+category_abbreviation(wiki,        wiki).
+
+match_private(true, _).
+match_private(false, Object) :-
+    (   Object = (Module:PI)
+    ->  current_module(Module),
+        pi_head(PI, Head),
+        (   predicate_property(Module:Head, exported)
+        ->  true
+        ;   predicate_property(Module:Head, multifile)
+        ->  true
+        ;   predicate_property(Module:Head, public)
+        )
+    ;   true
+    ).
+
+pi_head(Name/Arity, Head) :-
+    functor(Head, Name, Arity).
+pi_head(Name//Arity, Head) :-
+    Arity1 is Arity+ 2,
+    functor(Head, Name, Arity1).
 
 %!  search_spec(-Search)// is det.
 %
@@ -618,10 +857,53 @@ prolog:doc_category(library,     80, 'System Libraries').
                  *             UTIL             *
                  *******************************/
 
-%!  apropos_match(+Needle, +Haystick) is semidet.
+%!  match_object(+For, +Object, +Summary, +How, -Quality) is semidet.
 %
-%   True if Needle can be found   as a case-insensitive substring in
-%   Haystick.
+%   True when Object with summary text Summary matches For acording to
+%   How.
+%
+%   @arg How is one of `name` or `summary`
+%   @arg Quality is a number in the range 0..1, where 1 means a strong
+%   match.
 
-apropos_match(Needle, Haystack) :-
-    sub_atom_icasechk(Haystack, _, Needle).
+match_object(For, Object, Summary, How, Quality) :-
+    (   doc_object_identifier(Object, Identitier),
+        identifier_match_quality(For, Identitier, Quality)
+    ->  debug(search(rank), 'Rank "~w" in identifier "~w": ~q',
+              [For, Identitier, Quality])
+    ;   How == summary,
+        summary_match_quality(For, Summary, Quality),
+        debug(search(rank), 'Rank "~w" in summary "~w": ~q',
+              [For, Summary, Quality])
+    ).
+
+summary_match_quality(For, Summary, Q) :-
+    tokenize_atom(Summary, Tokens),
+    Tokens \== [],
+    token_match_quality(summary, For, Tokens, Q0),
+    Q is Q0/2.
+
+identifier_match_quality(For, Identifier, Q) :-
+    identifier_parts(Identifier, Parts),
+    Parts \== [],
+    token_match_quality(identifier, For, Parts, Q).
+
+token_match_quality(How, For, Parts, Q) :-
+    length(Parts, Len),
+    (   memberchk(For, Parts)
+    ->  Q0 = 1
+    ;   porter_stem(For, Stem),
+        member(Part, Parts),
+        porter_stem(Part, Stem)
+    ->  Q0 = 0.9
+    ;   How == summary,
+        member(Part, Parts),
+        sub_atom_icasechk(Part, _, For),
+        identifier_parts(Part, SubParts),
+        token_match_quality(identifier, For, SubParts, Q00)
+    ->  Q0 is Q00/2
+    ;   doc_related_word(For, Word, Distance),
+        memberchk(Word, Parts)
+    ->  Q0 = Distance
+    ),
+    Q is Q0/Len.

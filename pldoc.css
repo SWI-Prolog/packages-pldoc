@@ -192,8 +192,7 @@ div.src_formats
 
 table.summary
 { width: 100%;
-  margin-left: 0;
-  margin-right: 0;
+  margin: 1ex 0px;
   -webkit-border-horizontal-spacing: 0px;
   -webkit-border-vertical-spacing: 0px;
   border-spacing: 0px;
@@ -362,6 +361,41 @@ div.search-counts
   margin-bottom: 1em;
 }
 
+div.search-counts.showing
+{ margin-top: -1em;
+}
+
+span.search-showing
+{ display: inline-block;
+  font-style: normal;
+  font-weight: bold;
+  text-align: right;
+  margin-right: 1ex;
+  width: 12ex;
+}
+
+span.search-time
+{ margin-left: 1ex;
+}
+
+div.pagination
+{ font-size: 120%;
+  text-align: center;
+  margin-bottom: 2ex;
+}
+
+div.pagination > .current
+{ margin: 0px 1ex;
+}
+
+div.pagination > a
+{ background-color: #0c3d6e;
+  color: #FFF;
+  padding: 3px 1ex;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
 div.search-options
 { font-size: 70%;
   white-space: nowrap;
@@ -384,6 +418,11 @@ span.search-in, span.search-match
 
 span.search-help
 { padding-left: 1em;
+}
+
+div.search-no-matches
+{ font-size: 200%;
+  margin: 1ex 0pt;
 }
 
 div.synopsis
