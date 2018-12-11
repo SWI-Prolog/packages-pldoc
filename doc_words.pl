@@ -94,9 +94,11 @@ synonym(larger,    greater,     0.5).
 synonym(larger,    higher,      0.5).
 synonym(smaller,   less,        0.5).
 synonym(smaller,   lower,       0.5).
+synonym(fast,      quick,       0.7).
 synonym(delete,    remove,      0.3).
 synonym(clone,     duplicate,   0.3).
 synonym(http,      url,         0.3).
+synonym(http,      https,       0.3).
 synonym(ssl,       tls,         0.9).
 synonym(sin,       sine,        0.9).
 synonym(cos,       cosine,      0.9).
@@ -112,8 +114,35 @@ synonym(min,       minimum,     0.5).
 synonym(min,       minus,       0.5).
 synonym(perm,      permutation, 0.5).
 synonym(rand,      random,      0.5).
+synonym(pred,      predicate,   0.7).
 synonym(predicate, procedure,   0.8).
 synonym(function,  procedure,   0.3).
+synonym(temp,      temporary,   0.7).
+synonym(tmp,       temporary,   0.7).
+synonym(consult,   compile,     0.7).
+synonym(load,      compile,     0.3).
+synonym(remove,    unload,      0.3).
+synonym(remove,    abolish,     0.5).
+synonym(remove,    retract,     0.5).
+synonym(add,       assert,      0.3).
+synonym(add,       append,      0.3).
+synonym(find,      search,      0.7).
+synonym(at,        on,		0.3).
+synonym(cancel,    stop,	0.3).
+synonym(del,       delete,	0.7).
+synonym(rm,        remove,	0.7).
+synonym(dir,       directory,	0.7).
+synonym(folder,    directory,	0.7).
+synonym(arg,       argument,	0.8).
+synonym(param,     parameter,	0.8).
+synonym(argument,  parameter,   0.7).
+synonym(char,      character,   0.8).
+synonym(int,	   integer,     0.8).
+synonym(float,     double,      0.7).
+synonym(real,      float,       0.3).
+synonym(size,      memory,      0.3).
+synonym(concat,    concatenate, 0.8).
+synonym(append,    concatenate, 0.5).
 
 :- dynamic
     prolog_id_part_cached/0,

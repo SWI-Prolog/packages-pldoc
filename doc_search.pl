@@ -902,8 +902,20 @@ token_match_quality(How, For, Parts, Q) :-
         identifier_parts(Part, SubParts),
         token_match_quality(identifier, For, SubParts, Q00)
     ->  Q0 is Q00/2
+    ;   How == summary,
+        member(Part, Parts),
+        sub_atom_icasechk(Part, 0, For),
+        is_numbered_var(Part, For)
+    ->  Q0 is 0.9
     ;   doc_related_word(For, Word, Distance),
         memberchk(Word, Parts)
     ->  Q0 = Distance
     ),
     Q is Q0/Len.
+
+is_numbered_var(VarName, Search) :-
+    atom_length(Search, Len),
+    sub_string(VarName, Len, _, 0, NS),
+    number_string(_, NS),
+    sub_atom(VarName, 0, 1, _, First),
+    char_type(First, prolog_var_start).
