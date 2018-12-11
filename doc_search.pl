@@ -678,7 +678,6 @@ matching_object(Search, Type-(Section-q(1,Obj)), Options) :-
     prolog:doc_object_summary(Obj, Type, Section, _),
     matching_category(In, Type).
 matching_object(Search, Match, Options) :-
-    atom_length(Search, Len), Len > 1,
     atom_codes(Search, Codes),
     phrase(search_spec(For0), Codes),
     (   For0 = not(_)
@@ -882,10 +881,16 @@ match_object(For, Object, Summary, How, Quality) :-
     ).
 
 summary_match_quality(For, Summary, Q) :-
-    tokenize_atom(Summary, Tokens),
+    tokenize_atom(Summary, Tokens0),
+    exclude(is_punctuation, Tokens0, Tokens),
     Tokens \== [],
     token_match_quality(summary, For, Tokens, Q0),
     Q is Q0/2.
+
+is_punctuation(Token) :-
+    atom_length(Token, 1),
+    char_type(Token, punct).
+
 
 identifier_match_quality(For, Identifier, Q) :-
     identifier_parts(Identifier, Parts),
