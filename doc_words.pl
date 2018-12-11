@@ -143,6 +143,9 @@ synonym(real,      float,       0.3).
 synonym(size,      memory,      0.3).
 synonym(concat,    concatenate, 0.8).
 synonym(append,    concatenate, 0.5).
+synonym(same,      equivalent,  0.8).
+synonym(equal,     equivalent,  0.9).
+synonym(eq,        equal,       0.5).
 
 :- dynamic
     prolog_id_part_cached/0,
