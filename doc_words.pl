@@ -59,16 +59,17 @@ much honour.
 %   find a comprehensive list of these?
 
 doc_related_word(In, Out, Distance) :-
-    related(In, Out, 1, Distance).
+    related(In, Out, 1, Distance, [In]).
 
-related(T, T, D, D).
-related(In, Out, D0, D) :-
+related(T, T, D, D, _).
+related(In, Out, D0, D, Visited) :-
     (   synonym(In, Out0, D1)
     ;   synonym(Out0, In, D1)
     ),
+    \+ memberchk(Out0, Visited),
     D2 is D0*D1,
     D2 > 0.2,
-    related(Out0, Out, D2, D).
+    related(Out0, Out, D2, D, [Out0|Visited]).
 
 
 synonym(file,      srcdest,     0.9).
