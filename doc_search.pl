@@ -716,6 +716,8 @@ optimise_search(A, A).
 %       Intersection of the specification
 %     - not(Spec)
 %       Negation of the specification
+%     - quoted(Tokens)
+%       A quoted list of tokens.
 
 exec_search(Spec, Match, Options) :-
     exec_search(Spec, Match0, Q, Options),
@@ -793,10 +795,10 @@ search_spec(Spec) -->
     ->  { Spec = and(A,B) }
     ).
 
-prim_search_spec(Quoted) -->
+prim_search_spec(quoted(Quoted)) -->
     "\"", string(Codes), "\"",
     !,
-    { atom_codes(Quoted, Codes)
+    { tokenize_atom(Codes, Quoted)
     }.
 prim_search_spec(Spec) -->
     nonblanks(Codes),
@@ -862,6 +864,8 @@ prolog:doc_category(library,     80, 'System Libraries').
 %   True when Object with summary text Summary matches For acording to
 %   How.
 %
+%   @arg For is either a token (atom) or a term quoted(Tokens), where
+%   `Tokens` is a list of atoms.
 %   @arg How is one of `name` or `summary`
 %   @arg Quality is a number in the range 0..1, where 1 means a strong
 %   match.
@@ -888,6 +892,11 @@ identifier_match_quality(For, Identifier, Q) :-
     Parts \== [],
     token_match_quality(identifier, For, Parts, Q).
 
+token_match_quality(_How, quoted(Tokens), Parts, Q) :-
+    !,
+    append(Tokens, _, All),
+    append(_, All, Parts),
+    Q = 1.
 token_match_quality(How, For, Parts, Q) :-
     length(Parts, Len),
     (   memberchk(For, Parts)
