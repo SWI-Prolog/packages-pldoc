@@ -1936,8 +1936,8 @@ pred_source_href(Name/Arity, Module, HREF) :-
     (   catch(relative_file(Module:Head, File), _, fail)
     ->  uri_data(path, Components, File),
         uri_components(HREF, Components)
-    ;   in_file(Module:Head, File0),
-        insert_alias(File0, File),
+    ;   in_file(Module:Head, File0)
+    ->  insert_alias(File0, File),
         http_location_by_id(pldoc_doc, DocHandler),
         atom_concat(DocHandler, File, Path),
         uri_data(path, Components, Path),
@@ -2148,18 +2148,26 @@ in_file(Head, File) :-
     distinct(File, in_file(_, Head, File)).
 
 in_file(Module, Head, File) :-
+    var(Module),
+    (   predicate_property(system:Head, file(File))
+    ->  !
+    ;   predicate_property(system:Head, foreign)
+    ->  !,
+        fail
+    ).
+in_file(Module, Head, File) :-
+    xref_defined(File, Head, How),
     xref_current_source(File),
     atom(File),                     % only plain files
     xref_module(File, Module),
-    xref_defined(File, Head, How),
     How \= imported(_From).
 in_file(Module, Head, File) :-
     distinct(Primary,
-             (predicate_property(Module:Head, exported),
-              (   predicate_property(Module:Head, imported_from(Primary))
-              ->  true
-              ;   Primary = Module
-              ))),
+             (   predicate_property(Module:Head, exported),
+                 (   predicate_property(Module:Head, imported_from(Primary))
+                 ->  true
+                 ;   Primary = Module
+                 ))),
     module_property(Primary, file(File)).
 in_file(Module, Head, File) :-
     predicate_property(Module:Head, file(File)),
@@ -2167,6 +2175,7 @@ in_file(Module, Head, File) :-
 in_file(Module, Head, File) :-
     current_module(Module),
     source_file(Module:Head, File).
+
 
 %%     file(+FileName)// is det.
 %%     file(+FileName, +Options)// is det.
