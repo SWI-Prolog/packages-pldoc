@@ -259,10 +259,10 @@ doc_comment(Name/Arity, Pos, Summary, Comment) :-
 
 
 locally_defined(M:Name/Arity) :-
-    current_module(M),
     current_predicate(M:Name/Arity),
     functor(Head, Name, Arity),
-    \+ predicate_property(M:Head, imported_from(_)).
+%   \+ predicate_property(M:Head, imported_from(_)).
+    \+ '$get_predicate_attribute'(M:Head, imported, _).
 
 
 qualify(M, H, H) :- system_module(M), !.
