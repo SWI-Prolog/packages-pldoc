@@ -20,7 +20,7 @@ swipl_plugin(pldoc
 set(SWIPL_QLF_BASE ${SWIPL_BUILD_HOME}/library/pldoc)
 add_qcompile_target(doc_html
 		    PRELOAD "lib:pldoc"
-		    DEPENDS clib sgml http)
+		    DEPENDS clib sgml http nlp)
 
 swipl_examples(server/README server/man_server.pl)
 
