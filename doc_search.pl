@@ -381,6 +381,7 @@ cat_limit(N, R, [C-L|T0], [C-L|T]) :-
     !,
     cat_limit(More, R, T0, T).
 cat_limit(N, 0, [C-L0|_], [C-L]) :-
+    !,
     length(L, N),
     append(L, _, L0).
 cat_limit(N, N, [], []).
