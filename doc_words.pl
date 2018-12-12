@@ -154,6 +154,8 @@ synonym(temp,      temporary,   0.7).
 synonym(tmp,       temporary,   0.7).
 synonym(zip,	   compress,    0.3).
 synonym(unzip,     decompress,  0.3).
+synonym(tty,	   terminal,    0.7).
+synonym(console,   terminal,    0.7).
 
 :- dynamic
     prolog_id_part_cached/0,
