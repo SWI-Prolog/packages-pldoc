@@ -220,11 +220,7 @@ search_reply(For, Options) -->
                ])
          ]).
 search_reply(For, Options) -->
-    { statistics(cputime, T0),
-      search_doc(For, PerCategory0, Options),
-      order_matches(PerCategory0, PerCategory),
-      statistics(cputime, T1),
-      Time is T1-T0,
+    { cached_search(For, PerCategory, Time, Options),
       PerCategory \== [],
       page_location(PerCategory, NPages, Offset, Limit, Options),
       option(resultFormat(Format), Options, summary)
@@ -245,6 +241,35 @@ search_reply(For, Options) -->
 search_reply(For, Options) -->
     search_header(For, 'No matches', Options),
     html(div(class('search-no-matches'), 'No matches')).
+
+:- dynamic
+    cached_search_result/4.
+
+cached_search(For, Result, Time, Options) :-
+    option(search_in(In), Options, all),
+    option(search_match(Match), Options, summary),
+    cached_search_result(For, In, Match, Result),
+    !,
+    Time = cached.
+cached_search(For, Result, Time, Options) :-
+    option(search_in(In), Options, all),
+    option(search_match(Match), Options, summary),
+    statistics(cputime, T0),
+    search_doc(For, PerCategory0, Options),
+    order_matches(PerCategory0, Result),
+    statistics(cputime, T1),
+    Time is T1-T0,
+    assertz(cached_search_result(For, In, Match, Result)),
+    prune_search_cache.
+
+prune_search_cache :-
+    (   predicate_property(cached_search_result(_,_,_,_),
+                           number_of_clauses(Count)),
+        Del is Count - 25,
+        Del > 0
+    ->  forall(between(1,Del,_), retract(cached_search_result(_,_,_,_)))
+    ;   true
+    ).
 
 page_location(PerCategory, NPages, Offset, Limit, Options) :-
     option(page(Page), Options, 1),
@@ -477,7 +502,10 @@ category_showing(_) -->
 search_time(Options) -->
     { option(cputime(Time), Options) },
     !,
-    html(span(class('search-time'), '(~2f sec.)'-[Time])).
+    (   { number(Time) }
+    ->  html(span(class('search-time'), '(~2f sec.)'-[Time]))
+    ;   html(span(class('search-time'), '(~w)'-[Time]))
+    ).
 search_time(_) -->
     [].
 
