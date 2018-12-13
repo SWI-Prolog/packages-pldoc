@@ -1234,8 +1234,8 @@ prolog:doc_object_link(manual, _Options) -->
 prolog:doc_object_link(packages, _) -->
     html('Packages').
 
-prolog:doc_category(manual,   30, 'SWI-Prolog Reference Manual').
-prolog:doc_category(packages, 40, 'Package documentation').
+prolog:doc_category(manual,   30, 'Reference Manual').
+prolog:doc_category(packages, 40, 'Packages').
 
 prolog:doc_file_index_header(File, Options) -->
     { Section = section(_Level, _No, _ID, File),
