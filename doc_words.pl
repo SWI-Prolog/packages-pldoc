@@ -71,8 +71,6 @@ related(In, Out, D0, D, Visited) :-
     D2 > 0.2,
     related(Out0, Out, D2, D, [Out0|Visited]).
 
-
-
 synonym(abs,       absolute,    0.7).
 synonym(add,       append,      0.3).
 synonym(add,       assert,      0.3).
@@ -86,6 +84,7 @@ synonym(char,      character,   0.8).
 synonym(clone,     duplicate,   0.3).
 synonym(close,     destroy,     0.3).
 synonym(concat,    concatenate, 0.8).
+synonym(console,   terminal,    0.7).
 synonym(consult,   compile,     0.7).
 synonym(cos,       cosine,      0.9).
 synonym(create,    clone,       0.3).
@@ -107,6 +106,7 @@ synonym(error,     catch,       0.5).
 synonym(error,     exception,   0.8).
 synonym(error,     throw,       0.5).
 synonym(eval,      evaluate,    0.7).
+synonym(exec,	   execute,     0.7).
 synonym(exit,      halt,        0.9).
 synonym(fast,      quick,       0.7).
 synonym(file,      srcdest,     0.9).
@@ -122,6 +122,7 @@ synonym(int,	   integer,     0.8).
 synonym(larger,    greater,     0.5).
 synonym(larger,    higher,      0.5).
 synonym(load,      compile,     0.3).
+synonym(lock,      mutex,	0.5).
 synonym(log,       logarithmic, 0.9).
 synonym(max,       maximum,     0.8).
 synonym(min,       minimum,     0.5).
@@ -141,7 +142,9 @@ synonym(remove,    abolish,     0.5).
 synonym(remove,    retract,     0.5).
 synonym(remove,    unload,      0.3).
 synonym(rm,        remove,	0.7).
+synonym(run,       call,        0.3).
 synonym(same,      equivalent,  0.8).
+synonym(screen,    console,     0.5).
 synonym(sin,       sine,        0.9).
 synonym(size,      memory,      0.3).
 synonym(smaller,   less,        0.5).
@@ -150,12 +153,13 @@ synonym(sqrt,      root,        0.5).
 synonym(sqrt,      square,      0.5).
 synonym(ssl,       tls,         0.9).
 synonym(tan,       tangent,     0.9).
+synonym(task,	   process,     0.3).
+synonym(task,	   thread,      0.3).
 synonym(temp,      temporary,   0.7).
 synonym(tmp,       temporary,   0.7).
-synonym(zip,	   compress,    0.3).
-synonym(unzip,     decompress,  0.3).
 synonym(tty,	   terminal,    0.7).
-synonym(console,   terminal,    0.7).
+synonym(unzip,     decompress,  0.3).
+synonym(zip,	   compress,    0.3).
 
 :- dynamic
     prolog_id_part_cached/0,
