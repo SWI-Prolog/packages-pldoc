@@ -1058,6 +1058,14 @@ object_synopsis(M:Name/Arity, Options) -->
     ->  synopsis([code([':- use_module(',a(href(HREF), '~q'-[Unquoted]),').'])|Extra])
     ;   synopsis([code(':- use_module(~q).'-[Unquoted])|Extra])
     ).
+object_synopsis(Name//Arity, Options) -->
+    !,
+    { DCGArity is Arity+2 },
+    object_synopsis(Name/DCGArity, Options).
+object_synopsis(Module:Name//Arity, Options) -->
+    !,
+    { DCGArity is Arity+2 },
+    object_synopsis(Module:Name/DCGArity, Options).
 object_synopsis(f(_/_), _) -->
     synopsis(span(class(function),
                   [ 'Arithmetic function (see ',
