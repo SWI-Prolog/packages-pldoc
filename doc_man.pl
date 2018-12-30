@@ -193,7 +193,7 @@ man_content_tree(Spec, node(manual, Chapters)) :-
                          access(read)
                        ]),
     directory_file_path(Dir, 'Contents.html', ContentsFile),
-    load_html_file(ContentsFile, DOM),
+    load_html(ContentsFile, DOM, [cdata(string)]),
     findall(Level-Path,
             ( xpath(DOM, //div(@class=Class), DIV),
               class_level(Class, Level),
@@ -305,7 +305,7 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
         ;   Pairs == []
         )
     ->  !,
-        load_html_file(Path, DOM)           % Load whole file
+        load_html(Path, DOM, [cdata(string)])           % Load whole file
     ;   append(_, [SN-Start|Rest], Pairs)
     ->  !,
         (   member(N-End, Rest),
@@ -328,7 +328,8 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
         call_cleanup(sgml_parse(Parser,
                                 [ document(DOM),
                                   source(In),
-                                  syntax_errors(quiet)
+                                  syntax_errors(quiet),
+                                  cdata(string)
                                 | Options
                                 ]),
                      ( free_sgml_parser(Parser),
@@ -360,6 +361,7 @@ load_man_object(For, Parent, Path, DOM) :-
 parse_dts_upto_dd(Parser, In, Description) :-
     sgml_parse(Parser,
                [ document(DOM0),
+                 cdata(string),
                  source(In),
                  parse(element),
                  syntax_errors(quiet)
