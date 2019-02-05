@@ -366,7 +366,17 @@ reply_file_objects(File, Objs0, Objects, FileOptions, Options) :-
     module_info(File, ModuleOptions, Options),
     file_info(Objs0, Objs1, FileOptions, ModuleOptions),
     doc_hide_private(Objs1, ObjectsSelf, ModuleOptions),
-    include_reexported(ObjectsSelf, Objects, File, FileOptions).
+    include_reexported(ObjectsSelf, Objects1, File, FileOptions),
+    remove_doc_duplicates(Objects1, Objects, []).
+
+remove_doc_duplicates([], [], _).
+remove_doc_duplicates([H|T0], [H|T], Seen) :-
+    H = doc(_, _, Comment),
+    \+ memberchk(Comment, Seen),
+    !,
+    remove_doc_duplicates(T0, T, [Comment|Seen]).
+remove_doc_duplicates([_|T0], T, Seen) :-
+    remove_doc_duplicates(T0, T, Seen).
 
 include_reexported(SelfObjects, Objects, File, Options) :-
     option(include_reexported(true), Options),
