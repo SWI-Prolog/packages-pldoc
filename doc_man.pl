@@ -463,7 +463,9 @@ same_dir(File1, File2) :-
 %   Tranform the Name/Arity, etc strings as   received from the HTTP
 %   into a term.  Must return unique results.
 
-object_spec(Spec, Spec).
+object_spec(Spec, Spec) :-
+    compound(Spec),
+    !.
 object_spec(Atom, Spec) :-
     catch(atom_to_term(Atom, Spec, _), _, fail),
     !,
