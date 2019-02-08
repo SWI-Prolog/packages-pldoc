@@ -921,6 +921,12 @@ is_punctuation(Token) :-
     char_type(Token, punct).
 
 
+identifier_match_quality(Identifier, Identifier, 1) :-
+    !.
+identifier_match_quality(For, Identifier, Q) :-
+    dwim_match(For, Identifier, _),
+    !,
+    Q = 0.8.
 identifier_match_quality(For, Identifier, Q) :-
     identifier_parts(Identifier, Parts),
     Parts \== [],
