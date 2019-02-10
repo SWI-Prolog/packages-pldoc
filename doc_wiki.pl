@@ -1357,6 +1357,23 @@ file_name(FileBase, Extension) -->
     ['.'], file_extension(Extension),
     !,
     { atomic_list_concat([S1|List], '/', FileBase) }.
+file_name(FileBase, Extension) -->
+    [w(Alias), '('],
+    { once(user:file_search_path(Alias, _)) },
+    segment(S1),
+    segments(List),
+    [')'],
+    !,
+    { atomic_list_concat([S1|List], '/', Base),
+      Spec =.. [Alias,Base],
+      absolute_file_name(Spec, Path,
+                         [ access(read),
+                           extensions([pl]),
+                           file_type(prolog)
+                         ]),
+      file_name_extension(FileBase, Extension, Path)
+    }.
+
 
 segment(..) -->
     ['.','.'],
