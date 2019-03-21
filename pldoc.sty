@@ -284,16 +284,6 @@
 	\index{#1 \string\idxtype{menu}}%
 	\ignorespaces}
 
-
-%	\tag{Keyword}
-%
-%	PlDoc @keyword expansion.  \mtag{Keyword} is a multi-valued tag
-
-\newcommand{\tag}[1]{%
-	\item[#1]}
-\newcommand{\mtag}[1]{%
-	\item[#1]\mbox{}\\}
-
 \newcommand{\bnfmeta}[1]{\ifmmode{\langle\mbox{\it #1}\rangle}\else$\langle\mbox{\it #1}\rangle$\fi}
 \newcommand{\bnfor}{\ifmmode\mid\else$\mid$\fi}
 \newcommand{\isa}{& ::= &}
@@ -506,11 +496,16 @@
 	{\end{tabular}}
 
 %	\begin{tags} ... \end{tags}
+%
+%	Inside, defines \tag{Keyword} and \mtag{Keyword} (multi-valued
+%	tag)
 
 \newenvironment{tags}%
 	{\begin{quote}\begin{description}%
 		\setlength{\itemsep}{0pt}%
-		\footnotesize}%
+		\footnotesize%
+	        \newcommand{\tag}[1]{\item[#1]}%
+	        \newcommand{\mtag}[1]{\item[#1]\mbox{}\\}}%
 	{\end{description}\end{quote}}
 
 
