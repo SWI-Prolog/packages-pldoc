@@ -1369,7 +1369,8 @@ file_name(FileBase, Extension) -->
       absolute_file_name(Spec, Path,
                          [ access(read),
                            extensions([pl]),
-                           file_type(prolog)
+                           file_type(prolog),
+                           file_errors(fail)
                          ]),
       file_name_extension(FileBase, Extension, Path)
     }.
