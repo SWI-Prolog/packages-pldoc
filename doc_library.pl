@@ -92,6 +92,7 @@ load_all(_).
 %
 %   @bug    We force lowercase to make it also work on Windows
 
+blocked('/theme/dark.pl').
 blocked('/chr').
 blocked('/clpq').
 blocked('/clpr').
