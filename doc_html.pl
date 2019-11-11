@@ -2167,11 +2167,17 @@ in_file(Head, File) :-
 
 in_file(Module, Head, File) :-
     var(Module),
-    (   predicate_property(system:Head, file(File))
-    ->  !
-    ;   predicate_property(system:Head, foreign)
+    (   predicate_property(system:Head, foreign)
     ->  !,
         fail
+    ;   predicate_property(system:Head, file(File)),
+        \+ system_arithmetic_function(Head)
+    ->  !
+    ;   predicate_property(Head, autoload(File0))
+    ->  !,
+        file_name_extension(File0, pl, File)
+    ;   exported_from(Module, Head, File),
+        module_property(Module, class(library))
     ).
 in_file(Module, Head, File) :-
     xref_defined(File, Head, How),
@@ -2180,13 +2186,7 @@ in_file(Module, Head, File) :-
     xref_module(File, Module),
     How \= imported(_From).
 in_file(Module, Head, File) :-
-    distinct(Primary,
-             (   predicate_property(Module:Head, exported),
-                 (   predicate_property(Module:Head, imported_from(Primary))
-                 ->  true
-                 ;   Primary = Module
-                 ))),
-    module_property(Primary, file(File)).
+    exported_from(Module, Head, File).
 in_file(Module, Head, File) :-
     predicate_property(Module:Head, file(File)),
     \+ predicate_property(Module:Head, imported_from(_)).
@@ -2194,6 +2194,23 @@ in_file(Module, Head, File) :-
     current_module(Module),
     source_file(Module:Head, File).
 
+exported_from(Module, Head, File) :-
+    distinct(Primary,
+             (   predicate_property(Module:Head, exported),
+                 (   predicate_property(Module:Head, imported_from(Primary))
+                 ->  true
+                 ;   Primary = Module
+                 ))),
+    module_property(Primary, file(File)).
+
+:- multifile
+    arithmetic:evaluable/2.
+
+system_arithmetic_function(Head) :-
+    functor(Head, Name, Arity),
+    FArith is Arity-1,
+    functor(FHead, Name, FArith),
+    arithmetic:evaluable(FHead, system).
 
 %%     file(+FileName)// is det.
 %%     file(+FileName, +Options)// is det.
