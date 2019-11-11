@@ -2209,6 +2209,7 @@ exported_from(Module, Head, File) :-
 system_arithmetic_function(Head) :-
     functor(Head, Name, Arity),
     FArith is Arity-1,
+    FArith >= 0,
     functor(FHead, Name, FArith),
     arithmetic:evaluable(FHead, system).
 
