@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2018, University of Amsterdam
+    Copyright (c)  2006-2019, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
     All rights reserved.
@@ -1321,6 +1321,15 @@ wiki_link(a(href(Ref), Label), Options) -->
       ),
       E = error(_,_),
       catch(expand_url_path(Term, Ref), E, fail),
+      option(label(Label), Options, Ref)
+    }.
+wiki_link(a(href(Ref), Label), Options) -->
+    [#, w(First)],
+    { option(end(End), Options) },
+    tokens_no_whitespace(Rest),
+    peek_end_url(End),
+    !,
+    { atomic_list_concat([#,First|Rest], Ref),
       option(label(Label), Options, Ref)
     }.
 wiki_link(a(href(Ref), Label), Options) -->
