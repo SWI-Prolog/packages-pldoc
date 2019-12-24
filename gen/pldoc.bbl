@@ -2,9 +2,9 @@
 
 \bibitem[Covington {\em et al.}, 2012]{DBLP:dblpjournals/tplp/CovingtonBOWP12}
 Michael~A. Covington, Roberto Bagnara, Richard~A. O'Keefe, Jan Wielemaker,
-  Simon Price, and Simon Price.
-\newblock Coding guidelines for prolog coding guidelines for prolog.
-\newblock pages 889--927, 2012.
+  and Simon Price.
+\newblock Coding guidelines for Prolog.
+\newblock {\em TPLP}, pages 889--927, 2012.
 
 \bibitem[Hermenegildo, 2000]{DBLP:conf/cl/Hermenegildo00}
 Manuel~V. Hermenegildo.
@@ -16,7 +16,7 @@ Manuel~V. Hermenegildo.
 
 \bibitem[Jeffery {\em et al.}, 2000]{DBLP:conf/acsc/JefferyHS00}
 David Jeffery, Fergus Henderson, and Zoltan Somogyi.
-\newblock Type classes in mercury.
+\newblock Type classes in Mercury.
 \newblock In {\em ACSC}, pages 128--135. IEEE Computer Society, 2000.
 
 \bibitem[Moura, 2003]{pmoura03}
@@ -28,7 +28,7 @@ Paulo Moura.
 
 \bibitem[Mycroft \& O'Keefe, 1984]{DBLP:journals/ai/MycroftO84}
 Alan Mycroft and Richard~A. O'Keefe.
-\newblock A polymorphic type system for prolog.
+\newblock A polymorphic type system for Prolog.
 \newblock {\em Artif. Intell.}, 23(3):295--307, 1984.
 
 \end{thebibliography}
