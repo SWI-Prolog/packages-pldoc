@@ -958,9 +958,9 @@ documentation.
 \section{Motivation of choices}
 \label{sec:motivation}
 
-Literal programming is an established field.  The \TeX{} source is one
+Literate programming is an established field.  The \TeX{} source is one
 of the first and best known examples of this approach, where input
-files are a mixture of \TeX{} and PASCAL source. External tools are
+files are a mixture of \TeX{} and Pascal source. External tools are
 used to untangle the common source and process one branch to produce
 the documentation, while the other is compiled to produce the program.
 
@@ -993,7 +993,7 @@ for the following reasons:
     \item Using Prolog strings requires unnatural escape sequences for
 	  string quotes and long literal values tend to result in hard
 	  to find quote-mismatches. Python uses comments in long
-	  strings, fixing this problem using a three double quotes
+	  strings, solving this problem by using three double quotes
 	  to open and close long comments.
     \item Comments should not look like code, as that makes it more
 	  difficult to find the actual code.
@@ -1001,8 +1001,8 @@ for the following reasons:
 
 We are aware that the above problems can be dealt with using
 syntax-aware editors. Only a few editors are sufficiently powerful to
-support this correctly though and we do not expect the required advanced
-modes to be widely available.  Using comments we do not need to force
+support this correctly, though, and we do not expect the required advanced
+modes to be widely available.  If comments are used, we do not need to force
 users into using a particular editor.
 
 \subsection*{Wiki or HTML}
@@ -1026,20 +1026,20 @@ verification or to perform static type-analysis.  We have chosen to
 use a structured comment with formal syntax for the following reasons:
 
 \begin{itemize}
-    \item As a comment, they stay together with the comment block
+    \item As comments, they stay together with the comment block
           of a predicate. We feel it is best to keep documentation
 	  as close as possible to the source.
     \item As we parse them separately, we can pick up argument names
 	  and create a readable syntax without introducing possibly
 	  conflicting operators.
-    \item As a comment they do not introduce incompatibilities with
+    \item As comments, they do not introduce incompatibilities with
           other Prolog systems.
 \end{itemize}
 
 
 \subsection*{Few requirements}
 
-SWI-Prolog aims at platform independency. We want tools to rely as
+SWI-Prolog aims at platform independence. We want tools to rely as
 much as possible on Prolog itself. Therefore, the entire infrastructure
 is written in Prolog. Output as HTML is suitable for browsing and not
 very high quality printing on virtually all platforms. Output to
@@ -1053,13 +1053,13 @@ producing high-quality PDF documents.
 Initially, the PlDoc wiki language was based on
 \href{http://www.twiki.org}{Twiki}. Currently,
 \href{http://en.wikipedia.org/wiki/Markdown}{markdown} is a wiki syntax
-that is widely accepted and not tight to a single system.  In PlDoc~2,
+that is widely accepted and not tied to a single system.  In PlDoc~2,
 we have adopted markdown, including many of the limitations and
 extensions introduced by
 \href{http://www.stack.nl/~dimitri/doxygen/}{Docygen}.  Limitations are
 needed to avoid ambiguities due to the common use of symbol charaters
 in programming languages. Extensions are desirable to make use of
-already existing conventions and support requirements of program
+already existing conventions and to support requirements of program
 documentation.
 
 Some of the changes in PlDoc~2 are to achieve compatibility with the
