@@ -240,9 +240,9 @@ html_fragment(fragment(Start, End, comment(structured), []),
         wiki_lines_to_dom(Lines1, Args, DOM0),
         strip_leading_par(DOM0, DOM1),
         phrase(pldoc_html:html(DOM), Tokens),               % HACK
-        format(Out, '<dl class="comment">~n', [Out]),
+        format(Out, '<dl class="comment">~n', []),
         print_html(Out, Tokens),
-        format(Out, '</dl>~n', [Out])
+        format(Out, '</dl>~n', [])
     ).
 html_fragment(fragment(Start, End, structured_comment, []),
               In, Out, State0, State, _Options) :-
@@ -357,7 +357,7 @@ copy_to(In, End, Out, State, State) :-
     !,
     copy_to(In, End, Out).
 copy_to(In, End, Out, State, [pre(class(listing))|State]) :-
-    format(Out, '<pre class="listing">~n', [Out]),
+    format(Out, '<pre class="listing">~n', []),
     line_count(In, Line0),
     read_to(In, End, Codes0),
     delete_leading_white_lines(Codes0, Codes, Line0, Line),
@@ -369,7 +369,7 @@ copy_codes(Codes, Line, Out, State, State) :-
     !,
     write_codes(Codes, Line, Out).
 copy_codes(Codes0, Line0, Out, State, State) :-
-    format(Out, '<pre class="listing">~n', [Out]),
+    format(Out, '<pre class="listing">~n', []),
     delete_leading_white_lines(Codes0, Codes, Line0, Line),
     assert(lineno),
     write_codes(Codes, Line, Out).
