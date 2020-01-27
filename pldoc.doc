@@ -205,6 +205,7 @@ patterns, determinism and more. The syntax is informally described below:
 		\ora 'failure' \\
 		\ora 'nondet' \\
 		\ora 'multi' \\
+		\ora 'undefined' \\
 <head>		\isa <functor>'('<argspec> {',' <argspec>}')' \\
 		\ora <functor> \\
 <argspec>	\isa [<instantiation>]<argname>[':'<type>] \\
@@ -234,6 +235,8 @@ or the recovery goal of catch/3.
 		  succeeds and whether or not it leaves choice-points
 		  on the last success. \\
 \const{multi}   & As \const{nondet}, but succeeds at least one time. \\
+\const{undefined} & Well founded semantics third value.
+		    See undefined/0. \\
 \hline
 \end{tabular}
 \end{center}

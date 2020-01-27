@@ -401,6 +401,7 @@ is_det(det).
 is_det(semidet).
 is_det(nondet).
 is_det(multi).
+is_det(undefined).
 
 is_head(Var) :-
     var(Var), !, fail.
