@@ -131,8 +131,9 @@ atom_pi2(Atom, Name//Arity) :-
     sub_atom(Atom, B, _, A, //),
     sub_atom(Atom, _, A, 0, ArityA),
     atom_number(ArityA, Arity),
-    !,
-    sub_atom(Atom, 0, B, _, Name).
+    sub_atom(Atom, 0, B, _, Name),
+    Name \== '',
+    !.
 atom_pi2(Atom, Name/Arity) :-
     sub_atom(Atom, B, _, A, /),
     sub_atom(Atom, _, A, 0, ArityA),
@@ -145,6 +146,13 @@ atom_pi2(Name, Name/_).
 %
 %   If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
+atom_to_object(Atom, Object) :-
+    atom(Atom),
+    atom_concat('f-', Atom0, Atom),
+    !,
+    PI = _/_,                           % avoid qualified and DCG
+    atom_pi(Atom0, PI),
+    Object = f(PI).
 atom_to_object(Atom, Object) :-
     atom(Atom),
     atom_pi(Atom, PI),
