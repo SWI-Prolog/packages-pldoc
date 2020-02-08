@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2013, University of Amsterdam
+    Copyright (c)  2006-2020, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -59,19 +60,16 @@ doc_collect(OnOff) :-
 
 :- doc_collect(true).
 
-:- load_files([ pldoc(doc_process),
-                pldoc(doc_register),
-                pldoc(doc_modes),
-                pldoc(doc_wiki),
-                library(debug),
-                library(option),
-                library(lists),
-                library(operators),
-                library(prolog_source)
-              ],
-              [ silent(true),
-                if(not_loaded)
-              ]).
+:- use_module(pldoc(doc_process)).
+:- use_module(pldoc(doc_register)).
+:- use_module(pldoc(doc_modes)).
+:- use_module(pldoc(doc_wiki)).
+:- use_module(library(debug)).
+:- use_module(library(option)).
+:- use_module(library(lists)).
+:- use_module(library(operators)).
+:- use_module(library(prolog_source)).
+
 
                  /*******************************
                  *        DOCUMENTATION         *
