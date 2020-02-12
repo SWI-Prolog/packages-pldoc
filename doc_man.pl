@@ -41,23 +41,43 @@
             man_content_tree/2,         % +Dir, -Tree
             man_packages_tree/1         % -Tree
           ]).
-:- use_module(library(lists)).
-:- use_module(library(uri)).
-:- use_module(library(apply)).
-:- use_module(library(option)).
-:- use_module(library(filesex)).
-:- use_module(library(xpath)).
-:- use_module(doc_html).
-:- use_module(doc_search).
-:- use_module(doc_process).
-:- use_module(doc_util).
-:- use_module(man_index).
+:- use_module(library(xpath),[xpath/3, op(_,_,_)]).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/html_head)).
-:- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
-:- use_module(library(http/mimetype)).
-:- use_module(library(prolog_xref)).
+
+:- autoload(doc_html,
+	    [ object_tree/5, private/2, object_page_header/4, objects/4,
+	      object_href/2, object_synopsis/4, object_page_footer/4,
+	      object_ref/4, object_page/4,
+              object_source_button//2
+	    ]).
+:- autoload(doc_process,[doc_comment/4]).
+:- autoload(doc_search,[search_form/3]).
+:- autoload(doc_util,[atom_to_object/2,atom_pi/2]).
+:- autoload(man_index,[manual_object/5]).
+:- autoload(library(apply),[maplist/2,maplist/3]).
+:- autoload(library(debug),[assertion/1,debug/3]).
+:- autoload(library(error),[permission_error/3,existence_error/2]).
+:- autoload(library(filesex),
+	    [directory_file_path/3,relative_file_name/3]).
+:- autoload(library(lists),
+	    [select/4,append/3,member/2,last/2,selectchk/3]).
+:- autoload(library(option),[merge_options/3,option/2,option/3]).
+:- autoload(library(pairs),[pairs_values/2,pairs_keys/2]).
+:- autoload(library(prolog_xref),[xref_public_list/3]).
+:- autoload(library(sgml),
+	    [ load_html/3, dtd/2, new_sgml_parser/2, set_sgml_parser/2,
+	      sgml_parse/2, free_sgml_parser/1
+	    ]).
+:- autoload(library(uri),[uri_encoded/3]).
+:- autoload(library(www_browser),[expand_url_path/2]).
+:- autoload(library(http/html_head),[html_requires/3]).
+:- autoload(library(http/http_dispatch),
+	    [ http_link_to_id/3, http_location_by_id/2,
+	      http_handler/3, http_reply_file/3, http_redirect/3
+	    ]).
+:- autoload(library(http/http_path),[http_absolute_location/3]).
+:- autoload(library(http/mimetype),[file_mime_type/2]).
+
 :- include(hooks).
 
 /** <module> Process SWI-Prolog HTML manuals

@@ -44,12 +44,23 @@
             manual_object/5,            % ?Obj, ?Summary, ?File, ?Class, ?Offset
             doc_object_identifier/2     % +Obj, -Name
           ]).
-:- use_module(library(sgml)).
-:- use_module(library(occurs)).
-:- use_module(library(lists)).
-:- use_module(library(filesex)).
-:- use_module(library(error)).
-:- use_module(doc_util).
+:- autoload(doc_util,[atom_to_object/2,normalise_white_space/3]).
+:- autoload(library(apply),[maplist/2]).
+:- autoload(library(assoc),[empty_assoc/1,get_assoc/3,put_assoc/4]).
+:- autoload(library(debug),[debug/3]).
+:- autoload(library(error),[type_error/2]).
+:- autoload(library(filesex),[directory_file_path/3]).
+:- autoload(library(lists),[member/2,reverse/2,append/3]).
+:- autoload(library(occurs),[sub_term/2]).
+:- autoload(library(option),[select_option/4]).
+:- autoload(library(sgml),
+	    [ dtd/2,
+	      new_sgml_parser/2,
+	      set_sgml_parser/2,
+	      sgml_parse/2,
+	      free_sgml_parser/1,
+	      get_sgml_parser/2
+	    ]).
 
 /** <module> Index the HTML manuals
 
