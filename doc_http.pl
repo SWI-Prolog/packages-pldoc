@@ -68,6 +68,7 @@
 :- use_module(pldoc(doc_util)).
 :- use_module(pldoc(doc_access)).
 :- use_module(pldoc(doc_pack)).
+:- use_module(pldoc(man_index)).
 
 /** <module> Documentation server
 
@@ -206,7 +207,7 @@ browser_url(Name//Arity, URL) :-
 browser_url(Name/Arity, URL) :-
     !,
     must_be(atom, Name),
-    (   predicate(Name, Arity, _, _, _)
+    (   man_object_property(Name/Arity, summary(_))
     ->  format(string(S), '~q/~w', [Name, Arity]),
         http_link_to_id(pldoc_man, [predicate=S], URL)
     ;   browser_url(_:Name/Arity, URL)
