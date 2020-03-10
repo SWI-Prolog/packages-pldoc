@@ -766,41 +766,41 @@ man_match((Parent+Path)-(Obj+[element(dt,A,C0)|DD]), Obj, Options) -->
     dom_list([ element(dt,[],[\man_synopsis(QObj, Section, LibOpt)]),
                element(dt,A,C)
              | DD
-             ], Path).
-man_match((_Parent+Path)-(Obj+DOM), Obj, _) -->
-    dom_list(DOM, Path).
+             ], Path, Options).
+man_match((_Parent+Path)-(Obj+DOM), Obj, Options) -->
+    dom_list(DOM, Path, Options).
 
 
 :- html_meta
-    dom_list(html, +, ?, ?).
+    dom_list(html, +, +, ?, ?).
 
-dom_list(_:[], _) -->
+dom_list(_:[], _, _) -->
     !,
     [].
-dom_list(M:[H|T], Path) -->
-    dom(H, Path),
-    dom_list(M:T, Path).
+dom_list(M:[H|T], Path, Options) -->
+    dom(H, Path, Options),
+    dom_list(M:T, Path, Options).
 
-dom(element(E, Atts, Content), Path) -->
+dom(element(E, Atts, Content), Path, Options) -->
     !,
-    dom_element(E, Atts, Content, Path).
-dom(CDATA, _) -->
+    dom_element(E, Atts, Content, Path, Options).
+dom(CDATA, _, _) -->
     html(CDATA).
 
-dom_element(a, _, [], _) -->                   % Useless back-references
+dom_element(a, _, [], _, _) -->                % Useless back-references
     !,
     [].
-dom_element(a, Att, Content, Path) -->
+dom_element(a, Att, Content, Path, Options) -->
     { memberchk(href=HREF, Att),
       (   memberchk(class=Class, Att)
       ->  true
       ;   Class = unknown
       ),
-      rewrite_ref(Class, HREF, Path, Myref)
+      rewrite_ref(Class, HREF, Path, Myref, Options)
     },
     !,
-    html(a(href(Myref), \dom_list(Content, Path))).
-dom_element(span, Att, [CDATA], _) -->
+    html(a(href(Myref), \dom_list(Content, Path, Options))).
+dom_element(span, Att, [CDATA], _, _Options) -->
     { memberchk(class='pred-ext', Att),
       atom_pi(CDATA, PI),
       documented(PI),
@@ -808,7 +808,7 @@ dom_element(span, Att, [CDATA], _) -->
     },
     !,
     html(a(href(HREF), CDATA)).
-dom_element(img, Att0, [], Path) -->
+dom_element(img, Att0, [], Path, _Options) -->
     { selectchk(src=Src, Att0, Att1),
       relative_file_name(ImgFile, Path, Src),
       handler_alias(Handler, DirAlias),
@@ -826,24 +826,24 @@ dom_element(img, Att0, [], Path) -->
     },
     html_begin(Begin),
     html_end(img).
-dom_element(div, Att, _, _) -->
+dom_element(div, Att, _, _, _) -->
     { memberchk(class=navigate, Att) },
     !.
-dom_element(html, _, Content, Path) -->        % do not emit a html for the second time
-    !,
-    dom_list(Content, Path).
-dom_element(head, _, Content, Path) -->        % do not emit a head for the second time
-    !,
-    dom_list(Content, Path).
-dom_element(title, _, _, _) --> !.
-dom_element(link, _, _, _) --> !.
-dom_element(body, _, Content, Path) -->        % do not emit a body for the second time
-    !,
-    dom_list(Content, Path).
-dom_element(Name, Attrs, Content, Path) -->
+dom_element(html, _, Content, Path, Options) -->
+    !,                              % do not emit a html for the second time
+    dom_list(Content, Path, Options).
+dom_element(head, _, Content, Path, Options) -->
+    !,                              % do not emit a head for the second time
+    dom_list(Content, Path, Options).
+dom_element(title, _, _, _, _) --> !.
+dom_element(link, _, _, _, _) --> !.
+dom_element(body, _, Content, Path, Options) -->
+    !,                              % do not emit a body for the second time
+    dom_list(Content, Path, Options).
+dom_element(Name, Attrs, Content, Path, Options) -->
     { Begin =.. [Name|Attrs] },
     html_begin(Begin),
-    dom_list(Content, Path),
+    dom_list(Content, Path, Options),
     html_end(Name).
 
 handler_alias(manual_file,   swi_man_manual(.)).
@@ -865,7 +865,7 @@ documented(PI) :-
 documented(PI) :-
     full_object(PI, _Obj).
 
-%!  rewrite_ref(+Class, +Ref0, +Path, -ManRef) is semidet.
+%!  rewrite_ref(+Class, +Ref0, +Path, -ManRef, +Options) is semidet.
 %
 %   Rewrite Ref0 from the HTML reference manual format to the server
 %   format. Reformatted:
@@ -892,6 +892,12 @@ documented(PI) :-
 %   @param Ref0     Initial reference from the =a= element
 %   @param Path     Currently loaded file
 %   @param ManRef   PlDoc server reference
+
+rewrite_ref(_Class, Ref, _Path, Ref, Options) :-
+    option(server(false), Options),
+    !.
+rewrite_ref(Class, Ref0, Path, ManRef, _Options) :-
+    rewrite_ref(Class, Ref0, Path, ManRef).
 
 rewrite_ref(pred, Ref0, _, Ref) :-              % Predicate/DCG reference
     sub_atom(Ref0, _, _, A, '#'),
