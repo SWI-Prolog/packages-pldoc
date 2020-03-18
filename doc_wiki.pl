@@ -911,12 +911,12 @@ wiki_face(Code, _, _) -->
           code_face(Text, Term, Vars, Code)
         }
     ).
-wiki_face(Face, _, _) -->
+wiki_face(Face, _, Options) -->
     [ w(Name) ], arg_list(List),
     { atomic_list_concat([Name|List], Text),
       E = error(_,_),
       catch(atom_to_term(Text, Term, Vars), E, fail),
-      term_face(Text, Term, Vars, Face)
+      term_face(Text, Term, Vars, Face, Options)
     },
     !.
 wiki_face(br([]), _, _) -->
@@ -1194,21 +1194,21 @@ arg_list_close([H|T], Depth) -->
     arg_list_close(T, Depth).
 
 
-%!  term_face(+Text, +Term, +Vars, -Face) is semidet.
+%!  term_face(+Text, +Term, +Vars, -Face, +Options) is semidet.
 %
 %   Process embedded Prolog-terms. Currently   processes  Alias(Arg)
 %   terms that refer to files.  Future   versions  will also provide
 %   pretty-printing of Prolog terms.
 
-term_face(_Text, Term, _Vars, \file(Name, FileOptions)) :-
+term_face(_Text, Term, _Vars, \file(Name, FileOptions), Options) :-
     ground(Term),
     compound(Term),
-    compound_name_arguments(Term, Alias, [_]),
+    compound_name_arity(Term, Alias, 1),
     user:file_search_path(Alias, _),
-    existing_file(Term, FileOptions, []),
+    existing_file(Term, FileOptions, [], Options),
     !,
     format(atom(Name), '~q', [Term]).
-term_face(Text, Term, Vars, Face) :-
+term_face(Text, Term, Vars, Face, _Options) :-
     code_face(Text, Term, Vars, Face).
 
 untag([], []).
@@ -1408,37 +1408,40 @@ file_extension(Ext) -->
     }.
 
 
-%!  resolve_file(+Name, -Options, ?RestOptions) is det.
+%!  resolve_file(+Name, -FileOptions, ?RestOptions, +Options) is det.
 %
 %   Find the actual file based on the pldoc_file global variable. If
 %   present  and  the   file   is    resolvable,   add   an   option
 %   absolute_path(Path) that reflects the current   location  of the
 %   file.
 
-resolve_file(Name, Options, Rest) :-
-    existing_file(Name, Options, Rest),
+resolve_file(Name, FileOptions, Rest) :-
+    existing_file(Name, FileOptions, Rest, []),
     !.
 resolve_file(_, Options, Options).
 
 
-existing_file(Name, Options, Rest) :-
+existing_file(Name, FileOptions, Rest, Options) :-
+    \+ Options.get(link) == false,
     E = error(_,_),
-    catch(existing_file_p(Name, Options, Rest), E, fail).
+    catch(existing_file_p(Name, FileOptions, Rest), E, fail).
 
-existing_file_p(Name, Options, Rest) :-
-    nb_current(pldoc_file, RelativeTo),
-    RelativeTo \== [],
+existing_file_p(Name, FileOptions, Rest) :-
+    (   nb_current(pldoc_file, RelativeTo),
+        RelativeTo \== []
+    ->  Extra = [relative_to(RelativeTo)|Extra1]
+    ;   Extra = Extra1
+    ),
     (   compound(Name)
-    ->  Extra = [file_type(prolog)]
-    ;   Extra = []
+    ->  Extra1 = [file_type(prolog)]
+    ;   Extra1 = []
     ),
     absolute_file_name(Name, Path,
-                       [ relative_to(RelativeTo),
-                         access(read),
+                       [ access(read),
                          file_errors(fail)
                        | Extra
                        ]),
-    Options = [ absolute_path(Path) | Rest ].
+    FileOptions = [ absolute_path(Path) | Rest ].
 
 %!  arity(-Arity:int)// is semidet.
 %
