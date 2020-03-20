@@ -193,19 +193,20 @@ do_index_manual :-
 %   Read the manual index from File.
 
 read_index(File) :-
+    context_module(M),
     empty_assoc(State0),
     setup_call_cleanup(
         open(File, read, In, [encoding(utf8)]),
-        read_man_index(In, State0),
+        read_man_index(In, State0, [module(M)]),
         close(In)).
 
-read_man_index(In, State0) :-
-    read_term(In, TermIn, []),
+read_man_index(In, State0, Options) :-
+    read_term(In, TermIn, Options),
     (   TermIn == end_of_file
     ->  true
     ;   valid_term(TermIn, Term, State0, State),
         assert(Term),
-        read_man_index(In, State)
+        read_man_index(In, State, Options)
     ).
 
 valid_term(TermIn, Term, State0, State) :-
