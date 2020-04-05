@@ -83,6 +83,7 @@ synonym(ceil,      ceiling,     0.7).
 synonym(char,      character,   0.8).
 synonym(clone,     duplicate,   0.3).
 synonym(close,     destroy,     0.3).
+synonym(comma,	   conjunction, 0.3).
 synonym(concat,    concatenate, 0.8).
 synonym(console,   terminal,    0.7).
 synonym(consult,   compile,     0.7).
@@ -145,6 +146,7 @@ synonym(rm,        remove,	0.7).
 synonym(run,       call,        0.3).
 synonym(same,      equivalent,  0.8).
 synonym(screen,    console,     0.5).
+synonym(semincolon,disjunction, 0.3).
 synonym(sin,       sine,        0.9).
 synonym(size,      memory,      0.3).
 synonym(smaller,   less,        0.5).
