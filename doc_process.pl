@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2018, University of Amsterdam
+    Copyright (c)  2006-2020, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
     All rights reserved.
@@ -39,6 +39,7 @@
             doc_file_has_comments/1,    % +File
             is_structured_comment/2,    % +Comment, -Prefixes
             parse_comment/3,            % +Comment, +FilePos, -Parsed
+            comment_modes/2,            % +Comment, -Synopsis
             process_comments/3,         % +Comments, +StartTermPos, +File
             doc_file_name/3,            % +Source, -Doc, +Options
             doc_clean/1                 % +Module
@@ -340,6 +341,24 @@ parse_comment(Comment, FilePos, Parsed) :-
     !,
     compile_comment(Comment, FilePos, Prefixes, Parsed).
 
+
+%!  comment_modes(+Comment, -Modes:list) is semidet.
+
+comment_modes(Comment, Modes) :-
+    is_structured_comment(Comment, Prefixes),
+    string_codes(Comment, CommentCodes),
+    indented_lines(CommentCodes, Prefixes, Lines),
+    (   prolog_load_context(module, Module)
+    ->  true
+    ;   Module = user
+    ),
+    process_modes(Lines, Module, dummy:0, Modes0, _Vars, _),
+    maplist(bind_mode, Modes0, Modes).
+
+bind_mode(mode(Mode, Bindings), Mode) :-
+    maplist(bind_var, Bindings).
+
+bind_var(Name=Name).
 
 %!  process_structured_comment(+FilePos,
 %!                             +Comment:string,
