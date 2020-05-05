@@ -13,6 +13,7 @@ set(SUPPORT pldoc.css pldoc.js pllisting.css pldoc.sty edit.png
     h1-bg.png pub-bg.png multi-bg.png priv-bg.png h2-bg.png editpred.png)
 
 swipl_plugin(pldoc
+	     NOINDEX
 	     PL_LIBS ${PLDOC_PUBL}
 	     PL_LIB_SUBDIR pldoc
 	         PL_LIBS ${PLDOC_PRIV} ${SUPPORT})
