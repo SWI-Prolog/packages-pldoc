@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2018, University of Amsterdam
+    Copyright (c)  2006-2020, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
     All rights reserved.
@@ -104,7 +104,13 @@
 :- use_module(doc_index).
 :- use_module(doc_util).
 :- use_module(library(solution_sequences)).
+:- use_module(library(error)).
+:- use_module(library(occurs)).
+:- use_module(library(prolog_source)).
+:- use_module(library(prolog_xref)).
+
 :- include(hooks).
+
 
 /** <module> PlDoc HTML backend
 
@@ -512,7 +518,7 @@ private(Module:PI, Options) :-
 private(Module:PI, _Options) :-
     module_property(Module, file(_)),      % A loaded module
     !,
-    export_list(Module, Exports),
+    module_property(Module, exports(Exports)),
     \+ ( member(PI2, Exports),
          eq_pi(PI, PI2)
        ).

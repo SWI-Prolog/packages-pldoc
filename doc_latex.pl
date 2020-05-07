@@ -49,6 +49,9 @@
 :- use_module(pldoc(doc_wiki)).
 :- use_module(pldoc(doc_process)).
 :- use_module(pldoc(doc_modes)).
+:- use_module(library(pairs), [pairs_values/2]).
+:- use_module(library(prolog_source), [file_name_on_path/2]).
+:- use_module(library(prolog_xref), [xref_hook/1]).
 :- use_module(pldoc(doc_html),          % we cannot import all as the
               [ doc_file_objects/5,     % \commands have the same name
                 unquote_filespec/2,
