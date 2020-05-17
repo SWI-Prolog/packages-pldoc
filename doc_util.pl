@@ -157,6 +157,7 @@ atom_to_object(Atom, Object) :-
     atom(Atom),
     atom_pi(Atom, PI),
     ground(PI),
+    !,
     (   PI = Name/Arity,
         integer(Arity),
         atom_concat('f-', FuncName, Name)
