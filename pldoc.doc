@@ -381,7 +381,7 @@ Prolog specific additions.
 
 \begin{description}
     \item [Paragraphs]
-Paragraphs are seperated by a blank line. Paragraphs that are indented
+Paragraphs are separated by a blank line. Paragraphs that are indented
 in the source-code \emph{after} normalising the left-margin with at
 least 16 spaces are \emph{centered}. Paragraphs where all the lines
 start with ``\verb$> $'' (greater than followed by a blank) are rendered
@@ -873,7 +873,7 @@ the user-interface provided from the browser.
 
 The top-right of the screen provides a search-form. The search string
 typed is searched as a substring and case-insensitive. Multiple strings
-seperated by spaces search for the intersection. Searching for objects
+separated by spaces search for the intersection. Searching for objects
 that do not contain a string is written as \chr{-}<string>.  A search
 for adjacent strings is specified as \chr{"}<string>\chr{"}.  Here
 are some examples:
