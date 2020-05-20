@@ -1,6 +1,4 @@
-/* $Id$
-
-   CSS for PlDoc, the SWI-Prolog source documentation system
+/* CSS for PlDoc, the SWI-Prolog source documentation system
    Author: Jan Wielemaker
    Copying: Public domain
 
@@ -602,3 +600,10 @@ span.pl-compound.pl-level-0 > .pl-prefix,
 span.pl-compound.pl-level-0 > .pl-infix,
 span.pl-compound.pl-level-0 > .pl-postfix
 {font-weight:bold;}
+
+blockquote
+{ border-left: 5px solid #ccc;
+  margin-left: 5px;
+  padding: 0px 14px;
+  color: #555;
+}

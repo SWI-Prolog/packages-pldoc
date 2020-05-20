@@ -171,11 +171,25 @@ take_block([I-L1|LT], BaseIndent, Elem, Rest) :-
     rest_par(LT, PT, I, BaseIndent, MaxI, Rest),
     (   MaxI >= BaseIndent+16
     ->  Elem = center(Par)
-    ;   MaxI >= BaseIndent+4
-    ->  Elem = blockquote(Par)
+    ;   phrase(blockquote(BQ), Par)
+    ->  Elem = blockquote(BQ)
     ;   Elem = p(Par)
     ).
 take_block([Verb|Lines], _, Verb, Lines).
+
+blockquote(Clean) -->
+    [>, ' '],
+    bq_lines(Clean).
+
+bq_lines([' '|Par]) -->
+    ['\n'], !, [>,' '],
+    bq_lines(Par).
+bq_lines([H|T]) -->
+    [H],
+    bq_lines(T).
+bq_lines([]) -->
+    [].
+
 
 %!  ruler(+Line) is semidet.
 %
