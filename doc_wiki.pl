@@ -148,11 +148,11 @@ take_block([N-['|'|RL1]|LT], _, Table, Rest) :-
     rest_table(LT, N, RL, Rest),
     !,
     Table = table(class=wiki, [tr(R0)|RL]).
-take_block([0-[-,-|More]|LT], _, Block, LT) :-  % seperation line
+take_block([0-[-,-|More]|LT], _, Block, LT) :-  % separation line
     maplist(=(-), More),
     !,
     Block = hr([]).
-take_block([_-Line|LT], _, Block, LT) :-        % seperation line
+take_block([_-Line|LT], _, Block, LT) :-        % separation line
     ruler(Line),
     !,
     Block = hr([]).

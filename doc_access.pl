@@ -146,7 +146,7 @@ allowed_peer(_).
 
 %!  primary_forwarded_host(+Spec, -Host) is det.
 %
-%   x_forwarded host contains multiple hosts seperated   by  ', ' if
+%   x_forwarded host contains multiple hosts separated   by  ', ' if
 %   there are multiple proxy servers in   between.  The first one is
 %   the one the user's browser knows about.
 

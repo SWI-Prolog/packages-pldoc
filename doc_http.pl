@@ -105,7 +105,7 @@ doc_enable(false) :-
 %!  doc_server(?Port, +Options) is det.
 %
 %   Start a documentation server in the  current Prolog process. The
-%   server is started in a seperate   thread.  Options are handed to
+%   server is started in a separate   thread.  Options are handed to
 %   http_server/2.  In  addition,   the    following   options   are
 %   recognised:
 %

@@ -746,7 +746,7 @@ man_match(packages, packages, _) -->
 
           <p>
           See also <a href="/pack/list">Add-ons</a> for extensions
-          provided by the community that must be installed seperately
+          provided by the community that must be installed separately
           using
           <a href="/pldoc/doc_for?object=pack_install/1">pack_install/1</a>.</p>
          |}).
