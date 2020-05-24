@@ -336,7 +336,8 @@ index_man_file(Class, Symbolic, File) :-
 %   the open attributes. Parser is the parser objects.
 
 index_on_begin(dt, Attributes, Parser) :-
-    memberchk(class=pubdef, Attributes),
+    memberchk(class=Def, Attributes),
+    public_def(Def),
     get_sgml_parser(Parser, charpos(Offset)),
     get_sgml_parser(Parser, file(File)),
     sgml_parse(Parser,
@@ -426,6 +427,9 @@ section_id(_Attributes, Title, File, ID) :-
     atomic_list_concat(Words, '_', ID0),
     atom_concat('sec:', ID0, ID),
     print_message(warning, pldoc(no_section_id(File, Title))).
+
+public_def(pubdef).
+public_def(multidef).
 
 %!  dom_section(+HeaderDOM, -NR, -Title) is semidet.
 %
