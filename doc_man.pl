@@ -880,14 +880,18 @@ documented(PI) :-
 %       $ File#flag:Name :
 %       Rewrite to =|section(Level, NT, ID, FilePath)#flag:Name|=
 %
+%       $ File#gloss:Name :
+%       Rewrite to =|section(Level, NT, ID, FilePath)#gloss:Name|=
+%
 %       $ File#Name()
 %       Rewrite to /man/CAPI=Name
 %
 %   @param Class    Class of the <A>.  Supported classes are
 %
-%           | sec  | Link to a section     |
-%           | pred | Link to a predicate   |
-%           | flag | link to a Prolog flag |
+%           | sec   | Link to a section     |
+%           | pred  | Link to a predicate   |
+%           | flag  | Link to a Prolog flag |
+%           | gloss | Link to a glossary    |
 %
 %   @param Ref0     Initial reference from the =a= element
 %   @param Path     Currently loaded file
@@ -952,6 +956,18 @@ rewrite_ref(cite, Ref0, Path, Ref) :-           % Citation (bit hard-wired)
     http_location_by_id(pldoc_man, ManHandler),
     format(string(Ref), '~w?section=bibliography#~w', [ManHandler, Enc]).
 rewrite_ref(flag, Ref0, Path, Ref) :-
+    sub_atom(Ref0, B, _, A, '#'),
+    !,
+    sub_atom(Ref0, 0, B, _, File),
+    sub_atom(Ref0, _, A, 0, Fragment),
+    file_directory_name(Path, Dir),
+    atomic_list_concat([Dir, /, File], SecPath),
+    Obj = section(_, _, _, SecPath),
+    manual_object(Obj, _, _, _, _),
+    !,
+    object_href(Obj, Ref1),
+    format(string(Ref), '~w#~w', [Ref1, Fragment]).
+rewrite_ref(gloss, Ref0, Path, Ref) :-
     sub_atom(Ref0, B, _, A, '#'),
     !,
     sub_atom(Ref0, 0, B, _, File),
