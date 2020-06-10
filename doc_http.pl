@@ -714,7 +714,10 @@ pldoc_object(Request) :-
                     [ object(Atom, []),
                       header(Header, [default(true)])
                     ]),
-    atom_to_term(Atom, Obj, _),
+    (   catch(atom_to_term(Atom, Obj, _), error(_,_), fail)
+    ->  true
+    ;   atom_to_object(Atom, Obj)
+    ),
     (   prolog:doc_object_title(Obj, Title)
     ->  true
     ;   Title = Atom
