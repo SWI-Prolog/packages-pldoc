@@ -533,6 +533,7 @@ label_cont(Name) --> [w(Name)].
 md_section_line(Line1, Line2, Header) :-
     Line1 \== [],
     section_underline(Line2, Type),
+    is_list(Line1),
     phrase(wiki_words(_), Line1),  % Should not have structure elements
     !,
     (   phrase(labeled_section_line(Title, Attrs), Line1)
