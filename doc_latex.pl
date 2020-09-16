@@ -1268,7 +1268,7 @@ termitem_with_args(Functor, Args) -->
     latex(cmd(termitem(Functor, \pred_args(Args, 1)))).
 
 
-%!  latex_table(Attrs, Content)// is det.
+%!  latex_table(+Attrs, +Content)// is det.
 %
 %   Emit a table in LaTeX.
 
