@@ -1669,6 +1669,13 @@ pred_head(Head) -->                     % Postfix operators
     html([ var(class=arglist, \pred_arg(Arg, 1)),
            ' ', b(class=pred, Functor)
          ]).
+pred_head({Head}) -->
+    !,
+    html([ b(class=pred, '{'),
+           var(class=arglist,
+               \pred_args([Head], 1)),
+           b(class=pred, '}')
+         ]).
 pred_head(Head) -->                     % Plain terms
     { Head =.. [Functor|Args] },
     html([ b(class=pred, Functor),
