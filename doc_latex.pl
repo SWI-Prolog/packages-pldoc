@@ -1264,6 +1264,9 @@ termitem_with_args(Functor, [Arg]) -->
     { is_op_type(Functor, postfix) },
     !,
     latex(cmd(postfixtermitem(Functor, \term(Arg)))).
+termitem_with_args({}, [Arg]) -->
+    !,
+    latex(cmd(curltermitem(\argtype(Arg)))).
 termitem_with_args(Functor, Args) -->
     latex(cmd(termitem(Functor, \pred_args(Args, 1)))).
 
