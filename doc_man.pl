@@ -800,11 +800,14 @@ dom_element(a, Att, Content, Path, Options) -->
     },
     !,
     html(a(href(Myref), \dom_list(Content, Path, Options))).
-dom_element(span, Att, [CDATA], _, _Options) -->
+dom_element(span, Att, [CDATA], _, Options) -->
     { memberchk(class='pred-ext', Att),
       atom_pi(CDATA, PI),
       documented(PI),
-      http_link_to_id(pldoc_man, [predicate=CDATA], HREF)
+      (   option(server(false), Options)
+      ->  public_link(predicate(CDATA), HREF)
+      ;   http_link_to_id(pldoc_man, [predicate=CDATA], HREF)
+      )
     },
     !,
     html(a(href(HREF), CDATA)).
@@ -854,6 +857,19 @@ ensure_slash(Dir, DirS) :-
     ->  DirS = Dir
     ;   atom_concat(Dir, /, DirS)
     ).
+
+%!  public_link(+Spec, -HREF)
+%
+%   We do not have a web server.  Create   a  link  to the public server
+%   instead.
+%
+%   @bug The predicate may not be there.
+
+public_link(predicate(CDATA), HREF) :-
+    uri_encoded(query_value, CDATA, Encoded),
+    atom_concat('https://www.swi-prolog.org/pldoc/doc_for?object=',
+                Encoded, HREF).
+
 
 %!  documented(+PI) is semidet.
 %
