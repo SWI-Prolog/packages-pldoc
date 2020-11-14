@@ -773,6 +773,14 @@ predref(Name/Arity) -->
 predref(Name//Arity) -->
     latex(cmd(dcgref(Name, Arity))).
 
+%!  cite(+Citations) is det.
+%
+%   Emit a ``\cite{Citations}`` command
+
+cite(Citations) -->
+    { atomic_list_concat(Citations, ',', Atom) },
+    latex(cmd(cite(Atom))).
+
 %!  tags(+Tags:list(Tag)) is det.
 %
 %   Emit tag list produced by the   Wiki processor from the @keyword

@@ -1887,6 +1887,27 @@ canonical_pi(Name//Arity, Name/Arity2, [Name, //, Arity]) :-
     Arity2 is Arity+2.
 
 
+%!  cite(+Citations)// is det.
+%
+%   Emit citations. This is indented to   allow  for [@cite1;@cite2] for
+%   generating LaTex.
+
+cite(Citations) -->
+    html('['), citations(Citations), html(']').
+
+citations([]) --> [].
+citations([H|T]) -->
+    citation(H),
+    (   {T==[]}
+    ->  []
+    ;   [';'],
+        citations(T)
+    ).
+
+citation(H) -->
+    html([@,H]).
+
+
 %!  manref(+NameArity, -HREF, +Options) is det.
 %
 %   Create reference to a manual page.  When generating files, this

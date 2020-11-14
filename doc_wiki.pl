@@ -970,6 +970,8 @@ wiki_face(\predref(Module:(Name//Arity)), _, _) -->
     { functor_name(Name)
     },
     !.
+wiki_face(\cite(Citations), _, _) -->
+    ['['], citations(Citations), [']'].
 wiki_face(\include(Name, Type, Options), _, _) -->
     ['[','['], file_name(Base, Ext), [']',']'],
     { autolink_extension(Ext, Type),
@@ -1563,6 +1565,34 @@ autolink_extension(svg, image).
 autolink_file('README', wiki).
 autolink_file('TODO', wiki).
 autolink_file('ChangeLog', wiki).
+
+%!  citations(-List)//
+%
+%   Parse @cite1[;@cite2]* into a list of citations.
+
+citations([H|T]) -->
+    citation(H),
+    (   [';']
+    ->  citations(T)
+    ;   {T=[]}
+    ).
+
+citation(Atom) -->
+    [@], wiki_words(Atoms),
+    { length(Atoms, Len),
+      Len > 10, !,
+      fail
+    ; true
+    },
+    end_citation,
+    !,
+    { atomic_list_concat(Atoms, Atom)
+    }.
+
+end_citation, [';'] --> [';'].
+end_citation, ['@'] --> ['@'].
+end_citation, [']'] --> [']'].
+
 
                  /*******************************
                  *           SECTIONS           *

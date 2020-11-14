@@ -674,6 +674,10 @@ absolute_file_name/3 and otherwise rendered as \jargon{code}.
 		  filename as above or a url. \\
 \tt\verb$[$label\verb$]($link\verb$)$ &
 		  The markdown version of the above. \\
+\tt\verb$[$@cite\verb$]$ &
+		  Include \LaTeX{} citation.  Multiple citations can
+		  be saparated using \chr{;}. No white space is allowed.
+		  \\
 \hline
 \end{tabular}
 \end{center}
