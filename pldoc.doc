@@ -655,7 +655,13 @@ absolute_file_name/3 and otherwise rendered as \jargon{code}.
 \begin{tabular}{|l|p{0.7\linewidth}|}
 \hline
 \tt name/arity  & Create a link to a predicate \\
+\verb$`name/arity`$  & Create a link to a predicate \\
+\verb$``name/arity``$  & Predicate indicator that does not create a
+			 link \\
 \tt name//arity & Create a link to a DCG rule \\
+\verb$`name//arity`$ & Create a link to a DCG rule \\
+\verb$``name//arity``$ & DCG indicator that does not create a
+			 link \\
 \tt name.ext	& If <name>.<ext> is the name of an existing file
 		  and <ext> is one of \fileext{pl}, \fileext{txt},
 		  \fileext{md}, \fileext{png}, \fileext{gif}, \fileext{jpeg},

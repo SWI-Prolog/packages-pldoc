@@ -773,6 +773,13 @@ predref(Name/Arity) -->
 predref(Name//Arity) -->
     latex(cmd(dcgref(Name, Arity))).
 
+%!  nopredref(+PI)//
+%
+%   Called from ``name/arity``.
+
+nopredref(Name/Arity) -->
+    latex(cmd(nopredref(Name, Arity))).
+
 %!  cite(+Citations) is det.
 %
 %   Emit a ``\cite{Citations}`` command

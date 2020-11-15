@@ -1886,6 +1886,15 @@ canonical_pi(Name//Arity, Name/Arity2, [Name, //, Arity]) :-
     !,
     Arity2 is Arity+2.
 
+%!  nopredref(+PI)//
+%
+%   Result of ``name/arity``, non-linking predicate indicator.
+
+nopredref(PI) -->
+    { canonical_pi(PI, _CPI, HTML)
+    },
+    !,
+    html(span(class=nopredref, HTML)).
 
 %!  cite(+Citations)// is det.
 %

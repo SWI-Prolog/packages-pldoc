@@ -967,6 +967,12 @@ wiki_face(code(Code), _, _) -->
 wiki_face(code(Code), _, _) -->
     [=,'|'], wiki_words(Code), ['|',=],
     !.
+wiki_face(PredRef, _, _) -->
+    ['`'], take_predref(PredRef), ['`'],
+    !.
+wiki_face(\nopredref(Pred), _, _) -->
+    ['`', '`'], take_predref(\predref(Pred)), ['`', '`'],
+    !.
 wiki_face(code(Code), _, _) -->
     ['`','`'], wiki_words(Code), ['`','`'],
     !.
@@ -997,31 +1003,8 @@ wiki_face(_, _, Options) -->
       !,
       fail
     }.
-wiki_face(\predref(Name/Arity), _, _) -->
-    [ w(Name), '/' ], arity(Arity),
-    { functor_name(Name)
-    },
-    !.
-wiki_face(\predref(Module:(Name/Arity)), _, _) -->
-    [ w(Module), ':', w(Name), '/' ], arity(Arity),
-    { functor_name(Name)
-    },
-    !.
-wiki_face(\predref(Name/Arity), _, _) -->
-    prolog_symbol_char(S0),
-    symbol_string(SRest), [ '/' ], arity(Arity),
-    !,
-    { atom_chars(Name, [S0|SRest])
-    }.
-wiki_face(\predref(Name//Arity), _, _) -->
-    [ w(Name), '/', '/' ], arity(Arity),
-    { functor_name(Name)
-    },
-    !.
-wiki_face(\predref(Module:(Name//Arity)), _, _) -->
-    [ w(Module), ':', w(Name), '/', '/' ], arity(Arity),
-    { functor_name(Name)
-    },
+wiki_face(PredRef, _, _) -->
+    take_predref(PredRef),
     !.
 wiki_face(\cite(Citations), _, _) -->
     ['['], citations(Citations), [']'].
@@ -1300,6 +1283,29 @@ image_label(\include(Name, image, Options)) -->
     },
     file_options(RestOptions).
 
+
+take_predref(\predref(Name/Arity)) -->
+    [ w(Name), '/' ], arity(Arity),
+    { functor_name(Name)
+    }.
+take_predref(\predref(Module:(Name/Arity))) -->
+    [ w(Module), ':', w(Name), '/' ], arity(Arity),
+    { functor_name(Name)
+    }.
+take_predref(\predref(Name/Arity)) -->
+    prolog_symbol_char(S0),
+    symbol_string(SRest), [ '/' ], arity(Arity),
+    !,
+    { atom_chars(Name, [S0|SRest])
+    }.
+take_predref(\predref(Name//Arity)) -->
+    [ w(Name), '/', '/' ], arity(Arity),
+    { functor_name(Name)
+    }.
+take_predref(\predref(Module:(Name//Arity))) -->
+    [ w(Module), ':', w(Name), '/', '/' ], arity(Arity),
+    { functor_name(Name)
+    }.
 
 %!  file_options(-Options) is det.
 %
