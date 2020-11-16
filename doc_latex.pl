@@ -780,6 +780,13 @@ predref(Name//Arity) -->
 nopredref(Name/Arity) -->
     latex(cmd(nopredref(Name, Arity))).
 
+%!  flagref(+Flag)//
+%
+%   Reference to a Prolog flag
+
+flagref(Flag) -->
+    latex(cmd(prologflag(Flag))).
+
 %!  cite(+Citations) is det.
 %
 %   Emit a ``\cite{Citations}`` command

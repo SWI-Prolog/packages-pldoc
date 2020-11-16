@@ -907,9 +907,13 @@ wiki_faces_int(WithFaces, ArgNames) -->
 
 wiki_faces_int([], _, _) -->
     [].
-wiki_faces_int([H|T], ArgNames, Options) -->
+wiki_faces_int(List, ArgNames, Options) -->
     wiki_face(H, ArgNames, Options),
     !,
+    {   is_list(H)
+    ->  append(H, T, List)
+    ;   List = [H|T]
+    },
     wiki_faces(T, ArgNames, Options).
 wiki_faces_int([Before,EmphTerm|T], ArgNames, Options) -->
     emphasis_before(Before),
@@ -972,6 +976,10 @@ wiki_face(PredRef, _, _) -->
     !.
 wiki_face(\nopredref(Pred), _, _) -->
     ['`', '`'], take_predref(\predref(Pred)), ['`', '`'],
+    !.
+wiki_face([flag, ' ', \flagref(Flag)], _, _) -->
+    [ w('flag'), ' ', '`', w(Flag), '`' ],
+    { current_prolog_flag(Flag, _) },
     !.
 wiki_face(code(Code), _, _) -->
     ['`','`'], wiki_words(Code), ['`','`'],

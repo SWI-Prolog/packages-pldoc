@@ -1896,6 +1896,15 @@ nopredref(PI) -->
     !,
     html(span(class=nopredref, HTML)).
 
+%!  flagref(+Flag)//
+%
+%   Reference to a Prolog flag.
+%
+%   @tbd generate a link to the Prolog website?
+
+flagref(Flag) -->
+    html(code(Flag)).
+
 %!  cite(+Citations)// is det.
 %
 %   Emit citations. This is indented to   allow  for [@cite1;@cite2] for
