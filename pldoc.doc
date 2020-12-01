@@ -38,7 +38,7 @@ Prolog and integrates PlDoc to provide a comprehensive searchable
 
 Version~2 of PlDoc extends the syntax with
 \href{http://en.wikipedia.org/wiki/Markdown}{Markdown} markup as
-specified by \href{http://www.stack.nl/~dimitri/doxygen/}{Docygen}.
+specified by \href{http://www.stack.nl/~dimitri/doxygen/}{Doxygen}.
 Based on experience with version~1, PlDoc~2 both tightens some rules
 to avoid misinterpretations and relaxes others that were considered
 too conservative.
@@ -1071,7 +1071,7 @@ Initially, the PlDoc wiki language was based on
 that is widely accepted and not tied to a single system.  In PlDoc~2,
 we have adopted markdown, including many of the limitations and
 extensions introduced by
-\href{http://www.stack.nl/~dimitri/doxygen/}{Docygen}.  Limitations are
+\href{http://www.stack.nl/~dimitri/doxygen/}{Doxygen}.  Limitations are
 needed to avoid ambiguities due to the common use of symbol charaters
 in programming languages. Extensions are desirable to make use of
 already existing conventions and to support requirements of program
