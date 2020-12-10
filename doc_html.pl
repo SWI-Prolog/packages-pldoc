@@ -43,6 +43,7 @@
             print_html_head/1,          % +Stream
             predref//1,                 % +PI //
             predref//2,                 % +PI, Options //
+            nopredref//1,               % +PI //
             module_info/3,              % +File, +Options0, -Options
             doc_hide_private/3,         % +Doc0, -Doc, +Options
             edit_button//2,             % +File, +Options, //
@@ -71,6 +72,7 @@
             tags//1,                    % +Tags, //
             term//3,                    % +Text, +Term, +Bindings, //
             file_header//2,             % +File, +Options, //
+            flagref//1,                 % +Flag
             objects//2,                 % +Objects, +Options, //
             object_ref//2,              % +Object, +Options, //
             object_name//2,             % +Object, +Object
@@ -79,7 +81,8 @@
             object_page//2,             % +Object, +Options, //
             object_page_header//2,      % +File, +Options, //
             object_synopsis//2,         % +Object, +Options, //
-            object_page_footer//2       % +Object, +Options, //
+            object_page_footer//2,      % +Object, +Options, //
+            cite//1                     % +Citations
           ]).
 :- use_module(library(lists)).
 :- use_module(library(option)).
