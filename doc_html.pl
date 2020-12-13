@@ -81,6 +81,7 @@
             object_page//2,             % +Object, +Options, //
             object_page_header//2,      % +File, +Options, //
             object_synopsis//2,         % +Object, +Options, //
+            object_footer//2,           % +Object, +Options, //
             object_page_footer//2,      % +Object, +Options, //
             cite//1                     % +Citations
           ]).
@@ -1023,13 +1024,25 @@ file_link(File) -->
     html([ div(a(href(location_by_id(pldoc_doc)+File), File))
          ]).
 
+%!  object_footer(+Obj, +Options)// is det.
+%
+%   Call the hook prolog:doc_object_footer//2. This hook will be used to
+%   deal with examples.
+
+object_footer(Obj, Options) -->
+    prolog:doc_object_footer(Obj, Options),
+    !.
+object_footer(_, _) --> [].
+
+
 %!  object_page_footer(+Obj, +Options)// is det.
 %
 %   Call the hook prolog:doc_object_page_footer//2. This hook will
 %   be used to deal with annotations.
 
 object_page_footer(Obj, Options) -->
-    prolog:doc_object_page_footer(Obj, Options).
+    prolog:doc_object_page_footer(Obj, Options),
+    !.
 object_page_footer(_, _) --> [].
 
 
