@@ -513,6 +513,8 @@ private(Object, _Options):-
 private(Module:PI, Options) :-
     multifile(Module:PI, Options), !, fail.
 private(Module:PI, Options) :-
+    public(Module:PI, Options), !, fail.
+private(Module:PI, Options) :-
     option(module(Module), Options),
     option(public(Public), Options),
     !,
@@ -545,7 +547,20 @@ multifile(Obj, _Options) :-
     pi_to_head(PI, Head),
     (   predicate_property(Module:Head, multifile)
     ;   xref_module(Source, Module),
-        xref_defined(Source, Head, multifile(_))
+        xref_defined(Source, Head, multifile(_Line))
+    ),
+    !.
+
+%!  public(+Options, +Options)
+%
+%   True if Obj is declared using public/1.
+
+public(Obj, _Options) :-
+    strip_module(user:Obj, Module, PI),
+    pi_to_head(PI, Head),
+    (   predicate_property(Module:Head, public)
+    ;   xref_module(Source, Module),
+        xref_defined(Source, Head, public(_Line))
     ),
     !.
 
@@ -790,7 +805,9 @@ pred_dom(Obj, Options, Pos-Comment, DOM) :-
             )
         ;   Class = multidef(file((Pos)))
         )
-    ;   Class = pubdef              % public definition
+    ;   public(Obj, Options)
+    ->  Class = publicdef           % :- public definition
+    ;   Class = pubdef              % exported definition
     ),
     (   Obj = Module:_
     ->  POptions = [module(Module)|Options]
