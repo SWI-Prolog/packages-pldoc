@@ -2266,6 +2266,10 @@ in_file(Module, Head, File) :-
         module_property(Module, class(library))
     ).
 in_file(Module, Head, File) :-
+    nonvar(Module),
+    predicate_property(Module:Head, file(File)),
+    \+ predicate_property(Module:Head, imported_from(_)).
+in_file(Module, Head, File) :-
     xref_defined(File, Head, How),
     xref_current_source(File),
     atom(File),                     % only plain files
