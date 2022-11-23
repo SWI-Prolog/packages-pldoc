@@ -3,9 +3,10 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2020, University of Amsterdam
+    Copyright (c)  2006-2022, University of Amsterdam
 			      VU University Amsterdam
 			      CWI, Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -49,7 +50,7 @@
 	    edit_button//2,             % +File, +Options, //
 	    source_button//2,           % +File, +Options, //
 	    zoom_button//2,             % +File, +Options, //
-	pred_edit_button//2,        % +PredInd, +Options, //
+            pred_edit_button//2,        % +PredInd, +Options, //
 	    object_edit_button//2,      % +Obj, +Options, //
 	    object_source_button//2,    % +Obj, +Options, //
 	    doc_resources//1,           % +Options
@@ -90,6 +91,16 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
+
+pldoc_server(true).
+:- else.
+
+:- multifile
+    http:location/3.
+
+http:location(pldoc_resource, '/pldoc/res', []).
+
+pldoc_server(false).
 :- endif.
 
 :- use_module(library(lists)).
@@ -212,6 +223,7 @@ extracting module doc_wiki.pl into HTML+CSS.
 		 *           RESOURCES          *
 		 *******************************/
 
+:- if(pldoc_server(true)).
 :- html_resource(pldoc_css,
 		 [ virtual(true),
 		   requires([ pldoc_resource('pldoc.css')
@@ -232,6 +244,12 @@ extracting module doc_wiki.pl into HTML+CSS.
 			      pldoc_js
 			    ])
 		 ]).
+:- else.
+:- html_resource(pldoc_css, [virtual(true)]).
+:- html_resource(pldoc_resource('pldoc.js'), [virtual(true)]).
+:- html_resource(pldoc_js, [virtual(true)]).
+:- html_resource(pldoc, [virtual(true)]).
+:- endif.
 
 
 		 /*******************************

@@ -1343,6 +1343,24 @@ prolog:doc_object_href(section(_Level, _No, ID, _Path), HREF) :-
     atom_concat('sec:', Sec, ID),
     http_link_to_id(pldoc_man, [section(Sec)], HREF).
 
+		 /*******************************
+		 *           NO HTTP		*
+		 *******************************/
+
+:- if(\+current_predicate(http_link_to_id/3)).
+
+http_link_to_id(Id, Parameters, HREF) :-
+    must_be(list, Parameters),
+    format(atom(Location), '/pldoc/~w', [Id]),
+    (   Parameters == []
+    ->  HREF = Location
+    ;   uri_data(path, Components, Location),
+        uri_query_components(String, Parameters),
+        uri_data(search, Components, String),
+        uri_components(HREF, Components)
+    ).
+
+:- endif.
 
 		 /*******************************
 		 *           MESSAGES           *
