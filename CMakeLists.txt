@@ -3,7 +3,10 @@ project(swipl-pldoc)
 
 include("../cmake/PrologPackage.cmake")
 
-set(PLDOC_PUBL pldoc.pl doc_http.pl doc_latex.pl doc_files.pl)
+set(PLDOC_PUBL pldoc.pl doc_latex.pl doc_files.pl)
+if(MULTI_THREADED)
+  list(APPEND PLDOC_PUBL doc_http.pl)
+endif()
 set(PLDOC_PRIV doc_html.pl doc_wiki.pl doc_modes.pl doc_register.pl
     doc_process.pl doc_index.pl doc_search.pl doc_man.pl  doc_library.pl
     hooks.pl doc_htmlsrc.pl doc_colour.pl  doc_util.pl doc_access.pl
