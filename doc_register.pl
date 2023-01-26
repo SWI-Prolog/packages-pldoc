@@ -74,6 +74,10 @@ do_comment_hook(Comments, TermPos, File, _Term) :-
     !,
     assert(mydoc(Comments, TermPos, File)).
 do_comment_hook(Comments, TermPos, File, _) :-
+    (   \+ current_prolog_flag(xref, true)
+    ->  true
+    ;   current_prolog_flag(xref_store_comments, true)
+    ),
     process_comments(Comments, TermPos, File).
 
 %!  prolog:comment_hook(+Comments, +TermPos, +Term) is det.
