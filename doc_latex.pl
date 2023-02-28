@@ -388,10 +388,10 @@ latex(center(Content)) -->
 latex(a(Attrs, Content)) -->
     { attribute(href(HREF), Attrs) },
     (   {HREF == Content}
-    ->  latex(cmd(url(no_escape(HREF))))
+    ->  latex(cmd(url(url_escape(HREF))))
     ;   { atom_concat(#,Sec,HREF) }
     ->  latex([Content, ' (', cmd(secref(Sec)), ')'])
-    ;   latex(cmd(href(no_escape(HREF), Content)))
+    ;   latex(cmd(href(url_escape(HREF), Content)))
     ).
 latex(br(_)) -->
     latex(latex(\\)).
@@ -591,6 +591,9 @@ latex_arg(H) -->
 latex_arg(no_escape(Text)) -->
     !,
     [no_escape(Text)].
+latex_arg(url_escape(Text)) -->
+    !,
+    [url_escape(Text)].
 latex_arg(H) -->
     latex(H).
 
@@ -1560,6 +1563,9 @@ print_latex_token(w(Word), Out) :-
 print_latex_token(no_escape(Text), Out) :-
     !,
     write(Out, Text).
+print_latex_token(url_escape(Text), Out) :-
+    !,
+    print_url(Out, Text).
 print_latex_token(Rest, Out) :-
     (   atomic(Rest)
     ->  print_latex(Out, Rest)
@@ -1596,6 +1602,19 @@ print_chars([], _).
 print_chars([H|T], Out) :-
     print_char(H, Out),
     print_chars(T, Out).
+
+
+print_url(Out, String) :-
+    string_chars(String, Chars),
+    print_url_chars(Chars, Out).
+
+print_url_chars([], _).
+print_url_chars([H|T], Out) :-
+    print_url_char(H, Out),
+    print_url_chars(T, Out).
+
+print_url_char('#', Out) :- !, write(Out, '\\#').
+print_url_char(C,   Out) :- put_char(Out, C).
 
 
 %!  max_nl(T0, T, M0, M)
