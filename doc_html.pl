@@ -900,8 +900,9 @@ reexport_header(_, Options) -->
     },
     !,
     html([ h2(class(wiki), 'Re-exported predicates'),
-	   p([ 'The following predicates are re-exported from other ',
-	       'modules'
+	   p([ "The following predicates are exported from this file \c
+                while their implementation is defined in imported modules \c
+                or non-module files loaded by this module."
 	     ])
 	 ]).
 reexport_header(_, _) -->
@@ -984,6 +985,8 @@ re_exported_doc([PI|T0], File, Module, [doc(Orig:PI,Pos,Comment)|ObjT], UnDoc) :
     pi_to_head(PI, Head),
     (   predicate_property(Module:Head, imported_from(Orig))
     ->  true
+    ;   predicate_property(Module:Head, exported)
+    ->  Orig = Module
     ;   xref_defined(File, Head, imported(File2)),
 	ensure_doc_objects(File2),
 	xref_module(File2, Orig)
