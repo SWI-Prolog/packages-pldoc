@@ -706,9 +706,14 @@ man_title(f(Obj), Title) :-
 man_title(c(Obj), Title) :-
     !,
     format(atom(Title), 'SWI-Prolog -- API-function ~w', [Obj]).
-man_title(section(_Id), Title) :-
+man_title(section(Id), Title) :-
     !,
-    format(atom(Title), 'SWI-Prolog -- Manual', []).
+    (   manual_object(section(_L, _N, Id, _F),
+                      STitle, _File, _Class, _Offset)
+    ->  true
+    ;   STitle = 'Manual'
+    ),
+    format(atom(Title), 'SWI-Prolog -- ~w', [STitle]).
 man_title(Obj, Title) :-
     format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
 
