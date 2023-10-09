@@ -43,6 +43,7 @@
 	  ]).
 :- use_module(library(xpath),[xpath/3, op(_,_,_)]).
 :- use_module(library(http/html_write)).
+:- use_module(library(debug),[assertion/1,debug/3]).
 
 :- autoload(doc_html,
 	    [ object_tree/5, private/2, object_page_header/4, objects/4,
@@ -56,7 +57,6 @@
 :- autoload(doc_util,[atom_to_object/2,atom_pi/2]).
 :- autoload(man_index,[manual_object/5]).
 :- autoload(library(apply),[maplist/2,maplist/3,convlist/3]).
-:- autoload(library(debug),[assertion/1,debug/3]).
 :- autoload(library(error),[permission_error/3,existence_error/2]).
 :- autoload(library(filesex),
 	    [directory_file_path/3,relative_file_name/3]).
