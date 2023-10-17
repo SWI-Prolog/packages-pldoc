@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2018, University of Amsterdam
+    Copyright (c)  2006-2023, University of Amsterdam
                               CWI, Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -941,9 +942,10 @@ token_match_quality(How, For, Parts, Q) :-
     length(Parts, Len),
     (   memberchk(For, Parts)
     ->  Q0 = 1
-    ;   porter_stem(For, Stem),
+    ;   snowball(english, For, Stem),
         member(Part, Parts),
-        porter_stem(Part, Stem)
+        atom(Part),
+        snowball(english, Part, Stem)
     ->  Q0 = 0.9
     ;   How == summary,
         member(Part, Parts),
