@@ -562,11 +562,7 @@ man_page(Obj0, Options) -->                     % Manual stuff
     man_matches(Matches, Obj, Options).
 man_page(Obj, Options) -->                      % PlDoc predicates, etc.
     { full_object(Obj, Full),
-      findall(Full-File,
-	      ( doc_comment(Full, File:_, _, _),
-		\+ private(Full, Options)
-	      ),
-	      Pairs),
+      findall(Full-File, visible_doc_comment(Full, File, Options), Pairs),
       Pairs \== [],
       pairs_keys(Pairs, Objs)
     },
@@ -591,6 +587,17 @@ man_page(Obj, Options) -->                      % failure
 	   [ 'Sorry, No manual entry for ',
 	     b('~w'-[Obj])
 	   ])).
+
+% Show an object if it is not private   or  it is fully qualified and we
+% want to show all fully qualified objects. Used by help/1.
+
+visible_doc_comment(Obj, File, Options) :-
+    doc_comment(Obj, File:_, _, _),
+    \+ ( private(Obj, Options),
+         \+ ( Obj = _:_,
+              option(qualified(always), Options)
+            )
+       ).
 
 %special_node(manual).          % redirected to the Introduction section
 special_node(root).

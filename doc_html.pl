@@ -532,8 +532,6 @@ obj(Obj0, Obj) :-
 
 private(Object, _Options) :-
     prolog:doc_is_public_object(Object), !, fail.
-private(_Module:_PI, Options) :-
-    option(qualified(always), Options), !, fail.
 private(Module:PI, Options) :-
     multifile(Module:PI, Options), !, fail.
 private(Module:PI, Options) :-
