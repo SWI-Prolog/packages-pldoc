@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2022, University of Amsterdam
+    Copyright (c)  2006-2023, University of Amsterdam
 			      VU University Amsterdam
 			      CWI, Amsterdam
                               SWI-Prolog Solutions b.v.
@@ -1273,6 +1273,7 @@ tag_title(compat, 'Compatibility').
 tag_title(tbd,    'To be done').
 tag_title(see,    'See also').
 tag_title(error,  'Errors').
+tag_title(since,  'Since').
 
 %!  args(+Params:list) is det.
 %

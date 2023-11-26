@@ -3,9 +3,10 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2019, University of Amsterdam
+    Copyright (c)  2006-2023, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -721,6 +722,7 @@ tag_order(copyright,   900).
 tag_order(license,    1000).
 tag_order(bug,        1100).
 tag_order(tbd,        1200).
+tag_order(since,      1300).
 
 %!  combine_tags(+Tags:list(tag(Key, Value)), -Tags:list) is det.
 %
