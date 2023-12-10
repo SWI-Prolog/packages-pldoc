@@ -256,32 +256,23 @@ file_map(directory(_Dir, _Doc, Members, _Options)) -->
 
 
 
-%!  document_file(+File, -DocFile, +Options) is semidet.
+%!  document_file(+FileOrDir, -DocFile, +Options) is semidet.
 %
 %   DocFile is the file into which to write the documentation for
 %   File.  File must be a canonical Prolog source-file.
 
-document_file(File, DocFile, Options) :-
-    (   option(if(loaded), Options, loaded)
-    ->  (   source_file(File)
-        ->  true
-        ;   exists_directory(File),
-            source_file(SrcFile),
-            sub_atom(SrcFile, 0, _, _, File)
-        ->  true
-        )
-    ;   true
-    ),
+document_file(FileOrDir, DocFile, Options) :-
+    must_document(FileOrDir, Options),
     option(format(Format), Options, html),
     doc_extension(Format, Ext),
-    (   exists_directory(File)
-    ->  option(index_file(Index), Options, index),
-        atomic_list_concat([File, /, Index, '.', Ext], DocFile0)
-    ;   file_name_extension(Base, _, File),
+    (   exists_directory(FileOrDir)
+    ->  option(index_file(IndexBase), Options, index),
+        file_name_extension(IndexBase, Ext, Index),
+        directory_file_path(FileOrDir, Index, DocFile0)
+    ;   file_name_extension(Base, _, FileOrDir),
         file_name_extension(Base, Ext, DocFile0)
     ),
-    (   option(doc_root(Dir0), Options),
-        ensure_slash(Dir0, Dir)
+    (   option(doc_root(Dir), Options)
     ->  (   option(source_root(SrcTop), Options)
         ->  true
         ;   working_directory(SrcTop, SrcTop)
@@ -289,40 +280,26 @@ document_file(File, DocFile, Options) :-
         directory_file_path(SrcTop, Local, DocFile0),
         directory_file_path(Dir, Local, DocFile),
         file_directory_name(DocFile, DocDir),
-        ensure_dir(DocDir, Options)
+        make_directory_path(DocDir)
     ;   DocFile = DocFile0
     ).
 
+must_document(_FileOrDir, Options) :-
+    \+ option(if(loaded), Options, loaded),
+    !.
+must_document(File, _Options) :-
+    source_file(File),
+    !.
+must_document(Dir, _Options) :-
+    exists_directory(Dir),
+    source_file(SrcFile),
+    sub_atom(SrcFile, 0, _, _, Dir),
+    !.
 
 %!  doc_extension(+Format, -Extension) is det.
 
 doc_extension(html, html).
 doc_extension(latex, tex).
-
-
-%!  ensure_slash(+DirName, -WithSlash) is det.
-%
-%   Ensure WithSlash ends with a /.
-
-ensure_slash(DirName, WithSlash) :-
-    (   sub_atom(DirName, _, _, 0, /)
-    ->  WithSlash = DirName
-    ;   atom_concat(DirName, /, WithSlash)
-    ).
-
-
-%!  ensure_dir(+Directory, +Options) is det.
-%
-%   Create Directory as mkdir -p.  May generate file errors.
-
-ensure_dir(Directory, _Options) :-
-    exists_directory(Directory),
-    !.
-ensure_dir(Directory, Options) :-
-    file_directory_name(Directory, Parent),
-    Parent \== Directory,
-    ensure_dir(Parent, Options),
-    make_directory(Directory).
 
 
 %!  prolog_file_in_dir(+Dir, -File, +Options) is nondet.
