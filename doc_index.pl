@@ -60,6 +60,12 @@
 :- use_module(library(url)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(apply)).
+:- use_module(library(filesex)).
+:- use_module(library(prolog_pack)).
+:- use_module(library(prolog_source)).
+:- use_module(library(prolog_xref)).
+
 :- include(hooks).
 
 /** <module> Create indexes
@@ -108,10 +114,10 @@
 
 doc_for_dir(DirSpec, Options) :-
     absolute_file_name(DirSpec,
+                       Dir,
 		       [ file_type(directory),
 			 access(read)
-		       ],
-		       Dir),
+		       ]),
     (   option(title(Title), Options)
     ->  true
     ;   file_base_name(Dir, Title)
