@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2012, University of Amsterdam
+    Copyright (c)  2006-2023, University of Amsterdam
                               VU University Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -64,7 +65,8 @@ useful for printing or distribution.
                        if(oneof([loaded,true])),
                        recursive(boolean),
                        css(oneof([copy,inline])),
-                       title(atom)
+                       title(atom),
+                       include_reexported(boolean)
                      ]).
 
 
@@ -106,6 +108,11 @@ useful for printing or distribution.
 %           Using =inline=, include the CSS file into the created
 %           files.  Currently, only the default =copy= is supported.
 %
+%           * include_reexported(+Boolean)
+%           When `true` (default `false`), include predicates that
+%           are re-exported from this module into the documentation
+%           of the module.
+
 %   The typical use-case is to document the Prolog files that belong
 %   to a project in the  current  directory.   To  do  this load the
 %   Prolog  files  and  run  the   goal    below.   This  creates  a
@@ -350,7 +357,6 @@ prolog_file_in_dir(Dir, SubDir, Options) :-
 %
 %   True if File is blocked from documentation.
 
-blocked('.plrc').
 blocked('INDEX.pl').
 
 
