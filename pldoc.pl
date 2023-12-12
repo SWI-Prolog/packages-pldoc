@@ -123,5 +123,8 @@ different setup.
                  *           FINISH UP          *
                  *******************************/
 
-:- retract(pldoc_loading),
-   process_stored_comments.
+finish :-
+    retract(pldoc_loading),
+    process_stored_comments.
+
+:- initialization(finish).
