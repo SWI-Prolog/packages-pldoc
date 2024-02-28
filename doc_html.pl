@@ -882,7 +882,9 @@ undocumented(File, Objs, Options) -->
     { memberchk(module(Module), Options),
       memberchk(public(Exports), Options),
       select_undocumented(Exports, Module, Objs, Undoc),
-      re_exported_doc(Undoc, File, Module, REObjs, ReallyUnDoc)
+      re_exported_doc(Undoc, File, Module, UREObjs, ReallyUnDoc),
+      sort(2, @=<, UREObjs, REObjs) % UREObjs = doc(PI,Pos,Comment)
+                                    % i.e., sort on Pos
     },
     !,
     re_exported_doc(REObjs, Options),
