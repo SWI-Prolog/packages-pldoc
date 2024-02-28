@@ -882,7 +882,10 @@ undocumented(File, Objs, Options) -->
     { memberchk(module(Module), Options),
       memberchk(public(Exports), Options),
       select_undocumented(Exports, Module, Objs, Undoc),
-      re_exported_doc(Undoc, File, Module, REObjs, ReallyUnDoc)
+      re_exported_doc(Undoc, File, Module, UREObjs, ReallyUnDoc),
+      add_pos_keys(UREObjs, PosObjs),
+      keysort(PosObjs, ByPos),
+      pairs_values(ByPos, REObjs)
     },
     !,
     re_exported_doc(REObjs, Options),
@@ -996,6 +999,12 @@ re_exported_doc([PI|T0], File, Module, [doc(Orig:PI,Pos,Comment)|ObjT], UnDoc) :
     re_exported_doc(T0, File, Module, ObjT, UnDoc).
 re_exported_doc([PI|T0], File, Module, REObj, [PI|UnDoc]) :-
     re_exported_doc(T0, File, Module, REObj, UnDoc).
+
+% convert doc/3 list to key-values based on Pos argument
+add_pos_keys([],[]).
+add_pos_keys([Obj|Objs],[Pos-Obj|PObjs]) :-
+	Obj = doc(_, Pos, _),  % as defined by re_exported_doc/5
+	add_pos_keys(Objs,PObjs).
 
 
 		 /*******************************
