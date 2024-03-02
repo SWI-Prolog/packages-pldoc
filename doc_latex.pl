@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2015, University of Amsterdam
+    Copyright (c)  2007-2024, University of Amsterdam
                               VU University Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -1656,6 +1657,7 @@ print_char('~', Out) :- !, write(Out, '\\Stilde{}').
 print_char('\\',Out) :- !, write(Out, '\\bsl{}').
 print_char('^', Out) :- !, write(Out, '\\Shat{}').
 print_char('|', Out) :- !, write(Out, '\\Sbar{}').
+print_char('ö', Out) :- !, write(Out, '\\"o').
 print_char(C,   Out) :- put_char(Out, C).
 
 
