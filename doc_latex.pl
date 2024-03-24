@@ -3,9 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2024, University of Amsterdam
+    Copyright (c)  2007-2015, University of Amsterdam
                               VU University Amsterdam
-                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -1645,6 +1644,11 @@ nl(Out, N) :-
     forall(between(1, N, _), nl(Out)).
 
 
+%!  print_char(+Char, +Out) is det.
+%
+%   Write Char in LaTeX format to Out. This escapes characters for LaTeX
+%   where necessary.
+
 print_char('<', Out) :- !, write(Out, '$<$').
 print_char('>', Out) :- !, write(Out, '$>$').
 print_char('{', Out) :- !, write(Out, '\\{').
@@ -1657,9 +1661,39 @@ print_char('~', Out) :- !, write(Out, '\\Stilde{}').
 print_char('\\',Out) :- !, write(Out, '\\bsl{}').
 print_char('^', Out) :- !, write(Out, '\\Shat{}').
 print_char('|', Out) :- !, write(Out, '\\Sbar{}').
-print_char('ö', Out) :- !, write(Out, '\\"o').
+print_char(C,   Out) :- decompose_char(C, Out), !.
 print_char(C,   Out) :- put_char(Out, C).
 
+%!  decompose_char(+Char) is semidet.
+%
+%   Deal with diacritics.  Relies  on   Unicode  decomposition,  where a
+%   character with diacritics becomes the plain character, followed by a
+%   composing diacritics mark.
+
+:- if(exists_source(library(unicode))).
+:- use_module(library(unicode)).
+decompose_char(Char, Out) :-
+    char_code(Char, Code),
+    Code > 128,
+    unicode_map(Char, Decomposed, [decompose]),
+    atom_codes(Decomposed, [C,D]),
+    diacritic_cmd(D, Cmd),
+    format(Out, '\\~w~c', [Cmd, C]).
+:- else.
+decompose_char(_,_) :-
+    fail.
+:- endif.
+
+diacritic_cmd(768, '`').
+diacritic_cmd(769, '\'').
+diacritic_cmd(770, '~').
+diacritic_cmd(771, '=').
+diacritic_cmd(774, 'v').
+diacritic_cmd(775, '.').
+diacritic_cmd(776, '"').
+diacritic_cmd(785, 'u').
+diacritic_cmd(807, 'c').
+diacritic_cmd(808, 'k').
 
 %!  identifier(+Atom) is semidet.
 %
