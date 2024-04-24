@@ -2251,9 +2251,16 @@ pi(M:PI, Options) -->
     pi(PI, Options).
 pi(Name/Arity, _) -->
     !,
-    html([Name, /, Arity]).
+    html([Name, /, \arity(Arity)]).
 pi(Name//Arity, _) -->
-    html([Name, //, Arity]).
+    html([Name, //, \arity(Arity)]).
+
+arity(Arity) -->
+    { var(Arity) },
+    !,
+    html('_').
+arity(Arity) -->
+    html(Arity).
 
 pi_type(_:PI) -->
     !,

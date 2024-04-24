@@ -720,7 +720,9 @@ man_title(section(Id), Title) :-
     ),
     format(atom(Title), 'SWI-Prolog -- ~w', [STitle]).
 man_title(Obj, Title) :-
-    format(atom(Title), 'SWI-Prolog -- ~w', [Obj]).
+    copy_term(Obj, Copy),
+    numbervars(Copy, 0, _, [singletons(true)]),
+    format(atom(Title), 'SWI-Prolog -- ~p', [Copy]).
 
 %!  pldoc_object(+Request)
 %
