@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2023, University of Amsterdam
+    Copyright (c)  2006-2024, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
                               SWI-Prolog Solutions b.v.
@@ -966,6 +966,14 @@ wiki_face(i(Italic), ArgNames, Options) -->
     ['_','|'], string(Tokens), ['|','_'],
     !,
     { phrase(wiki_faces(Italic, ArgNames, Options), Tokens) }.
+wiki_face(strong(Strong), ArgNames, Options) -->
+    ['_','_'], string(Tokens), ['_','_'],
+    !,
+    { phrase(wiki_faces(Strong, ArgNames, Options), Tokens) }.
+wiki_face(strong(Strong), ArgNames, Options) -->
+    ['*','*'], string(Tokens), ['*','*'],
+    !,
+    { phrase(wiki_faces(Strong, ArgNames, Options), Tokens) }.
 wiki_face(code(Code), _, _) -->
     [=], eq_code_words(Words), [=],
     !,
@@ -1154,8 +1162,6 @@ emphasis_seq(EmphTerm, ArgNames, Options) -->
 
 emphasis_term('_',   Term, i(Term)).
 emphasis_term('*',   Term, b(Term)).
-emphasis_term('__',  Term, strong(Term)).
-emphasis_term('**',  Term, strong(Term)).
 
 emph_markdown(_, [w(_)]) :- !.
 emph_markdown(Last, Tokens) :-
