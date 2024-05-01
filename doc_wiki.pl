@@ -1389,6 +1389,15 @@ wiki_link(a(href(Ref), Label), Options) -->
     { atomic_list_concat([Prot, :,/,/ | Rest], Ref),
       option(label(Label), Options, Ref)
     }.
+wiki_link(a(href(Ref), Label), Options) -->
+    [ w(mailto),:],
+    { option(end(End), Options, space)
+    },
+    tokens_no_whitespace(Rest), peek_end_url(End),
+    !,
+    { atomic_list_concat([mailto, : | Rest], Ref),
+      option(label(Label), Options, Ref)
+    }.
 wiki_link(a(href(Ref), Label), _Options) -->
     [<, w(Alias), :],
     tokens_no_whitespace(Rest), [>],
@@ -1589,7 +1598,6 @@ functor_name(String) :-
 url_protocol(http).
 url_protocol(https).
 url_protocol(ftp).
-url_protocol(mailto).
 
 peek_end_url(space) -->
     peek(Punct, End),
