@@ -95,7 +95,6 @@ different setup.
 ==
 
 @author  Jan Wielemaker
-@license LGPL
 @see     doc_server/1, doc_server/2, doc_collect/1.
 */
 
