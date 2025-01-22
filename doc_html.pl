@@ -1123,17 +1123,9 @@ object_synopsis(M:Name/Arity, Options) -->
 	  file_name_on_path(File, Spec)
       ),
       !,
-      unquote_filespec(Spec, Unquoted),
-      (   predicate_property(Head, autoload(FileBase)),
-	  file_name_extension(FileBase, _Ext, File)
-      ->  Extra = [span(class(autoload), '(can be autoloaded)')]
-      ;   Extra = []
-      )
+      unquote_filespec(Spec, Unquoted)
     },
-    (   { option(href(HREF), Options) }
-    ->  synopsis([code([':- use_module(',a(href(HREF), '~q'-[Unquoted]),').'])|Extra])
-    ;   synopsis([code(':- use_module(~q).'-[Unquoted])|Extra])
-    ).
+    use_module_synopsis(Head, File, Unquoted, Options).
 object_synopsis(Name//Arity, Options) -->
     !,
     { DCGArity is Arity+2 },
@@ -1156,11 +1148,42 @@ object_synopsis(c(Func), _) -->
     synopsis([span(class(cfunc), 'C-language interface function')]).
 object_synopsis(_, _) --> [].
 
-synopsis(Text) -->
+:- html_meta(synopsis(html,?,?)).
+
+use_module_synopsis(Head, File, Unquoted, Options) -->
+    { Args = [class(copy), title('Click to copy')] },
+    (   { option(href(HREF), Options) }
+    ->  synopsis([ code(Args, [':- use_module(',a(href(HREF), '~q'-[Unquoted]),').'])
+                 | \can_autoload(Head, File)
+                 ])
+    ;   synopsis([ code(Args, ':- use_module(~q).'-[Unquoted])
+                 | \can_autoload(Head, File)
+                 ])
+    ).
+
+synopsis(HTML) -->
     html(div(class(synopsis),
 	     [ span(class('synopsis-hdr'), 'Availability:')
-	     | Text
+	     | HTML
 	     ])).
+
+can_autoload(Head, File) -->
+    { predicate_property(Head, autoload(FileBase)),
+      file_name_extension(FileBase, _Ext, File)
+    },
+    !,
+    html(span(class(autoload), \can_be_autoloaded)).
+can_autoload(_, _) -->
+    [].
+
+can_be_autoloaded -->
+    { catch(http_link_to_id(pldoc_man, [section(autoload)], HREF),
+            error(_,_), fail)
+    },
+    html(['(can be ', a(href(HREF), autoloaded), ')']).
+can_be_autoloaded -->
+    html('(can be autoloaded)').
+
 
 %!  unquote_filespec(+Spec, -Unquoted) is det.
 %
