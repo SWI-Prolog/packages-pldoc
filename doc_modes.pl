@@ -3,9 +3,10 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2018, University of Amsterdam
+    Copyright (c)  2006-2025, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -81,9 +82,9 @@ operator declarations in this module.
 %   returning the remaining lines and  the   names  of the arguments
 %   used in the various header lines.
 %
-%   @param FilePos  Term File:Line with the position of comment
-%   @param Modes    List if mode(Head, Bindings) terms
-%   @param Args     List of argument-names appearing in modes
+%   @arg FilePos  Term File:Line with the position of comment
+%   @arg Modes    List if mode(Head, Bindings) terms
+%   @arg Args     List of argument-names appearing in modes
 
 process_modes(Lines, Module, FilePos, ModeDecls, Vars, RestLines) :-
     mode_lines(Lines, ModeText, [], RestLines),
@@ -142,9 +143,9 @@ non_empty_lines([_-L|Lines0], ModeText, ModeTail, Lines) :-
 %   Read mode declaration. This consists of a number of Prolog terms
 %   which may or may not be closed by  a Prolog full-stop.
 %
-%   @param Text             Input text as list of codes.
-%   @param Module           Module the comment comes from
-%   @param ModeDecls        List of mode(Term, Bindings)
+%   @arg Text             Input text as list of codes.
+%   @arg Module           Module the comment comes from
+%   @arg ModeDecls        List of mode(Term, Bindings)
 
 modes(Text, Module, FilePos, Decls) :-
     prepare_module_operators(Module),
@@ -264,9 +265,9 @@ public_operators(_, []).
 %
 %   Extract the variables names.
 %
-%   @param Bindings         Nested list of Name=Var
-%   @param VarNames         List of variable names
-%   @param VarTail          Tail of VarNames
+%   @arg Bindings         Nested list of Name=Var
+%   @arg VarNames         List of variable names
+%   @arg VarTail          Tail of VarNames
 
 extract_varnames([], VN, VN) :- !.
 extract_varnames([H|T], VN0, VN) :-
@@ -283,7 +284,7 @@ extract_varnames(Name=_, [Name|VN], VN).
 %   Compile  a  PlDoc  mode  declararion   into  a  term  mode(Head,
 %   Determinism).
 %
-%   @param Mode       List if mode-terms.  See process_modes/6.
+%   @arg Mode       List if mode-terms.  See process_modes/6.
 
 compile_mode(mode(Mode, _Bindings), Compiled) :-
     compile_mode2(Mode, Compiled).
@@ -357,9 +358,9 @@ remove_aname(_:Type, Type) :- !.
 %
 %   True if there is a mode-declaration for Head with Det.
 %
-%   @param  Head    Callable term.  Arguments are a mode-indicator
+%   @arg  Head    Callable term.  Arguments are a mode-indicator
 %                   followed by a type.
-%   @param  Det     One of =unknown=, =det=, =semidet=, or =nondet=.
+%   @arg  Det     One of =unknown=, =det=, =semidet=, or =nondet=.
 
 :- module_transparent
     mode/2.
@@ -489,8 +490,8 @@ mode_ind(!(X), !, X).
 %   predicate indicator is  of  the   form  atom/integer  for normal
 %   predicates or atom//integer for DCG rules.
 %
-%   @param Modes    Mode-list as produced by process_modes/5
-%   @param PI       List of Name/Arity or Name//Arity without duplicates
+%   @arg Modes    Mode-list as produced by process_modes/5
+%   @arg PI       List of Name/Arity or Name//Arity without duplicates
 
 modes_to_predicate_indicators(Modes, PIs) :-
     modes_to_predicate_indicators2(Modes, PIs0),
@@ -525,8 +526,8 @@ head_to_pi(Head, Name/Arity) :-
 %   Finally,  as  we  create  clauses   one-by-one,  we  define  our
 %   predicates as discontiguous.
 %
-%   @param Term     Clause-term
-%   @param FilePos  Term of the form File:Line, where File is a
+%   @arg Term     Clause-term
+%   @arg FilePos  Term of the form File:Line, where File is a
 %                   canonical filename.
 
 compile_clause(Term, File:Line) :-
