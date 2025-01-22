@@ -1656,7 +1656,8 @@ pred_source_button(PI0, Options0) -->
       option(module(M), Options, _),
       pred_source_href(PI, M, HREF), !
     },
-    html(a([ href(HREF)
+    html(a([ href(HREF),
+             class(source)
 	   ],
 	   img([ class(action),
 		 alt('Source'),

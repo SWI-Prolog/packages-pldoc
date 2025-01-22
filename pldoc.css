@@ -624,12 +624,16 @@ blockquote
   color: #555;
 }
 
-code.copy:after
+code.copy::after, a.copy::after
 { content: "\29C9";
   vertical-align: super;
-  background-color: #f6f5ee;
+  font-size: 80%;
 }
 
-code.copy
+code.copy::after
+{ background-color: #f6f5ee;
+}
+
+code.copy, a.copy
 { cursor: copy;
 }

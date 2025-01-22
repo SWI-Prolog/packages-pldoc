@@ -13,15 +13,39 @@ function HTTPrequest(url)
 	});
 }
 
+function selectAndCopy(el, clean) {
+  let text = el.innerText;
+  if ( clean )
+    text = text.replace(/[-+?@:]/g, "");
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  navigator.clipboard.writeText(text);
+}
+
+function selectAndCopyPred(ev) {
+  const el = ev.target;
+  if ( el.tagName == "VAR" )
+    selectAndCopy(el.closest("a"), true)
+  else
+    selectAndCopy(el, false)
+}
+
 function copyCode() {
   $("code.copy").click(function(ev) {
-    const text = ev.target.innerText;
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(ev.target);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    navigator.clipboard.writeText(text);
+    selectAndCopy(ev.target)
+  });
+}
+
+function copyMode() {
+  $("dt.pubdef a, multidef a").each(function() {
+    const el = $(this);
+    if ( !el.hasClass("source") ) {
+      el.addClass("copy")
+	.click(selectAndCopyPred);
+    }
   });
 }
 
@@ -54,5 +78,6 @@ function setupFootnotes() {
 
 $(function(){
   copyCode();
+  copyMode();
   setupFootnotes();
 });
