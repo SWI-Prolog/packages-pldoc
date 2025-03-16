@@ -38,7 +38,7 @@
 :- module(pldoc_modes,
           [ process_modes/6,            % +Lines, +M, +FP, -Modes, -Av, -RLines
             compile_mode/2,             % +PlDocMode, +ModeTerm
-            mode/2,                     % ?:Head, -Det
+            (mode)/2,                   % ?:Head, -Det
             is_mode/1,                  % @Mode
             mode_indicator/1,           % ?Atom
             modes_to_predicate_indicators/2, % +Modes, -PIs
@@ -363,7 +363,7 @@ remove_aname(_:Type, Type) :- !.
 %   @arg  Det     One of =unknown=, =det=, =semidet=, or =nondet=.
 
 :- module_transparent
-    mode/2.
+    (mode)/2.
 
 mode(Head, Det) :-
     var(Head),
