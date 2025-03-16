@@ -71,9 +71,6 @@
 :- use_module(pldoc(doc_access)).
 :- use_module(pldoc(doc_pack)).
 :- use_module(pldoc(man_index)).
-:- if(exists_source(library(pce_emacs))).
-:- autoload(library(pce_emacs), [start_emacs/0]).
-:- endif.
 
 /** <module> Documentation server
 
@@ -239,12 +236,15 @@ browser_url(Spec, URL) :-
 %   Start XPCE as edit requests coming from the document server can only
 %   be handled if XPCE is running.
 
-:- if(current_predicate(start_emacs/0)).
 prepare_editor :-
     current_prolog_flag(editor, pce_emacs),
+    exists_source(library(pce_emacs)),
     !,
-    start_emacs.
-:- endif.
+    (   current_predicate(start_emacs/0)
+    ->  true
+    ;   use_module(library(pce_emacs), [start_emacs/0]),
+        start_emacs
+    ).
 prepare_editor.
 
 
