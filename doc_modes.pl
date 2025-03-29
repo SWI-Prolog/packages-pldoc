@@ -54,14 +54,12 @@
 This  module  analyzes  the  formal  part  of  the  documentation  of  a
 predicate. The formal  part  is  processed   by  read_term/3  using  the
 operator declarations in this module.
-
-@author   Jan Wielemaker
-@license  GPL
 */
 
 :- op(750, xf, ...).                    % Repeated argument: Arg...
 :- op(650, fx, +).                      % allow +Arg
 :- op(650, fx, -).                      % allow -Arg
+:- op(650, fx, =).                      % allow =Arg
 :- op(650, fx, ++).                     % allow ++Arg
 :- op(650, fx, --).                     % allow --Arg
 :- op(650, fx, ?).                      % allow ?Arg
@@ -467,6 +465,7 @@ is_type(Type) :-
 
 mode_indicator(+).                      % Instantiated to type
 mode_indicator(-).                      % Output argument
+mode_indicator(=).                      % Output argument
 mode_indicator(++).                     % Ground
 mode_indicator(--).                     % Must be unbound
 mode_indicator(?).                      % Partially instantiated to type
@@ -476,6 +475,7 @@ mode_indicator(!).                      % Mutable term
 
 mode_ind(+(X), +, X).
 mode_ind(-(X), -, X).
+mode_ind(=(X), =, X).
 mode_ind(++(X), ++, X).
 mode_ind(--(X), --, X).
 mode_ind(?(X), ?, X).
@@ -528,7 +528,7 @@ head_to_pi(Head, Name/Arity) :-
 %
 %   @arg Term     Clause-term
 %   @arg FilePos  Term of the form File:Line, where File is a
-%                   canonical filename.
+%                 canonical filename.
 
 compile_clause(Term, File:Line) :-
     '$set_source_module'(SM, SM),
