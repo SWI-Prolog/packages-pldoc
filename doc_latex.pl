@@ -187,7 +187,7 @@ process_items(PI, Mode0, Mode, Options) -->
     latex_tokens_for_predicates(PI, Options).
 process_items(FileSpec, Mode0, Mode, Options) -->
     {   (   absolute_file_name(FileSpec,
-                               [ file_type(prolog),
+                               [ file_type(source),
                                  access(read),
                                  file_errors(fail)
                                ],
@@ -872,7 +872,7 @@ argument(arg(Name,Descr)) -->
 file_header(File, Options) -->
     { memberchk(file(Title, Comment), Options),
       !,
-      file_synopsis(File, Synopsis)
+      file_synopsis(File, Synopsis, Options)
     },
     file_title([Synopsis, ': ', Title], File, Options),
     { is_structured_comment(Comment, Prefixes),
@@ -885,7 +885,7 @@ file_header(File, Options) -->
     latex(DOM),
     latex(cmd(vspace('0.7cm'))).
 file_header(File, Options) -->
-    { file_synopsis(File, Synopsis)
+    { file_synopsis(File, Synopsis, Options)
     },
     file_title([Synopsis], File, Options).
 
@@ -895,7 +895,10 @@ tags_to_front(DOM0, DOM) :-
     DOM = [\tags(Tags)|Content].
 tags_to_front(DOM, DOM).
 
-file_synopsis(File, Synopsis) :-
+file_synopsis(_File, Synopsis, Options) :-
+    option(file_synopsis(Synopsis), Options),
+    !.
+file_synopsis(File, Synopsis, _) :-
     file_name_on_path(File, Term),
     unquote_filespec(Term, Unquoted),
     format(atom(Synopsis), '~w', [Unquoted]).
