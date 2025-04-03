@@ -649,8 +649,8 @@ summed_string_len([_|T], L0, L) :-
 %   Emit a LaTeX section,  keeping  track   of  the  desired highest
 %   section level.
 %
-%   @param Level    Desired level, relative to the base-level.  Must
-%                   be a non-negative integer.
+%   @arg Level    Desired level, relative to the base-level.  Must
+%                 be a non-negative integer.
 
 latex_section(Level, Attrs, Content) -->
     { current_options(Options),
@@ -913,8 +913,11 @@ file_title(Title, File, Options) -->
       Section =.. [Level,Title],
       file_base_name(File, BaseExt),
       file_name_extension(Base, _, BaseExt),
-      delete_unsafe_label_chars(Base, SafeBase),
-      atom_concat('sec:', SafeBase, Label)
+      (   option(label(Seclabel), Options)
+      ->  true
+      ;   delete_unsafe_label_chars(Base, Seclabel)
+      ),
+      atom_concat('sec:', Seclabel, Label)
     },
     latex(cmd(Section)),
     latex(cmd(label(Label))).
