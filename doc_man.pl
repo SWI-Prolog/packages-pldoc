@@ -73,10 +73,10 @@
 :- autoload(library(www_browser),[expand_url_path/2]).
 :- autoload(library(http/html_head),[html_requires/3]).
 :- if(exists_source(library(http/http_dispatch))).
-:- autoload(library(http/http_dispatch),
-	    [ http_link_to_id/3, http_location_by_id/2,
-	      http_handler/3, http_reply_file/3, http_redirect/3
-	    ]).
+:- use_module(library(http/http_dispatch),
+              [ http_link_to_id/3, http_location_by_id/2,
+                http_handler/3, http_reply_file/3, http_redirect/3
+              ]).
 :- endif.
 :- autoload(library(http/http_path),[http_absolute_location/3]).
 :- autoload(library(http/mimetype),[file_mime_type/2]).
