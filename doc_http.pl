@@ -234,7 +234,11 @@ browser_url(Spec, URL) :-
 %!  prepare_editor
 %
 %   Start XPCE as edit requests coming from the document server can only
-%   be handled if XPCE is running.
+%   be handled if XPCE is running.   This must load PceEmacs dynamically
+%   without triggering the undefined predicate  detection. We cannot use
+%   conditional compilation as xpce could be  installed later and may or
+%   may not be available depending on  the ``--no-pce`` and availability
+%   of a GUI.
 
 prepare_editor :-
     current_prolog_flag(editor, pce_emacs),
@@ -243,7 +247,8 @@ prepare_editor :-
     (   current_predicate(start_emacs/0)
     ->  true
     ;   use_module(library(pce_emacs), [start_emacs/0]),
-        start_emacs
+        term_string(Goal, "start_emacs"),
+        call(Goal)
     ).
 prepare_editor.
 
