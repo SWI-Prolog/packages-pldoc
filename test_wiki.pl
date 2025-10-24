@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2017, VU University Amsterdam
+    Copyright (c)  2017-2025, VU University Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -40,7 +41,7 @@
 :- use_module(library(pldoc/doc_process)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/json)).
+:- use_module(library(json)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_error)).
 :- use_module(library(http/html_write)).
