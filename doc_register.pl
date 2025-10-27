@@ -54,8 +54,7 @@ pldoc_module(pairs).
                  *******************************/
 
 :- multifile
-    prolog:comment_hook/3,
-    user:message_hook/3.
+    prolog:comment_hook/3.
 
 :- dynamic
     mydoc/3.                        %  +Comments, +TermPos, +File
@@ -109,10 +108,10 @@ delayed_process(Comments, TermPos, File) :-
         process_comments(Comments, TermPos, File),
         '$set_source_module'(_, Old)).
 
-user:message_hook(load_file(done(0, _F, _A, _M, _T, _H)), _, _) :-
-    (   mydoc(_, _, _),
-	\+ pldoc_loading
-    ->  debug(pldoc, 'Processing delayed comments', []),
-        process_stored_comments
-    ),
-    fail.
+:- multifile prolog:message_action/2.
+
+prolog:message_action(load_file(done(0, _F, _A, _M, _T, _H)), _) :-
+    mydoc(_, _, _),
+    \+ pldoc_loading,
+    debug(pldoc, 'Processing delayed comments', []),
+    process_stored_comments.
