@@ -35,7 +35,9 @@
 :- module(doc_access,
           [ host_access_options/2       % +AllOptions, -NoAccessOptions
           ]).
+:- if(exists_source(library(http/http_hook))).
 :- use_module(library(http/http_hook)).
+:- endif.
 :- use_module(library(dcg/basics)).
 
 :- dynamic
