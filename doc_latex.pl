@@ -510,6 +510,12 @@ outdent(oppredsummary) --> !,   [ nl(1) ].
 outdent(hline) --> !,           [ nl(1) ].
 outdent(_) -->                  [].
 
+fragile_latex(Content, In, Out) :-
+    setup_call_cleanup(
+        asserta(fragile, Ref),
+        phrase(latex(Content), In, Out),
+        erase(Ref)).
+
 %!  latex_special(String, Rest)// is semidet.
 %
 %   Deals with special sequences of symbols.
@@ -1312,7 +1318,6 @@ latex_table(_Attrs, Content) -->
       atomics_to_string(Align, '|', S0),
       atomic_list_concat(['|',S0,'|'], Format)
     },
-%       latex(cmd(begin(table, opt(h)))),
     latex(cmd(begin(quote))),
     latex(cmd(begin(tabulary,
                     no_escape('0.9\\textwidth'),
@@ -1322,7 +1327,6 @@ latex_table(_Attrs, Content) -->
     latex(cmd(hline)),
     latex(cmd(end(tabulary))),
     latex(cmd(end(quote))).
-%       latex(cmd(end(table))).
 
 max_columns([], C, C, W, W).
 max_columns([tr(List)|T], C0, C, _, W) :-
@@ -1370,14 +1374,14 @@ row([td(_Attrs, Content)|T]) -->
     !,
     row([td(Content)|T]).
 row([td(Content)|T]) -->
-    latex(Content),
+    fragile_latex(Content),
     (   {T == []}
     ->  []
     ;   [ latex(' & ') ]
     ),
     row(T).
 row([th(Content)|T]) -->
-    latex(cmd(textbf(Content))),
+    fragile_latex(cmd(textbf(Content))),
     (   {T == []}
     ->  []
     ;   [ latex(' & ') ]
