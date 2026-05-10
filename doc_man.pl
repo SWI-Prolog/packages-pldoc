@@ -346,6 +346,7 @@ load_man_object(Obj, ParentSection, Path, DOM) :-
 			]),
 	set_sgml_parser(Parser, file(Path)),
 	set_sgml_parser(Parser, dialect(sgml)),
+	set_sgml_parser(Parser, encoding('utf-8')),
 	set_sgml_parser(Parser, shorttag(false)),
 	set_sgml_parser(Parser, defaults(false)),
 	call_cleanup(sgml_parse(Parser,
