@@ -1,10 +1,11 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@vu.nl
+    E-mail:        jan@swi-prolog.org
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2007-2015, University of Amsterdam
+    Copyright (c)  2007-2026, University of Amsterdam
                               VU University Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -1671,79 +1672,7 @@ print_char('~', Out) :- !, write(Out, '\\Stilde{}').
 print_char('\\',Out) :- !, write(Out, '\\bsl{}').
 print_char('^', Out) :- !, write(Out, '\\Shat{}').
 print_char('|', Out) :- !, write(Out, '\\Sbar{}').
-print_char(C,   Out) :- unicode_symbol(C, Out), !.
-print_char(C,   Out) :- decompose_char(C, Out), !.
 print_char(C,   Out) :- put_char(Out, C).
-
-%!  unicode_symbol(+Char, +Out) is semidet.
-%
-%   Translate a (non-ASCII) Unicode punctuation or symbol codepoint to
-%   a safe LaTeX sequence that pdflatex accepts under the T1 font
-%   encoding without requiring inputenc UTF-8.  Mostly covers common
-%   prose characters — em-dash, arrows, typographic quotes, bullets,
-%   ellipsis.  Return silent failure for anything not listed so
-%   decompose_char/2 can still give us a diacritic fallback.
-
-unicode_symbol(C, Out) :-
-    unicode_symbol_tex(C, Tex),
-    write(Out, Tex).
-
-unicode_symbol_tex('\u2010', '-').                     % HYPHEN
-unicode_symbol_tex('\u2011', '-').                     % NON-BREAKING HYPHEN
-unicode_symbol_tex('\u2012', '--').                    % FIGURE DASH
-unicode_symbol_tex('\u2013', '--').                    % EN DASH
-unicode_symbol_tex('\u2014', '---').                   % EM DASH
-unicode_symbol_tex('\u2015', '---').                   % HORIZONTAL BAR
-unicode_symbol_tex('\u2018', '`').                     % LEFT SINGLE QUOTE
-unicode_symbol_tex('\u2019', '\'').                    % RIGHT SINGLE QUOTE
-unicode_symbol_tex('\u201C', '``').                    % LEFT DOUBLE QUOTE
-unicode_symbol_tex('\u201D', '\'\'').                  % RIGHT DOUBLE QUOTE
-unicode_symbol_tex('\u2022', '\\ensuremath{\\bullet}'). % BULLET
-unicode_symbol_tex('\u2026', '\\ldots{}').             % HORIZONTAL ELLIPSIS
-unicode_symbol_tex('\u2190', '\\ensuremath{\\leftarrow}').       % LEFTWARDS ARROW
-unicode_symbol_tex('\u2191', '\\ensuremath{\\uparrow}').         % UPWARDS ARROW
-unicode_symbol_tex('\u2192', '\\ensuremath{\\rightarrow}').      % RIGHTWARDS ARROW
-unicode_symbol_tex('\u2193', '\\ensuremath{\\downarrow}').       % DOWNWARDS ARROW
-unicode_symbol_tex('\u21D2', '\\ensuremath{\\Rightarrow}').      % RIGHTWARDS DOUBLE ARROW
-unicode_symbol_tex('\u21D4', '\\ensuremath{\\Leftrightarrow}').  % LEFT RIGHT DOUBLE ARROW
-unicode_symbol_tex('\u2260', '\\ensuremath{\\neq}').             % NOT EQUAL TO
-unicode_symbol_tex('\u2264', '\\ensuremath{\\leq}').             % LESS-THAN OR EQUAL TO
-unicode_symbol_tex('\u2265', '\\ensuremath{\\geq}').             % GREATER-THAN OR EQUAL TO
-unicode_symbol_tex('\u00B7', '\\ensuremath{\\cdot}').            % MIDDLE DOT
-unicode_symbol_tex('\u00A9', '\\textcopyright{}').               % COPYRIGHT
-unicode_symbol_tex('\u00AE', '\\textregistered{}').              % REGISTERED SIGN
-unicode_symbol_tex('\u00A0', '~').                               % NBSP
-
-%!  decompose_char(+Char) is semidet.
-%
-%   Deal with diacritics.  Relies  on   Unicode  decomposition,  where a
-%   character with diacritics becomes the plain character, followed by a
-%   composing diacritics mark.
-
-:- if(exists_source(library(unicode))).
-:- use_module(library(unicode)).
-decompose_char(Char, Out) :-
-    char_code(Char, Code),
-    Code > 128,
-    unicode_map(Char, Decomposed, [decompose]),
-    atom_codes(Decomposed, [C,D]),
-    diacritic_cmd(D, Cmd),
-    format(Out, '\\~w~c', [Cmd, C]).
-:- else.
-decompose_char(_,_) :-
-    fail.
-:- endif.
-
-diacritic_cmd(768, '`').
-diacritic_cmd(769, '\'').
-diacritic_cmd(770, '~').
-diacritic_cmd(771, '=').
-diacritic_cmd(774, 'v').
-diacritic_cmd(775, '.').
-diacritic_cmd(776, '"').
-diacritic_cmd(785, 'u').
-diacritic_cmd(807, 'c').
-diacritic_cmd(808, 'k').
 
 %!  identifier(+Atom) is semidet.
 %
