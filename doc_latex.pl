@@ -1660,8 +1660,8 @@ nl(Out, N) :-
 %   Write Char in LaTeX format to Out. This escapes characters for LaTeX
 %   where necessary.
 
-print_char('<', Out) :- !, write(Out, '$<$').
-print_char('>', Out) :- !, write(Out, '$>$').
+print_char('<', Out) :- !, write(Out, '\\textless{}').
+print_char('>', Out) :- !, write(Out, '\\textgreater{}').
 print_char('{', Out) :- !, write(Out, '\\{').
 print_char('}', Out) :- !, write(Out, '\\}').
 print_char('$', Out) :- !, write(Out, '\\$').
