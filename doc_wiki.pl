@@ -113,9 +113,10 @@ wiki_structure([], _, []) :- !.
 wiki_structure([_-[]|T], BI, Pars) :-          % empty lines
     !,
     wiki_structure(T, BI, Pars).
-wiki_structure(Lines, _, [\tags(Tags)]) :-
-    tags(Lines, Tags),
-    !.
+wiki_structure(Lines, BI, [\tags(Tags)|Rest]) :-
+    tags(Lines, Tags, RestLines),
+    !,
+    wiki_structure(RestLines, BI, Rest).
 wiki_structure(Lines, BI, [P1|PL]) :-
     take_block(Lines, BI, P1, RestLines),
     wiki_structure(RestLines, BI, PL).
@@ -634,36 +635,44 @@ strip_leading_ws(T, T).
                  *             TAGS             *
                  *******************************/
 
-%!  tags(+Lines:lines, -Tags) is semidet.
+%!  tags(+Lines:lines, -Tags, -RestLines) is semidet.
 %
-%   If the first line is a @tag, read the remainder of the lines to
-%   a list of \tag(Name, Value) terms.
+%   If the first line is a @tag, read the leading run of @tag lines
+%   into Tags and return the remaining lines (e.g., a section header
+%   ending the tag block) as RestLines. Fails if no tag is collected,
+%   so the caller falls through to normal block parsing.
 
-tags(Lines, Tags) :-
-    collect_tags(Lines, Tags0),
+tags(Lines, Tags, RestLines) :-
+    collect_tags(Lines, Tags0, RestLines),
+    Tags0 \== [],
     keysort(Tags0, Tags1),
     pairs_values(Tags1, Tags2),
     combine_tags(Tags2, Tags).
 
-%!  collect_tags(+IndentedLines, -Tags) is semidet
+%!  collect_tags(+IndentedLines, -Tags, -RestLines) is semidet
 %
 %   Create a list Order-tag(Tag,Tokens) for   each @tag encountered.
-%   Order is the desired position as defined by tag_order/2.
+%   Order is the desired position as defined by tag_order/2. Stops
+%   at the first non-@ line (returned in RestLines) so that a
+%   following section header or block element closes the tag list
+%   instead of being slurped into the last tag's content.
 %
 %   @tbd Tag content is  often  poorly   aligned.  We  now  find the
 %   alignment of subsequent lines  and  assume   the  first  line is
 %   alligned with the remaining lines.
 
-collect_tags([], []).
-collect_tags([Indent-[@,String|L0]|Lines], [Order-tag(Tag,Value)|Tags]) :-
+collect_tags([], [], []) :- !.
+collect_tags([Indent-[@,String|L0]|Lines], [Order-tag(Tag,Value)|Tags], RestLines) :-
     tag_name(String, Tag, Order),
     !,
     strip_leading_ws(L0, L),
-    rest_tag(Lines, Indent, VT, RestLines),
+    rest_tag(Lines, Indent, VT, RestLines0),
     normalise_indentation(VT, VT1),
     wiki_structure([0-L|VT1], -1, Value0),
     strip_leading_par(Value0, Value),
-    collect_tags(RestLines, Tags).
+    collect_tags(RestLines0, Tags, RestLines).
+collect_tags(Lines, [], Lines) :-
+    Lines \= [_-[@,_|_]|_].
 
 
 %!  tag_name(+String, -Tag:atom, -Order:int) is semidet.
@@ -685,6 +694,9 @@ rest_tag([], _, [], []) :- !.
 rest_tag(Lines, Indent, [], Lines) :-
     Lines = [Indent-[@,Word|_]|_],
     tag_name(Word, _, _),
+    !.
+rest_tag(Lines, _, [], Lines) :-
+    section_header(Lines, _, _),
     !.
 rest_tag([L|Lines0], Indent, [L|VT], Lines) :-
     rest_tag(Lines0, Indent, VT, Lines).
