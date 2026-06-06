@@ -120,6 +120,7 @@ clean_man_index :-
 
 user:file_search_path(swi_man_manual,   swi('doc/Manual')).
 user:file_search_path(swi_man_packages, swi('doc/packages')).
+user:file_search_path(swi_man_xpce,     swi('doc/packages/xpce')).
 
 manual_directory(Class, Spec, Dir) :-
     man_path_spec(Class, Spec),
@@ -131,6 +132,7 @@ manual_directory(Class, Spec, Dir) :-
 
 man_path_spec(manual,   swi_man_manual(.)).
 man_path_spec(packages, swi_man_packages(.)).
+man_path_spec(packages, swi_man_xpce(.)).
 
 
                  /*******************************
@@ -598,3 +600,4 @@ doc_object_identifier(_:Name//_, Name).
 doc_object_identifier(M:_, M).
 doc_object_identifier(f(Name/_), Name).
 doc_object_identifier(c(Name), Name).
+doc_object_identifier(xpce(_, _, Name), Name).

@@ -1334,6 +1334,24 @@ prolog:doc_object_title(Obj, Title) :-
     Obj = section(_,_,_,_),
     manual_object(Obj, Title, _, _, _),
     !.
+prolog:doc_object_title(xpce(Class, Kind, Name), Title) :-
+    xpce_member_arrow(Kind, Arrow),
+    format(atom(Title), '~w~w~w', [Class, Arrow, Name]).
+
+%   xpce class members appear in the index as xpce(Class, Kind, Name)
+%   (see packages/pldoc/doc_util.pl atom_to_object/2 and packages/xpce/
+%   man/refmanual). Render link text as the conventional xpce arrow
+%   notation -- Class->name / Class<-name / Class<->name / Class.name --
+%   so the entries are recognisable next to predicates.
+
+prolog:doc_object_link(xpce(Class, Kind, Name), _Options) -->
+    { xpce_member_arrow(Kind, Arrow) },
+    html([Class, Arrow, Name]).
+
+xpce_member_arrow(send,     '->').
+xpce_member_arrow(get,      '<-').
+xpce_member_arrow(both,     '<->').
+xpce_member_arrow(classvar, '.').
 
 prolog:doc_canonical_object(section(_Level, _No, ID, _Path),
 			    section(ID)).

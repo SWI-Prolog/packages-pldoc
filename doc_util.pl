@@ -146,6 +146,15 @@ atom_pi2(Name, Name/_).
 %
 %   If Atom is `Name/Arity', decompose to Name and Arity. No errors.
 
+atom_to_object(Atom, xpce(Class, Kind, Name)) :-
+    atom(Atom),
+    sub_atom(Atom, 0, _, _, 'xpce('),
+    sub_atom(Atom, _, 1, 0, ')'),
+    catch(term_to_atom(Term, Atom), _, fail),
+    Term = xpce(Class, Kind, Name),
+    atom(Class), atom(Name),
+    xpce_kind(Kind),
+    !.
 atom_to_object(Atom, Object) :-
     atom(Atom),
     atom_concat('f-', Atom0, Atom),
@@ -173,6 +182,11 @@ atom_to_object(Atom, c(Function)) :-
     sub_atom(Atom, B, _, _, '('),
     !,
     sub_atom(Atom, 0, B, _, Function).
+
+xpce_kind(send).
+xpce_kind(get).
+xpce_kind(both).
+xpce_kind(classvar).
 
 %!  normalise_white_space(-Text)// is det.
 %
