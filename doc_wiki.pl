@@ -579,7 +579,8 @@ section_label(Label) -->
 label_conts([H|T]) --> label_cont(H), !, label_conts(T).
 label_conts([]) --> [].
 
-label_cont(-) --> [-].
+label_cont(-)    --> [-].
+label_cont('_')  --> ['_'].
 label_cont(Name) --> [w(Name)].
 
 
