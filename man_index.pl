@@ -120,7 +120,7 @@ clean_man_index :-
 
 user:file_search_path(swi_man_manual,   swi('doc/Manual')).
 user:file_search_path(swi_man_packages, swi('doc/packages')).
-user:file_search_path(swi_man_xpce,     swi('doc/packages/xpce')).
+user:file_search_path(swi_man_xpce,     swi('xpce/man/refmanual')).
 
 manual_directory(Class, Spec, Dir) :-
     man_path_spec(Class, Spec),
