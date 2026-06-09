@@ -186,6 +186,7 @@ atom_to_object(Atom, c(Function)) :-
 xpce_kind(send).
 xpce_kind(get).
 xpce_kind(both).
+xpce_kind(ivar).
 xpce_kind(classvar).
 
 %!  normalise_white_space(-Text)// is det.
