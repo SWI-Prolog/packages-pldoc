@@ -15,6 +15,21 @@ set(SUPPORT pldoc.css pldoc.js pllisting.css pldoc.sty edit.png
     private.png public.png reload.png favicon.ico up.gif source.png
     h1-bg.png pub-bg.png multi-bg.png priv-bg.png h2-bg.png editpred.png)
 
+if(CHANGELOG)
+  list(APPEND PLDOC_PRIV git_extract_changes.pl doc_changes.pl)
+  has_package(xpce has_xpce)
+  if(has_xpce)
+    set(changelog_deps xpce-predicate-index)
+  endif()
+  add_swipl_target(changelog
+		   OUTPUT ${SWIPL_BUILD_HOME}/library/ext/pldoc/pldoc/changelog_events.pl
+		   LIBS pldoc/git_extract_changes
+		   COMMAND "git_extract_changelog"
+		   DEPENDS library_index ${changelog_deps}
+		   QUIET
+		   COMMENT "-- Machine readable changelog")
+endif()
+
 swipl_plugin(pldoc
 	     PL_LIBS ${PLDOC_PUBL}
 	     PL_LIB_SUBDIR pldoc
