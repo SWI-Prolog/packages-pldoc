@@ -21,16 +21,6 @@ swipl_plugin(pldoc
 	         NOINDEX
 	         PL_LIBS ${PLDOC_PRIV} ${SUPPORT})
 
-set(SWIPL_QLF_BASE ${PKG_BUILD_LIBRARY}/pldoc)
-add_qcompile_target(doc_html
-		    PRELOAD "lib:pldoc"
-		    EXPECTDEPS
-		        "library(debug)"
-			"library(pldoc/hooks)"
-			"library(http/html_head)"
-			"library(http/http_dispatch)"
-		    DEPENDS clib sgml http nlp)
-
 swipl_examples(server/README server/man_server.pl)
 
 pkg_doc(pldoc
