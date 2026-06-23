@@ -637,3 +637,29 @@ code.copy::after
 code.copy, a.copy
 { cursor: copy;
 }
+
+div.pldoc-changes
+{ width: 90%;
+  background: #fff68f;
+  margin: auto;
+  border: 1px solid #888;
+}
+
+div.pldoc-changes ul
+{ margin-top: 0.5ex;
+  margin-bottom: 0.5ex;
+}
+
+div.pldoc-changes-header
+{ margin-left: 1ex;
+  font-weight: bold;
+}
+
+div.pldoc-changes-footer
+{ margin-right: 1ex;
+  text-align: right;
+  color: #888;
+  font-size: 80%;
+  font-style: italic;
+}
+

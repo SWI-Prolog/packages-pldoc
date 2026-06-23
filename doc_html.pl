@@ -1,9 +1,9 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@vu.nl
-    WWW:           http://www.swi-prolog.org
-    Copyright (c)  2006-2023, University of Amsterdam
+    E-mail:        jan@swi-prolog.org
+    WWW:           https://www.swi-prolog.org
+    Copyright (c)  2006-2026, University of Amsterdam
 			      VU University Amsterdam
 			      CWI, Amsterdam
                               SWI-Prolog Solutions b.v.
@@ -91,6 +91,32 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
+:- use_module(library(apply)).
+:- use_module(library(debug)).
+:- use_module(library(error)).
+:- use_module(library(filesex)).
+:- use_module(library(lists)).
+:- use_module(library(occurs)).
+:- use_module(library(option)).
+:- use_module(library(pairs)).
+:- use_module(library(prolog_source)).
+:- use_module(library(prolog_xref)).
+:- use_module(library(readutil)).
+:- use_module(library(solution_sequences)).
+:- use_module(library(uri)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_path)).
+:- use_module(library(http/term_html)).
+:- use_module(pldoc(doc_index)).
+:- use_module(pldoc(doc_man)).
+:- use_module(pldoc(doc_modes)).
+:- use_module(pldoc(doc_process)).
+:- use_module(pldoc(doc_search)).
+:- use_module(pldoc(doc_util)).
+:- use_module(pldoc(doc_wiki)).
+:- use_module(library(dcg/high_order)).
+:- use_module(library(dcg/basics)).
 
 pldoc_server(true).
 :- else.
@@ -1070,13 +1096,195 @@ file_link(File) -->
 
 %!  object_footer(+Obj, +Options)// is det.
 %
-%   Call the hook prolog:doc_object_footer//2. This hook will be used to
-%   deal with examples.
+%   Call the hook prolog:doc_object_footer//2.  This hook is used by
+%   the examples machinery.  When the changelog support is installed
+%   (cmake -DCHANGELOG=ON), a small block listing introduction and
+%   last change is appended after the hook output — see
+%   object_changelog//2.
 
 object_footer(Obj, Options) -->
-    prolog:doc_object_footer(Obj, Options),
+    object_changelog(Obj, Options),
+    (   prolog:doc_object_footer(Obj, Options)
+    ->  []
+    ;   []
+    ).
+
+%!  object_changelog(+Obj, +Options)// is det.
+%
+%   Emit a small footer noting when Obj (a Name/Arity, possibly module-
+%   or DCG-qualified, or a list of such, or `f(...)`) was introduced
+%   and when it was last changed.  Empty when no events are known or
+%   when the changelog support was not built (CHANGELOG cmake option
+%   off).  Each version is rendered as `Maj.Min.Patch` and linked to
+%   the underlying commit on GitHub.
+
+:- if(exists_source(library(pldoc/doc_changes))).
+:- use_module(library(pldoc/doc_changes),
+              [doc_introduced/3, doc_last_changed/4]).
+
+object_changelog(Objs, Options) -->
+    { is_list(Objs), !,
+      objs_pis(Objs, PIs)
+    },
+    object_changelog_pis(PIs, Options).
+object_changelog(Obj, Options) -->
+    { objs_pis([Obj], PIs)
+    },
+    object_changelog_pis(PIs, Options).
+
+object_changelog_pis(PIs, _Options) -->
+    { changelog_union(PIs, Events),
+      Events \== []
+    },
+    !,
+    html(div(class('pldoc-changes'),
+             [ div(class('pldoc-changes-header'), "History"),
+               ul(\changelog_events(Events)),
+               div(class('pldoc-changes-footer'),
+                   "Disclaimer: heuristically mined from GIT")
+             ])).
+object_changelog_pis(_, _) --> [].
+
+%!  objs_pis(+Objs, -PIs) is det.
+%
+%   Filter Objs (a list  of  documentation   objects)  to  the predicate
+%   indicators  stored  in  changelog_event/7.   Module  qualifiers  are
+%   stripped; DCG arity is folded to the underlying predicate arity (the
+%   extractor does not yet emit `//`   events  separately). Other object
+%   shapes (xpce(...), c(...), f(...),   library(...), section(...)) are
+%   dropped so the footer is suppressed for them.
+
+objs_pis(Objs, PIs) :-
+    convlist(obj_pi, Objs, PIs).
+
+obj_pi(_:O, PI) :- !, obj_pi(O, PI).
+obj_pi(Name/Arity,  Name/Arity)  :- atom(Name), integer(Arity).
+obj_pi(Name//Arity, Name/PArity) :-
+    atom(Name), integer(Arity),
+    PArity is Arity + 2.
+
+changelog_events(Events) -->
+    sequence(changelog_event, Events).
+
+changelog_event(Event) -->
+    html(li(\changelog_event_(Event))).
+
+changelog_event_(event(Type, Version, Hash, Subject, Repo)) -->
+    { clean_subject(Subject, Subject1)
+    },
+    html([ \event_type(Type), " in ",
+           \version_commit_link(Version, Hash, Repo),
+           " ", em(Subject1)
+         ]).
+
+clean_subject(Subject0, Subject) :-
+    string_codes(Subject0, Codes),
+    phrase((tag, string(Msg)), Codes),
+    !,
+    string_codes(Subject, Msg).
+clean_subject(Subject, Subject).
+
+tag -->
+    capitals, ":", whites.
+
+capitals -->
+    [C], { between(0'A, 0'Z, C) }, !,
+    capitals.
+capitals -->
+    [].
+
+event_type(introduced) ==> html(b(title("The predicate was added"),
+                                  "Introduced")).
+event_type(added)      ==> html(b(title("New functinality was added"),
+                                  "Extended")).
+event_type(enhanced)   ==> html(b(title("Implementation has been improved"),
+                                  "Enhanced")).
+event_type(fixed)      ==> html(b(title("A bug was fixed"),
+                                  "Fixed")).
+event_type(modified)   ==> html(b(title("The modification may break compatibility"),
+                                  "Modified")).
+event_type(Id)         ==> html(b(title("Unknow tag"),
+                                  Id)).
+
+%!  changelog_union_line(+PIs, -Line) is nondet.
+%
+%   Emit one paragraph (`Line`) for the introduction event (only if
+%   *every* PI in the block has an introduction event in the tracked
+%   range; otherwise the line is suppressed to avoid implying the whole
+%   family is newer than the older members really are), and one
+%   paragraph for the most recent change across any family member.
+
+changelog_union(PIs, [Event]) :-
+    all_introduced(PIs, Event).
+changelog_union(PIs, Events) :-
+    union_last_changed(PIs, Events).
+
+%!  all_introduced(+PIs, -Event) is semidet.
+%
+%   Succeeds when every PI has an introduction event in the tracked
+%   range.  Version is the highest such introduction version across
+%   the family — i.e. the version at which the family reached its
+%   currently-documented shape.  Hash and Repo identify a representative
+%   commit (the one at that highest version).
+
+all_introduced(PIs, Event) :-
+    maplist(any_introduction, PIs, Events),
+    E0 = event(introduced, V0, _, _, _),
+    aggregate_all(max(V0, E0),
+                  member(E0, Events),
+                  max(_, Event)).
+
+any_introduction(PI, Event) :-
+    doc_introduced(PI, _, Event), !.
+
+%!  union_last_changed(+PIs, -Events:list) is det.
+%
+%   Most recent change event across PIs, ranked by version.  Fails if
+%   no PI has a change event in the tracked range.
+
+union_last_changed(PIs, Events) :-
+    Ev = event(T0, V0, _H0, _S0, _R0),
+    findall(Ev,
+            ( member(PI, PIs),
+              doc_last_changed(PI, V0, T0, Ev)
+            ),
+            Events0),
+    sort(2, >=, Events0, Events).
+
+version_commit_link(V, Hash, Repo) -->
+    { version_string(V, VStr),
+      short_hash(Hash, Short),
+      commit_url(Repo, Hash, URL)
+    },
+    html([ b(VStr), ' (👉',
+           a([href(URL), target('_blank')], Short),
+           ')'
+         ]).
+
+version_string(N, VStr) :-
+    Major is N // 10000,
+    Minor is (N // 100) mod 100,
+    Patch is N mod 100,
+    format(string(VStr), "~d.~d.~d", [Major, Minor, Patch]).
+
+short_hash(Hash, Short) :-
+    string(Hash),
+    !,
+    sub_string(Hash, 0, 7, _, Short).
+short_hash(Hash, Short) :-
+    sub_atom(Hash, 0, 7, _, Short),
     !.
-object_footer(_, _) --> [].
+short_hash(Hash, Hash).
+
+commit_url(Repo, Hash, URL) :-
+    atom(Repo), Repo \== unknown,
+    !,
+    format(atom(URL), "https://github.com/~w/commit/~w", [Repo, Hash]).
+commit_url(_, Hash, URL) :-
+    format(atom(URL), "#~w", [Hash]).
+:- else.	% library(pldoc/doc_changes) is missing
+object_changelog(_, _) --> [].
+:- endif.
 
 
 %!  object_page_footer(+Obj, +Options)// is det.
