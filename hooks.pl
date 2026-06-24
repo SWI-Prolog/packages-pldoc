@@ -49,4 +49,5 @@
     prolog:doc_object_page_footer//2, % +Object, +Options
     prolog:doc_page_header//2,      % +File, +Options
     prolog:doc_links//2,            % +Directory, +Options
-    prolog:doc_file_title//3.       % +Title, +File, +Options
+    prolog:doc_file_title//3,       % +Title, +File, +Options
+    prolog:pldoc_synopsis_spec/2.   % +Spec0, -Spec

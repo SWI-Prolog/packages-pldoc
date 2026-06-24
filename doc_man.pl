@@ -251,14 +251,25 @@ index_sections(Rest, _, [], Rest).
 
 %!  man_packages_tree(-Tree) is det.
 %
-%   Tree is the content tree of all packages
+%   Tree is the content tree of all packages.  When the xpce reference
+%   manual is installed it is prepended as a single =xpce= subtree so
+%   xpce classes and their members appear in the navigation tree under
+%   Documentation -> Packages -> XPCE.
 
 man_packages_tree(node(packages, Packages)) :-
     Section = section(0, _, _, _),
     findall(File,
 	    manual_object(Section, _Title, File, packages, _),
 	    Files),
-    maplist(package_node, Files, Packages).
+    maplist(package_node, Files, Packages0),
+    (   man_xpce_tree(XpceTree)
+    ->  Packages = [XpceTree|Packages0]
+    ;   Packages = Packages0
+    ).
+
+man_xpce_tree(node(xpce, Chapters)) :-
+    catch(man_content_tree(swi_man_xpce('.'), node(_, Chapters)),
+          _, fail).
 
 package_node(File, Tree) :-
     html_content_tree(File, Tree).
@@ -603,6 +614,7 @@ visible_doc_comment(Obj, File, Options) :-
 %special_node(manual).          % redirected to the Introduction section
 special_node(root).
 special_node(packages).
+special_node(xpce).
 
 full_page(Obj, _) :-
     var(Obj), !, fail.
@@ -760,6 +772,14 @@ man_match(packages, packages, _) -->
 	  provided by the community that must be installed separately
 	  using
 	  <a href="/pldoc/doc_for?object=pack_install/1">pack_install/1</a>.</p>
+	 |}).
+man_match(xpce, xpce, _) -->
+    !,
+    html({|html||
+	  <p>
+	  XPCE is the native graphical toolkit of SWI-Prolog.  The
+	  reference manual below documents the class hierarchy, global
+	  objects, and topical guides.</p>
 	 |}).
 man_match(root, root, _) -->
     !,
@@ -919,6 +939,16 @@ documented(PI) :-
 %       $ File#Name()
 %       Rewrite to /man/CAPI=Name
 %
+%       $ File#class-<Class>-<Kind>-<Name> :
+%       In-page link in the xpce reference manual.  Rewrite to
+%       =|/doc_for?object=xpce(Class,Kind,Name)|=.  Kind is one
+%       of send, get, both, ivar or classvar.
+%
+%       $ File#sec:NR :
+%       Section reference whose <A> tag carries no class attribute,
+%       as produced by the xpce manual for class and object refs.
+%       Rewritten via the same =sec= lookup.
+%
 %   @param Class    Class of the <A>.  Supported classes are
 %
 %           | sec   | Link to a section     |
@@ -1012,6 +1042,45 @@ rewrite_ref(gloss, Ref0, Path, Ref) :-
     !,
     object_href(Obj, Ref1),
     format(string(Ref), '~w#~w', [Ref1, Fragment]).
+rewrite_ref(_, Ref0, _, Ref) :-                 % xpce class member reference
+    sub_atom(Ref0, _, _, A, '#'),
+    sub_atom(Ref0, _, A, 0, Fragment),
+    atomic_list_concat([class, ClassA, KindA, Name], '-', Fragment),
+    xpce_kind(KindA),
+    xpce_canonical_object(ClassA, KindA, Name, Obj),
+    !,
+    object_href(Obj, Ref).
+rewrite_ref(_, Ref0, Path, Ref) :-              % section ref carrying class=""
+    sub_atom(Ref0, B, _, A, '#'),               % (xpce: class refs, objects)
+    sub_atom(Ref0, _, A, 0, Fragment),
+    sub_atom(Fragment, 0, _, _, 'sec:'),
+    sub_atom(Ref0, 0, B, _, File),
+    referenced_section(Fragment, File, Path, Section),
+    !,
+    object_href(Section, Ref).
+
+%   The anchor id encodes the access form used at the call site
+%   (=|class-<class>-<kind>-<name>|=) but each method/instance variable
+%   has only one canonical xpce(...) data-obj.  An ivar e.g. emits
+%   alias anchors for its send/get/both accessors, and a =both= anchor
+%   is a shorthand that resolves to whichever send/get/ivar form the
+%   class actually defines.  Try the parsed kind first, then fall back
+%   to the alternative forms in order of likelihood.
+
+xpce_canonical_object(Class, Kind, Name, xpce(Class, Kind, Name)) :-
+    manual_object(xpce(Class, Kind, Name), _, _, _, _),
+    !.
+xpce_canonical_object(Class, _, Name, Obj) :-
+    member(K, [ivar, send, get, classvar, both]),
+    Obj = xpce(Class, K, Name),
+    manual_object(Obj, _, _, _, _),
+    !.
+
+xpce_kind(send).
+xpce_kind(get).
+xpce_kind(both).
+xpce_kind(ivar).
+xpce_kind(classvar).
 
 %!  referenced_section(+Fragment, +File, +Path, -Section)
 
@@ -1314,6 +1383,8 @@ prolog:doc_object_link(manual, _Options) -->
     html('Reference manual').
 prolog:doc_object_link(packages, _) -->
     html('Packages').
+prolog:doc_object_link(xpce, _) -->
+    html('XPCE').
 
 prolog:doc_category(manual,   30, 'Reference Manual').
 prolog:doc_category(packages, 40, 'Packages').
@@ -1334,6 +1405,7 @@ prolog:doc_object_title(Obj, Title) :-
     Obj = section(_,_,_,_),
     manual_object(Obj, Title, _, _, _),
     !.
+prolog:doc_object_title(xpce, 'XPCE').
 prolog:doc_object_title(xpce(Class, Kind, Name), Title) :-
     xpce_member_arrow(Kind, Arrow),
     format(atom(Title), '~w~w~w', [Class, Arrow, Name]).
@@ -1351,7 +1423,15 @@ prolog:doc_object_link(xpce(Class, Kind, Name), _Options) -->
 xpce_member_arrow(send,     '->').
 xpce_member_arrow(get,      '<-').
 xpce_member_arrow(both,     '<->').
+xpce_member_arrow(ivar,     '-').
 xpce_member_arrow(classvar, '.').
+
+%   Predicates such as get_class/4 live in module =pce_principal=, but
+%   the user-facing entry point is =|library(pce)|=, which re-exports
+%   the boot modules.  Rewrite the synopsis so it says what users
+%   should actually type.
+
+prolog:pldoc_synopsis_spec(pce(prolog/boot/_), library(pce)).
 
 prolog:doc_canonical_object(section(_Level, _No, ID, _Path),
 			    section(ID)).

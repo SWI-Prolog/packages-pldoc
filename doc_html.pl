@@ -1331,7 +1331,11 @@ object_synopsis(M:Name/Arity, Options) -->
 	  file_name_on_path(File, Spec)
       ),
       !,
-      unquote_filespec(Spec, Unquoted)
+      unquote_filespec(Spec, Unquoted0),
+      (   prolog:pldoc_synopsis_spec(Unquoted0, Unquoted)
+      ->  true
+      ;   Unquoted = Unquoted0
+      )
     },
     use_module_synopsis(Head, File, Unquoted, Options).
 object_synopsis(Name//Arity, Options) -->
