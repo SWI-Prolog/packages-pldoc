@@ -2057,7 +2057,7 @@ split_lines(Prefixes, [Indent-L1|Ls]) -->
 end_of_comment -->
     eos.
 end_of_comment -->
-    ws, stars, "*/".
+    ws, stars, "*/", ws.
 
 stars --> [].
 stars --> "*", !, stars.
