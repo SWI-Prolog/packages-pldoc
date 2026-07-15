@@ -905,8 +905,8 @@ pop_mode(Mode, [H|Rest0], Rest) -->
 %   Describe undocumented predicates if the file is a module file.
 
 undocumented(File, Objs, Options) -->
-    { memberchk(module(Module), Options),
-      memberchk(public(Exports), Options),
+    { option(module(Module), Options),
+      option(public(Exports), Options),
       select_undocumented(Exports, Module, Objs, Undoc),
       re_exported_doc(Undoc, File, Module, UREObjs, ReallyUnDoc),
       sort(2, @=<, UREObjs, REObjs) % UREObjs = doc(PI,Pos,Comment)
