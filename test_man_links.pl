@@ -38,6 +38,7 @@
 :- use_module(library(plunit)).
 :- use_module(library(pldoc)).
 :- use_module(library(pldoc/doc_man)).
+:- use_module(library(pldoc/man_index), [manual_object/5]).
 :- use_module(library(doc_http), []).   % register the PlDoc HTTP handlers
 :- use_module(library(help)).
 :- use_module(library(http/html_write)).
@@ -88,6 +89,16 @@ page_dom(Object, Extra, DOM) :-
            Tokens),
     with_output_to(string(HTML), print_html(Tokens)),
     load_html(string(HTML), DOM, []).
+
+%!  page_img_src(+Object, +Extra, -Src) is semidet.
+%
+%   Src is the =src= of the first image on the page for Object.
+
+page_img_src(Object, Extra, Src) :-
+    page_dom(Object, Extra, DOM),
+    sub_term(element(img, Attrs, _), DOM),
+    memberchk(src=Src, Attrs),
+    !.
 
 dom_hrefs(DOM, HREFs) :-
     findall(HREF,
@@ -183,7 +194,32 @@ test(apropos_uri, Goal == apropos('open file', [offset(20)])) :-
 test(not_an_object, fail) :-
     pldoc_href_object('/pldoc/doc/home/jan/x.pl#foo/1', _).
 
+% Figures embedded in the manual.  Without a server (help/1) they become
+% a `file://` URI; the server routes them through the pldoc_refman
+% handler.
+
+test(image_no_server, true(sub_atom(Src, 0, _, _, 'file://'))) :-
+    page_img_src(section('sec:broadcast'), [server(false)], Src).
+
+test(image_server, Src == '/pldoc/refman/broadcast.png') :-
+    page_img_src(section('sec:broadcast'), [], Src).
+
+% Every documented object renders as a help/1 page without raising.
+
+test(render_all, Bad == []) :-
+    findall(Obj-E, render_error(Obj, E), Bad).
+
 :- end_tests(man_links).
 
 pldoc_link(HREF) :-
     sub_atom(HREF, 0, _, _, '/pldoc/').
+
+%!  render_error(-Object, -Error) is nondet.
+%
+%   True when rendering the help/1 page for Object raises Error.
+
+render_error(Object, Error) :-
+    manual_object(Object, _, _, _, _),
+    catch(( page_dom(Object, [server(false)], _),
+            fail
+          ), Error, true).

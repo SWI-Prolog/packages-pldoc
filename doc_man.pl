@@ -77,7 +77,7 @@
 	    ]).
 :- autoload(library(uri),
 	    [uri_encoded/3, uri_components/2, uri_data/3,
-	     uri_query_components/2]).
+	     uri_query_components/2, uri_file_name/2]).
 :- autoload(library(www_browser),[expand_url_path/2]).
 :- autoload(library(http/html_head),[html_requires/3]).
 :- if(exists_source(library(http/http_dispatch))).
@@ -871,7 +871,7 @@ dom_element(span, Att, [CDATA], _, Options) -->
     },
     !,
     html(a(href(HREF), CDATA)).
-dom_element(img, Att0, [], Path, _Options) -->
+dom_element(img, Att0, [], Path, Options) -->
     { selectchk(src=Src, Att0, Att1),
       relative_file_name(ImgFile, Path, Src),
       handler_alias(Handler, DirAlias),
@@ -883,8 +883,7 @@ dom_element(img, Att0, [], Path, _Options) -->
       ensure_slash(Dir, DirS),
       atom_concat(DirS, NewSrc, ImgFile),
       !,
-      http_link_to_id(Handler, [], ManRef),
-      directory_file_path(ManRef, NewSrc, NewPath),
+      img_src(Handler, NewSrc, ImgFile, NewPath, Options),
       Begin =.. [img, src(NewPath) | Att1]
     },
     html_begin(Begin),
@@ -909,8 +908,33 @@ dom_element(Name, Attrs, Content, Path, Options) -->
     dom_list(Content, Path, Options),
     html_end(Name).
 
-handler_alias(manual_file,   swi_man_manual(.)).
+handler_alias(pldoc_refman,  swi_man_manual(.)).
 handler_alias(pldoc_package, swi_man_packages(.)).
+
+%!  img_src(+Handler, +RelSrc, +AbsSrc, -Src, +Options) is det.
+%
+%   Determine the =src= for an image embedded in the manual or package
+%   documentation. Without a PlDoc server (help/1) we use a `file://`
+%   URI. Otherwise we route the image through Handler.
+
+img_src(_Handler, _RelSrc, AbsSrc, Src, Options) :-
+    no_server(Options),
+    !,
+    uri_file_name(Src, AbsSrc).
+img_src(Handler, RelSrc, _AbsSrc, Src, _Options) :-
+    http_link_to_id(Handler, [], ManRef),
+    directory_file_path(ManRef, RelSrc, Src).
+
+%!  no_server(+Options) is semidet.
+%
+%   True when the page is not rendered by the PlDoc HTTP server and thus
+%   cannot refer to its handlers.
+
+no_server(Options) :-
+    option(link_scheme(_), Options),
+    !.
+no_server(Options) :-
+    option(server(false), Options).
 
 ensure_slash(Dir, DirS) :-
     (   sub_atom(Dir, _, _, 0, /)
@@ -1403,9 +1427,15 @@ paperback(_Options) -->
 
 %!  pldoc_refman(+Request)
 %
-%   HTTP handler for PlDoc Reference Manual access.  Accepts
-%   /refman/[<package>.html.]
+%   HTTP handler for PlDoc Reference Manual  access.  Accepts
+%   /refman/[<section>.html] and the images embedded in the manual.
 
+pldoc_refman(Request) :-
+    memberchk(path_info(Img), Request),
+    \+ sub_atom(Img, _, _, _, /),
+    file_mime_type(Img, image/_),
+    !,
+    http_reply_file(swi_man_manual(Img), [], Request).
 pldoc_refman(Request) :-
     memberchk(path_info(Section), Request),
     \+ sub_atom(Section, _, _, _, /),
