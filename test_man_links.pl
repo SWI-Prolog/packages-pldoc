@@ -40,7 +40,9 @@
 :- use_module(library(pldoc/doc_man)).
 :- use_module(library(pldoc/man_index), [manual_object/5]).
 :- use_module(library(doc_http), []).   % register the PlDoc HTTP handlers
+:- if(exists_source(library(help))).
 :- use_module(library(help)).
+:- endif.
 :- use_module(library(http/html_write)).
 :- use_module(library(sgml)).
 :- use_module(library(apply)).
@@ -59,6 +61,17 @@ can be resolved back into the object they refer to.
 test_man_links :-
     run_tests([ man_links
               ]).
+
+%!  manual_available is semidet.
+%
+%   True when the HTML manual and library(help) are installed.  Both are
+%   only installed if the documentation is built.  See the use of
+%   ``INSTALL_DOCUMENTATION`` in src/CMakeLists.txt.
+
+manual_available :-
+    exists_source(library(help)),
+    manual_object(_,_,_,_,_),
+    !.
 
 %!  page_hrefs(+Object, -HREFs) is det.
 %!  page_hrefs(+Object, +Options, -HREFs) is det.
@@ -141,7 +154,7 @@ all_hrefs(HREFs) :-
     maplist(page_hrefs, Pages, Lists),
     append(Lists, HREFs).
 
-:- begin_tests(man_links).
+:- begin_tests(man_links, [condition(manual_available)]).
 
 test(pages_have_links) :-
     all_hrefs(HREFs),
