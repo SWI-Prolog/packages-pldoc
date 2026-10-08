@@ -39,8 +39,13 @@
             doc_file_has_comments/1,    % +File
             is_structured_comment/2,    % +Comment, -Prefixes
             parse_comment/3,            % +Comment, +FilePos, -Parsed
+            parse_comment/5,            % +Comment, +FilePos, +Term, +VarNames,
+                                        % -Parsed
             comment_modes/2,            % +Comment, -Synopsis
             process_comments/3,         % +Comments, +StartTermPos, +File
+            process_comments/5,         % +Comments, +StartTermPos, +Term,
+                                        % +VarNames, +File
+            doc_signature/2,            % ?Object, ?Signature
             doc_file_name/3,            % +Source, -Doc, +Options
             doc_clean/1                 % +Module
           ]).
@@ -79,7 +84,23 @@ well formatted HTML documents.
 %   =prolog_predicate=, used by the IDE tools.
 
 :- multifile
-    prolog:predicate_summary/2.     % ?PI, -Summary
+    prolog:predicate_summary/2,     % ?PI, -Summary
+    prolog:doc_compile_comment/6.   % +Comment, +Lines, +FilePos, +Term,
+                                    % +VarNames, -Compiled
+
+%!  prolog:doc_compile_comment(+Comment:string, +Lines, +FilePos, ?Term,
+%!                             +VarNames, -Compiled:list) is semidet.
+%
+%   Hook to compile structured comments that do not document a
+%   predicate or section, such as the members of an xpce class.  The
+%   hook is tried before the default processing.  Lines are the
+%   indented lines of Comment and Term is the term that follows the
+%   comment.  Term is unbound if Comment is not the last comment before
+%   the term.  VarNames is a list Name=Var for the variables of Term.
+%   If the hook succeeds, Compiled is a list of terms as
+%   described with parse_comment/3, normally holding
+%   object(Object, Summary, Comment) and optionally
+%   signature(Object, Signature).
 
 
 %!  is_structured_comment(+Comment:string,
@@ -224,6 +245,10 @@ doc_file_has_comments(Source) :-
 %           * module(ModuleTitle)
 %           Comment appearing in a module.
 %
+%           * Other objects
+%           Created by the hook prolog:doc_compile_comment/5, e.g.,
+%           xpce(Class, Kind, Name) for members of xpce classes.
+%
 %   If Object is  unbound  and  multiple   objects  share  the  same
 %   description, Object is unified with a   list  of terms described
 %   above.
@@ -256,6 +281,24 @@ doc_comment(Name/Arity, Pos, Summary, Comment) :-
     doc_comment(M:Name/Arity, Pos, Summary, Comment).
 
 
+%!  doc_signature(?Object, ?Signature:string) is nondet.
+%
+%   True when Signature is the signature  of Object as provided by the
+%   hook prolog:doc_compile_comment/6.  Object is qualified as with
+%   doc_comment/4.
+
+doc_signature(M:Object, Signature) :-
+    (   var(M)
+    ->  locally_defined(M:'$pldoc_signature'/2)
+    ;   true
+    ),
+    catch(M:'$pldoc_signature'(Object, Signature), error(_,_), fail).
+doc_signature(Object, Signature) :-
+    Object \= _:_,
+    locally_defined(M:'$pldoc_signature'/2),
+    M:'$pldoc_signature'(Object0, Signature),
+    qualify(M, Object0, Object).
+
 locally_defined(M:Name/Arity) :-
     current_predicate(M:Name/Arity),
     functor(Head, Name, Arity),
@@ -282,6 +325,8 @@ prolog:predicate_summary(PI, Summary) :-
                  *******************************/
 
 %!  process_comments(+Comments:list, +TermPos, +File) is det.
+%!  process_comments(+Comments:list, +TermPos, ?Term, +VarNames,
+%!                   +File) is det.
 %
 %   Processes comments returned by read_term/3 using the =comments=
 %   option.  It creates clauses of the form
@@ -301,25 +346,43 @@ prolog:predicate_summary(PI, Summary) :-
 %
 %   @param Comments is a list Pos-Comment returned by read_term/3
 %   @param TermPos is the start-location of the actual term
+%   @param Term is the term read.  It is passed to the
+%   prolog:doc_compile_comment/6 hook for the last comment before
+%   the term.
+%   @param VarNames is a list Name=Var for the variables of Term.
 %   @param File is the file that is being loaded.
 
-process_comments([], _, _).
-process_comments([Pos-Comment|T], TermPos, File) :-
+process_comments(Comments, TermPos, File) :-
+    process_comments(Comments, TermPos, _, [], File).
+
+process_comments([], _, _, _, _).
+process_comments([Pos-Comment|T], TermPos, Term, VarNames, File) :-
     (   Pos @> TermPos              % comments inside term
     ->  true
-    ;   process_comment(Pos, Comment, File),
-        process_comments(T, TermPos, File)
+    ;   (   last_comment(T, TermPos)
+        ->  CTerm = Term
+        ;   true
+        ),
+        process_comment(Pos, Comment, CTerm, VarNames, File),
+        process_comments(T, TermPos, Term, VarNames, File)
     ).
 
-process_comment(Pos, Comment, File) :-
+last_comment([], _).
+last_comment([Pos-_|_], TermPos) :-
+    Pos @> TermPos.
+
+process_comment(Pos, Comment, Term, VarNames, File) :-
     is_structured_comment(Comment, Prefixes, Style),
     !,
     stream_position_data(line_count, Pos, Line),
     FilePos = File:Line,
-    process_structured_comment(FilePos, Comment, Prefixes, Style).
-process_comment(_, _, _).
+    process_structured_comment(FilePos, Comment, Prefixes,
+                               Term, VarNames, Style).
+process_comment(_, _, _, _, _).
 
 %!  parse_comment(+Comment, +FilePos, -Parsed) is semidet.
+%!  parse_comment(+Comment, +FilePos, ?Term, +VarNames,
+%!                -Parsed) is semidet.
 %
 %   True when Comment is a  structured   comment  and  Parsed is its
 %   parsed representation. Parsed is a list of the following terms:
@@ -335,11 +398,24 @@ process_comment(_, _, _).
 %     Mode declaration.  Head is a term with Mode(Type) terms and
 %     Determinism describes the associated determinism (=det=,
 %     etc.).
+%     * object(Object, Summary, Comment)
+%     Comment for some other Object, produced by the hook
+%     prolog:doc_compile_comment/6.
+%     * signature(Object, Signature)
+%     Signature of Object as a string, produced by the hook
+%     prolog:doc_compile_comment/6.
+%
+%   Term is the term that follows Comment and VarNames is a list
+%   Name=Var for its variables.  Both are passed to
+%   prolog:doc_compile_comment/6.
 
 parse_comment(Comment, FilePos, Parsed) :-
+    parse_comment(Comment, FilePos, _, [], Parsed).
+
+parse_comment(Comment, FilePos, Term, VarNames, Parsed) :-
     is_structured_comment(Comment, Prefixes),
     !,
-    compile_comment(Comment, FilePos, Prefixes, Parsed).
+    compile_comment(Comment, FilePos, Prefixes, Term, VarNames, Parsed).
 
 
 %!  comment_modes(+Comment, -Modes:list) is semidet.
@@ -363,6 +439,7 @@ bind_var(Name=Name).
 %!  process_structured_comment(+FilePos,
 %!                             +Comment:string,
 %!                             +Prefixed:list,
+%!                             ?Term, +VarNames,
 %!                             +Style) is det.
 %
 %   Proccess a structured comment, adding the documentation facts to
@@ -374,7 +451,7 @@ bind_var(Name=Name).
 %   cannot test the clause while  reloading   a  file. Ultimately we
 %   need a better test for this.
 
-process_structured_comment(FilePos, Comment, _, _) :- % already processed
+process_structured_comment(FilePos, Comment, _, _, _, _) :- % already processed
     prolog_load_context(module, M),
     locally_defined(M:'$pldoc'/4),
     catch(M:'$pldoc'(_, FilePos, _, Comment), _, fail),
@@ -385,11 +462,14 @@ process_structured_comment(FilePos, Comment, _, _) :- % already processed
     ;   true
     ),
     !.
-process_structured_comment(FilePos, Comment, Prefixes, Style) :-
-    catch(compile_comment(Comment, FilePos, Prefixes, Compiled), E,
+process_structured_comment(FilePos, Comment, Prefixes, Term, VarNames,
+                           Style) :-
+    catch(compile_comment(Comment, FilePos, Prefixes, Term, VarNames,
+                          Compiled), E,
           comment_warning(Style, E)),
     maplist(store_comment(FilePos), Compiled).
-process_structured_comment(FilePos, Comment, _Prefixes, Style) :-
+process_structured_comment(FilePos, Comment, _Prefixes, _Term, _VarNames,
+                           Style) :-
     comment_style_warning_level(Style, Level),
     print_message(Level,
                   pldoc(invalid_comment(FilePos, Comment))).
@@ -408,17 +488,21 @@ comment_warning(Style, E) :-
     print_message(Level, E),
     fail.
 
-%!  compile_comment(+Comment, +FilePos, +Prefixes, -Compiled) is semidet.
+%!  compile_comment(+Comment, +FilePos, +Prefixes, ?Term, +VarNames,
+%!                  -Compiled) is semidet.
 %
 %   Compile structured Comment into a list   of  terms that describe
 %   the comment.
 %
 %   @see parse_comment/3 for the terms in Compiled.
 
-compile_comment(Comment, FilePos, Prefixes, Compiled) :-
+compile_comment(Comment, FilePos, Prefixes, Term, VarNames, Compiled) :-
     string_codes(Comment, CommentCodes),
     indented_lines(CommentCodes, Prefixes, Lines),
-    (   section_comment_header(Lines, Header, _RestLines)
+    (   prolog:doc_compile_comment(Comment, Lines, FilePos, Term, VarNames,
+                                   Compiled)
+    ->  true
+    ;   section_comment_header(Lines, Header, _RestLines)
     ->  Header = \section(Type, Title),
         Id =.. [Type,Title],
         Compiled = [section(Id, Title, Comment)]
@@ -450,6 +534,12 @@ store_comment(Pos, link(PI, M:PI0)) :-
 store_comment(Pos, mode(Head, Det)) :-
     !,
     compile_clause('$mode'(Head, Det), Pos).
+store_comment(Pos, object(Object, Summary, Comment)) :-
+    !,
+    compile_clause('$pldoc'(Object, Pos, Summary, Comment), Pos).
+store_comment(Pos, signature(Object, Signature)) :-
+    !,
+    compile_clause('$pldoc_signature'(Object, Signature), Pos).
 store_comment(_, Term) :-
     type_error(pldoc_term, Term).
 
@@ -474,7 +564,8 @@ decl_module([H0|T0], M, [H|T]) :-
 doc_clean(Module) :-
     abolish(Module:'$mode'/2),
     abolish(Module:'$pldoc'/4),
-    abolish(Module:'$pldoc_link'/2).
+    abolish(Module:'$pldoc_link'/2),
+    abolish(Module:'$pldoc_signature'/2).
 
 
                  /*******************************

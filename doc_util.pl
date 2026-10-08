@@ -188,6 +188,7 @@ xpce_kind(get).
 xpce_kind(both).
 xpce_kind(ivar).
 xpce_kind(classvar).
+xpce_kind(class).
 
 %!  normalise_white_space(-Text)// is det.
 %

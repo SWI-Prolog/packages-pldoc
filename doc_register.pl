@@ -54,32 +54,33 @@ pldoc_module(pairs).
                  *******************************/
 
 :- multifile
-    prolog:comment_hook/3.
+    prolog:comment_hook/4.
 
 :- dynamic
-    mydoc/3.                        %  +Comments, +TermPos, +File
+    mydoc/5.                        %  +Comments, +TermPos, +Term, +VarNames,
+                                    %  +File
 
-do_comment_hook(_, _, _, _) :-
+do_comment_hook(_, _, _, _, _) :-
     current_prolog_flag(pldoc_collecting, false),
     !.
-do_comment_hook(Comments, TermPos, File, _) :-
+do_comment_hook(Comments, TermPos, File, Term, VarNames) :-
     pldoc_loading,
     !,
-    assert(mydoc(Comments, TermPos, File)).
-do_comment_hook(Comments, TermPos, File, _Term) :-
+    assert(mydoc(Comments, TermPos, Term, VarNames, File)).
+do_comment_hook(Comments, TermPos, File, Term, VarNames) :-
     \+ current_prolog_flag(xref, true),
     prolog_load_context(module, Module),
     pldoc_module(Module),
     !,
-    assert(mydoc(Comments, TermPos, File)).
-do_comment_hook(Comments, TermPos, File, _) :-
+    assert(mydoc(Comments, TermPos, Term, VarNames, File)).
+do_comment_hook(Comments, TermPos, File, Term, VarNames) :-
     (   \+ current_prolog_flag(xref, true)
     ->  true
     ;   current_prolog_flag(xref_store_comments, true)
     ),
-    process_comments(Comments, TermPos, File).
+    process_comments(Comments, TermPos, Term, VarNames, File).
 
-%!  prolog:comment_hook(+Comments, +TermPos, +Term) is det.
+%!  prolog:comment_hook(+Comments, +TermPos, +Term, +VarNames) is det.
 %
 %   Hook called by the compiler and cross-referencer. In addition to
 %   the comment, it passes the  term  itself   to  see  what term is
@@ -89,29 +90,30 @@ do_comment_hook(Comments, TermPos, File, _) :-
 %   @param Comments List of comments read before the end of Term
 %   @param TermPos  Start location of Term
 %   @param Term     Actual term read
+%   @param VarNames List Name=Var for the variables of Term
 
-prolog:comment_hook(Comments, TermPos, Term) :-
+prolog:comment_hook(Comments, TermPos, Term, VarNames) :-
     source_location(File, _TermLine),
     setup_call_cleanup(
         '$push_input_context'(pldoc),  % Preserve input file and line
-        do_comment_hook(Comments, TermPos, File, Term),
+        do_comment_hook(Comments, TermPos, File, Term, VarNames),
         '$pop_input_context').
 
 process_stored_comments :-
-    forall(retract(mydoc(Comments, TermPos, File)),
-           delayed_process(Comments, TermPos, File)).
+    forall(retract(mydoc(Comments, TermPos, Term, VarNames, File)),
+           delayed_process(Comments, TermPos, Term, VarNames, File)).
 
-delayed_process(Comments, TermPos, File) :-
+delayed_process(Comments, TermPos, Term, VarNames, File) :-
     module_property(Module, file(File)),
     setup_call_cleanup(
         '$set_source_module'(Old, Module),
-        process_comments(Comments, TermPos, File),
+        process_comments(Comments, TermPos, Term, VarNames, File),
         '$set_source_module'(_, Old)).
 
 :- multifile prolog:message_action/2.
 
 prolog:message_action(load_file(done(0, _F, _A, _M, _T, _H)), _) :-
-    mydoc(_, _, _),
+    mydoc(_, _, _, _, _),
     \+ pldoc_loading,
     debug(pldoc, 'Processing delayed comments', []),
     process_stored_comments.

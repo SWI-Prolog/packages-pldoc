@@ -459,6 +459,12 @@ xref_doc_object(File, doc(M:Name/Arity,File:0,Comment)) :-
     xref_module(File, Module),
     strip_module(Module:Head, M, Plain),
     functor(Plain, Name, Arity).
+xref_doc_object(File, doc(M:Object,File:0,Comment)) :-
+    xref_object_comment(File, Object, _Summary, Comment),
+    (   xref_module(File, M)
+    ->  true
+    ;   M = user
+    ).
 
 %!  ensure_doc_objects(+File) is det.
 %
@@ -834,9 +840,26 @@ object(Obj, Pairs, Mode0, Mode, Options) -->
 object([Obj|_Same], Pairs, Mode0, Mode, Options) -->
     !,
     object(Obj, Pairs, Mode0, Mode, Options).
+object(Obj, Pairs, Mode0, Mode, Options) -->
+    { phrase(prolog:doc_object(Obj, Pairs, Options), Tokens) },
+    !,
+    need_mode(body, Mode0, Mode),
+    tokens(Tokens).
 object(Obj, _Pairs, Mode, Mode, _Options) -->
     { debug(pldoc, 'Skipped ~p', [Obj]) },
     [].
+
+%!  prolog:doc_object(+Object, +Pairs, +Options)// is semidet.
+%
+%   Hook to emit the documentation of an  Object that is not a predicate,
+%   e.g., the members of an xpce class.  Pairs is a list Pos-Comment for
+%   the comments that document Object.  The output is emitted outside
+%   the description list of the predicates.
+
+%   tokens(+Tokens)// emits a list of HTML tokens.
+
+tokens(Tokens, List, Tail) :-
+    append(Tokens, Tail, List).
 
 pred_dom(Obj, Options, Pos-Comment, DOM) :-
     is_structured_comment(Comment, Prefixes),
