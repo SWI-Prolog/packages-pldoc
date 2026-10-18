@@ -330,6 +330,7 @@ generalise_spec(Name//Arity, M:Name//Arity, M).
 
 :- thread_local
     fragile/0.                      % provided when in fragile mode
+:- public latex//1.                 % Used by gen_refman.pl
 
 latex([]) -->
     !,
@@ -1506,6 +1507,7 @@ summary_line(Obj, _Options) -->
                  *          PRINT TOKENS        *
                  *******************************/
 
+:- public print_latex/3.                             % used by gen_refman.pl
 print_latex(Out, Tokens, Options) :-
     latex_header(Out, Options),
     print_latex_tokens(Tokens, Out),
