@@ -391,7 +391,9 @@ latex(a(Attrs, Content)) -->
     { attribute(href(HREF), Attrs) },
     (   {HREF == Content}
     ->  latex(cmd(url(url_escape(HREF))))
-    ;   { atom_concat(#,Sec,HREF) }
+    ;   { atom_concat(#,Sec0,HREF),
+          delete_unsafe_label_chars(Sec0, Sec)  % as section_label//1
+        }
     ->  latex([Content, ' (', cmd(secref(Sec)), ')'])
     ;   latex(cmd(href(url_escape(HREF), Content)))
     ).
