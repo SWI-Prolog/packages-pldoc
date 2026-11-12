@@ -39,6 +39,7 @@ swipl_plugin(pldoc
 if(MULTI_THREADED)
   test_libs(man_links)
 endif()
+test_libs(doc_access)
 
 swipl_examples(server/README server/man_server.pl)
 

@@ -39,6 +39,10 @@
 :- use_module(library(http/http_hook)).
 :- endif.
 :- use_module(library(dcg/basics)).
+:- autoload(library(uri),
+            [ uri_components/2, uri_data/3,
+              uri_authority_components/2, uri_authority_data/3
+            ]).
 
 :- dynamic
     can_edit/1,
@@ -67,13 +71,62 @@ http:authenticate(pldoc(edit), Request, []) :-
     !,
     (   can_edit(false)
     ->  fail
-    ;   (   memberchk(x_forwarded_for(Forwarded), Request),
-            primary_forwarded_host(Forwarded, IPAtom),
-            parse_ip(IPAtom, Peer)
-        ->  true
-        ;   memberchk(peer(Peer), Request)
-        ),
-        match_peer(localhost, +, Peer)
+    ;   request_peer(Request, Peer),
+        match_peer(localhost, +, Peer),
+        \+ cross_site_request(Request)
+    ).
+
+%!  request_peer(+Request, -Peer) is det.
+%
+%   Peer is the client of Request.  The X-Forwarded-For header is only
+%   used if the request comes from this host, i.e., from a proxy that
+%   runs here.  Otherwise any client could claim to be localhost.
+
+request_peer(Request, Peer) :-
+    memberchk(peer(Direct), Request),
+    (   match_peer(localhost, +, Direct),
+        memberchk(x_forwarded_for(Forwarded), Request),
+        primary_forwarded_host(Forwarded, IPAtom),
+        parse_ip(IPAtom, Forwarded1)
+    ->  Peer = Forwarded1
+    ;   Peer = Direct
+    ).
+
+%!  cross_site_request(+Request) is semidet.
+%
+%   True if the browser tells us Request was made by a page of another
+%   site.  The browser of a user on localhost passes the localhost test,
+%   so any web page could otherwise make it start an editor.  Requests
+%   from tools that send neither header are allowed.
+
+cross_site_request(Request) :-
+    memberchk(sec_fetch_site(Site), Request),
+    !,
+    \+ memberchk(Site, ['same-origin', none]).
+cross_site_request(Request) :-
+    memberchk(origin(Origin), Request),
+    !,
+    \+ same_origin(Origin, Request).
+cross_site_request(Request) :-
+    memberchk(referer(Referer), Request),
+    !,
+    \+ same_origin(Referer, Request).
+
+same_origin(URL, Request) :-
+    memberchk(host(Host), Request),
+    uri_components(URL, Components),
+    uri_data(authority, Components, Authority),
+    atom(Authority),
+    uri_authority_components(Authority, AuthComponents),
+    uri_authority_data(host, AuthComponents, Host),
+    uri_authority_data(port, AuthComponents, URLPort),
+    (   memberchk(port(Port), Request)
+    ->  true
+    ;   Port = 80
+    ),
+    (   var(URLPort)
+    ->  Port == 80
+    ;   URLPort == Port
     ).
 
 
