@@ -715,16 +715,20 @@ delete_unsafe_label_chars(LabelIn, LabelOut) :-
 
 %!  include(+File, +Type, +Options)// is det.
 %
-%   Called from [[File]].
+%   Called from [[File]].  If PI refers to no documented predicates we
+%   emit an item for the reference rather than nothing.  This avoids an
+%   empty description environment, which is a LaTeX error.
 
 include(PI, predicate, _) -->
     !,
-    (   {   options(Options)
-        ->  true
-        ;   Options = []
-        },
-        latex_tokens_for_predicates(PI, Options)
-    ->  []
+    {   options(Options)
+    ->  true
+    ;   Options = []
+    },
+    (   { phrase(latex_tokens_for_predicates(PI, Options), Tokens),
+          Tokens \== []
+        }
+    ->  Tokens
     ;   latex(cmd(item(['[[', \predref(PI), ']]'])))
     ).
 include(File, Type, Options) -->
@@ -1818,3 +1822,5 @@ generated('').
 
 prolog:message(pldoc(no_summary_for(Obj))) -->
     [ 'No summary documentation for ~p'-[Obj] ].
+prolog:message(pldoc(no_predicates_from(Spec))) -->
+    [ 'No documented predicates for ~p'-[Spec] ].
